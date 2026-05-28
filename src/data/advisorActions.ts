@@ -1,0 +1,142 @@
+import type { ActionDef } from '../types';
+
+export const ADVISOR_ACTIONS: ActionDef[] = [
+  // ── OPERATOR ──────────────────────────────────────────────
+  {
+    id: 'liquidate-assets',
+    advisorId: 'operator',
+    name: 'Liquidate Friendly Assets',
+    description: 'Cash out political favors for immediate capital. Burns bridges.',
+    cost: { trust: 3 },
+    resourceEffect: { money: 1400 },
+    advisorEffects: [
+      { advisorId: 'operator', alignment: 5, leverage: 2 },
+      { advisorId: 'analyst', alignment: -2 },
+    ],
+  },
+  {
+    id: 'freeze-vendor-chain',
+    advisorId: 'operator',
+    name: 'Freeze Vendor Chain',
+    description: 'Choke Corporation supply lines through financial pressure.',
+    cost: { money: 800, influence: 2 },
+    resourceEffect: {},
+    advisorEffects: [{ advisorId: 'operator', alignment: 4 }],
+    cpuProgressDelta: -5,
+    cpuShieldDelta: -3,
+  },
+  {
+    id: 'efficiency-audit',
+    advisorId: 'operator',
+    name: 'Efficiency Audit',
+    description: 'Cut waste and extract value. Destabilizes research culture.',
+    cost: {},
+    resourceEffect: { money: 900, stability: -2 },
+    advisorEffects: [
+      { advisorId: 'operator', loyalty: 2, alignment: 3 },
+      { advisorId: 'analyst', alignment: -4 },
+    ],
+  },
+  {
+    id: 'buy-cooperation',
+    advisorId: 'operator',
+    name: 'Buy Temporary Cooperation',
+    description: 'Pay the most resistant advisor to stand down — once. Leverage rises.',
+    cost: { money: 1000 },
+    resourceEffect: {},
+    advisorEffects: [],
+    targetAdvisorCooperation: true,
+  },
+
+  // ── FIXER ──────────────────────────────────────────────────
+  {
+    id: 'sabotage-servers',
+    advisorId: 'fixer',
+    name: 'Sabotage CPU Servers',
+    description: 'Direct infiltration of Corporation infrastructure. Messy.',
+    cost: { intel: 4, money: 600 },
+    resourceEffect: { panic: 4 },
+    advisorEffects: [
+      { advisorId: 'fixer', alignment: 6, leverage: 4 },
+      { advisorId: 'analyst', alignment: -3 },
+    ],
+    cpuProgressDelta: -9,
+  },
+  {
+    id: 'plant-false-intel',
+    advisorId: 'fixer',
+    name: 'Plant False Intel',
+    description: 'Feed misinformation into Corporation planning. Buys one turn.',
+    cost: { intel: 3 },
+    resourceEffect: { trust: -2 },
+    advisorEffects: [{ advisorId: 'fixer', leverage: 3 }],
+    reducesNextCPU: true,
+  },
+  {
+    id: 'bury-scandal',
+    advisorId: 'fixer',
+    name: 'Bury Scandal',
+    description: 'Contain a damaging story before it spreads. Cost: credibility.',
+    cost: { intel: 2, money: 500 },
+    resourceEffect: { panic: -5, trust: -2 },
+    advisorEffects: [{ advisorId: 'fixer', alignment: 4, leverage: 5 }],
+  },
+  {
+    id: 'pressure-vendor',
+    advisorId: 'fixer',
+    name: 'Pressure Vendor Network',
+    description: 'Extract money through coercive leverage. Operator hates this.',
+    cost: { intel: 2 },
+    resourceEffect: { money: 1200, trust: -4 },
+    advisorEffects: [
+      { advisorId: 'fixer', alignment: 5 },
+      { advisorId: 'operator', alignment: -5 },
+    ],
+  },
+
+  // ── ANALYST ───────────────────────────────────────────────
+  {
+    id: 'predict-cpu-move',
+    advisorId: 'analyst',
+    name: 'Predict CPU Move',
+    description: 'Model Corporation strategy to blunt their next action.',
+    cost: { intel: 2 },
+    resourceEffect: { stress: -2 },
+    advisorEffects: [{ advisorId: 'analyst', alignment: 5 }],
+    reducesNextCPU: true,
+  },
+  {
+    id: 'stability-simulation',
+    advisorId: 'analyst',
+    name: 'Stability Simulation',
+    description: 'Run scenario models to reduce systemic risk and panic.',
+    cost: { money: 500, intel: 1 },
+    resourceEffect: { stability: 5, panic: -2 },
+    advisorEffects: [
+      { advisorId: 'analyst', leverage: 2 },
+      { advisorId: 'fixer', alignment: -2 },
+    ],
+  },
+  {
+    id: 'trace-black-ops',
+    advisorId: 'analyst',
+    name: 'Trace Black Ops Trail',
+    description: "Map the Fixer's operations — reduces their risk profile.",
+    cost: { intel: 3 },
+    resourceEffect: {},
+    advisorEffects: [
+      { advisorId: 'analyst', alignment: 5 },
+      { advisorId: 'fixer', alignment: -4 },
+    ],
+    reducesNextFixer: true,
+  },
+  {
+    id: 'decode-architecture',
+    advisorId: 'analyst',
+    name: 'Decode Button Architecture',
+    description: 'Deep technical analysis of BRB schematics. Stressful but productive.',
+    cost: { intel: 3, stress: 3 },
+    resourceEffect: { engineering: 4, stability: 3 },
+    advisorEffects: [{ advisorId: 'analyst', leverage: 3 }],
+  },
+];
