@@ -12,7 +12,7 @@ The player should feel ambitious, pressured, suspicious, temporarily clever, inc
 
 - **What is the game system about?** Converting reusable political resources into irreversible BRB progress while managing advisors, public stability, and a rival power.
 - **What is the game experience about?** Accomplishing something historic while shortcuts create dependence and allies gain leverage.
-- **What is the player's system goal?** Bring all four tracks to activation readiness and activate before the Corporation wins, the state collapses, or the 20-turn limit expires.
+- **What is the player's system goal?** Bring all four tracks to activation readiness and activate before the Corporation wins or the state collapses. There is no calendar deadline.
 - **What is the player's experiential goal?** Discover what kind of ruler they become when the project matters more than the people and institutions needed to build it.
 
 ## Core promise
@@ -42,7 +42,7 @@ Every run builds a unique classified political history. Players should finish fe
 
 Read the situation, inspect costs, compare advice, make a choice, and see what changed.
 
-### Turn-to-turn
+### Month-to-month
 
 Preserve resources, advance the BRB, manage relationships, counter the Corporation, and respond to escalating crises.
 
@@ -113,7 +113,7 @@ Players should infer the current state and adapt. Corporation moves respond to p
 
 ## Situation Deck
 
-The prototype contains 15 interactive Situation Cards and two connected chains. A seeded 65% appearance check means a card is common, but not guaranteed, each turn. The deck has 6 Crisis, 4 Advisor, and 5 Corporation cards; 10 are Common and 5 are Rare. Rarity describes story frequency, not strength.
+The prototype contains 15 interactive Situation Cards and two connected chains. A seeded 55% appearance check means a card is common, but not guaranteed, each turn. The deck has 6 Crisis, 4 Advisor, and 5 Corporation cards; 10 are Common and 5 are Rare. Rarity describes story frequency, not strength.
 
 - Common cards can appear twice with a four-turn cooldown.
 - Rare cards appear once per run.
@@ -126,7 +126,7 @@ The prototype routes are Labor Coalition (`protest_spark → national_march`) an
 
 BRB uses a run structure, not traditional roguelike conventions. It does not need grid movement, dungeons, combat encounters, loot, or permadeath characters.
 
-Each run lasts up to 20 turns and has seeded randomness, a changing Situation Deck, and three archetypes: Technocrat, Populist, and Operator. Each changes card weights, a consultation interaction, a liability, and a possible ending variation—not only starting numbers.
+Each major commitment advances the campaign by one month. Runs have no fixed duration: an exceptional campaign might finish inside a year, while a cautious campaign can span many in-game years. Seeded randomness, a changing Situation Deck, and three archetypes—Technocrat, Populist, and Operator—shape each attempt. Each archetype changes card weights, a consultation interaction, a liability, and a possible ending variation—not only starting numbers.
 
 At the ending, a Declassified Report identifies one pivotal choice, its echoes, one unseen-route hint, and one concrete experiment. Archive v0 keeps only discovered knowledge and the latest report. It never improves starting resources or power.
 
@@ -151,7 +151,7 @@ The itch.io prototype is not the full BRB game. It proves only four things:
 
 - 3 advisors and 3 archetypes
 - 5 active resources and 4 BRB tracks (pending validation)
-- 15–20 turns, 15 interactive Situation Cards, and 2 connected chains
+- Open-ended monthly campaigns, 15 interactive Situation Cards, and 2 connected chains
 - 4 Corporation move types and 3–4 endings
 - One difficulty level, local saves, seeded runs, run summary, and basic simulation tools
 

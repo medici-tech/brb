@@ -3,9 +3,9 @@ import { deserializeArchive, serializeArchive } from "./replay";
 import type { ArchiveV0, DeclassifiedReport, GameState, ReplayIntent } from "./types";
 
 export const STORAGE_KEYS = {
-  activeRun: "brb.active-run.v2",
+  activeRun: "brb.active-run.v3",
   archive: "brb.archive.v0",
-  latestReport: "brb.latest-report.v1",
+  latestReport: "brb.latest-report.v2",
   replayIntent: "brb.replay-intent.v1",
 } as const;
 
@@ -44,7 +44,14 @@ export function loadLatestReport(storage: Storage): DeclassifiedReport | null {
   return raw
     ? safely(() => {
         const value = JSON.parse(raw) as DeclassifiedReport;
-        if (!value.runId || !value.ending || !value.pivotalDecision) throw new Error("Invalid report");
+        if (
+          !value.runId ||
+          !value.ending ||
+          !value.pivotalDecision ||
+          !value.narrativePivot ||
+          !value.strategicPivot ||
+          !value.finalTurningPoint
+        ) throw new Error("Invalid report");
         return value;
       })
     : null;

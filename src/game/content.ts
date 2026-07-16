@@ -18,6 +18,9 @@ export const BASE_RESOURCES: ResourcePool = {
   capacity: 44,
 };
 
+export const CARD_APPEARANCE_CHANCE = 0.55;
+export const DEPOSIT_PROGRESS = { standard: 25, large: 40 } as const;
+
 export const ADVISORS: Record<AdvisorDefinition["id"], AdvisorDefinition> = {
   analyst: {
     id: "analyst",
@@ -583,11 +586,18 @@ export const SITUATION_CARDS: SituationCard[] = [
         routeChanges: [{ routeId: "corporate_exposure", effect: "complete", stepId: "silent_partner" }],
       },
       {
-        id: "monitor",
-        label: "Use it as a controlled channel",
-        effects: { resources: { intelligence: 10, trust: -3 }, corporationThreat: 6 },
+        id: "deal",
+        label: "Make a controlled deal",
+        effects: {
+          resources: { intelligence: 12, influence: 5, trust: -4 },
+          corporationThreat: 7,
+          advisors: { fixer: { leverage: 6, alignment: 4 } },
+        },
         echoHint: "The secret channel now implicates your administration too.",
-        echoes: [{ type: "ending", hint: "Corporate entanglement entered the final record.", contributor: "corporation_entangled" }],
+        echoes: [
+          { type: "ending", hint: "Corporate entanglement entered the final record.", contributor: "corporation_entangled" },
+          { type: "relationship", hint: "The Fixer now controls the channel.", advisorId: "fixer", memory: "silent_partner_channel" },
+        ],
         setFlags: ["audit_resolved"],
         routeChanges: [{ routeId: "corporate_exposure", effect: "close", stepId: "silent_partner" }],
         tags: ["opaque"],
@@ -659,7 +669,15 @@ export const SITUATION_CARDS: SituationCard[] = [
         echoHint: "The movement now expects a place in the BRB settlement.",
         echoes: [{ type: "ending", hint: "A labor-backed settlement entered the final record.", contributor: "labor_backed_activation" }],
         setFlags: ["protest_resolved"],
-        routeChanges: [{ routeId: "labor_coalition", effect: "complete", stepId: "national_march" }],
+        routeChanges: [
+          {
+            routeId: "labor_coalition",
+            effect: "reopen",
+            stepId: "national_march",
+            reason: "National March negotiations reconciled the coalition.",
+          },
+          { routeId: "labor_coalition", effect: "complete", stepId: "national_march" },
+        ],
       },
       {
         id: "ban",

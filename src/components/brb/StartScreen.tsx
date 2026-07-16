@@ -1,4 +1,5 @@
 import { ARCHETYPES } from "../../game/content";
+import { formatCampaignTime } from "../../game/progression";
 import type { ArchetypeId, GameState, ReplayIntent } from "../../game/types";
 
 type Props = {
@@ -33,7 +34,7 @@ export function StartScreen({ savedRun, replayIntent, onStart, onResume, onOpenA
         ) : null}
         {savedRun ? (
           <button className="primary-button resume-button" onClick={onResume}>
-            Resume file · Turn {savedRun.turn}/{savedRun.maxTurns}
+            Resume file · {formatCampaignTime(savedRun.turn)}
           </button>
         ) : null}
       </section>

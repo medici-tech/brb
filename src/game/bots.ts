@@ -6,7 +6,56 @@ import {
   getActionCategory,
   getValidActions,
 } from "./engine";
-import { TRACK_KEYS, type BotId, type GameState, type MajorAction } from "./types";
+import {
+  TRACK_KEYS,
+  type BotId,
+  type BotMonthTrace,
+  type GameState,
+  type MajorAction,
+} from "./types";
+
+const RUSH_BOTS: BotId[] = ["rush", "engineering_first", "access_first"];
+const BOT_NON_TERMINATION_GUARD_MONTHS = 1_200;
+const PUBLIC_BOTS: BotId[] = [
+  "defensive",
+  "institutionalist",
+  "coalition",
+  "legitimacy_first",
+  "stability_first",
+];
+
+function isOneOf(bot: BotId, bots: BotId[]): boolean {
+  return bots.includes(bot);
+}
+
+function shouldResolvePresentedCard(state: GameState, bot: BotId): boolean {
+  if (state.activeCardId && FOLLOW_UP_CARD_IDS.has(state.activeCardId)) return true;
+  const presentationNumber = Math.max(1, state.cardHistory.length);
+  if (isOneOf(bot, RUSH_BOTS) || bot === "command") {
+    const position = presentationNumber % 5;
+    return position !== 0 && position !== 3;
+  }
+  if (isOneOf(bot, PUBLIC_BOTS)) return presentationNumber % 4 !== 0;
+  return presentationNumber % 3 !== 0;
+}
+
+function cardChoiceBonus(state: GameState, cardId: string, choiceId: string, bot: BotId): number {
+  if (cardId === "silent_partner" && choiceId === "deal") {
+    if (bot === "fixer") return 70;
+    if (bot === "command") return 60;
+    if (bot === "access_first") return 45;
+    if (state.archetypeId === "operator") return 20;
+  }
+  if (cardId === "silent_partner" && choiceId === "seize" && isOneOf(bot, PUBLIC_BOTS)) return 15;
+  if (cardId === "protest_spark" && choiceId === "meet" && ["institutionalist", "coalition"].includes(bot)) return 60;
+  if (cardId === "protest_spark" && choiceId === "clear" && bot === "command") return 55;
+  if (cardId === "national_march" && choiceId === "address" && ["institutionalist", "coalition"].includes(bot)) return 60;
+  if (cardId === "national_march" && choiceId === "ban" && bot === "command") return 90;
+  if (cardId === "national_march" && choiceId === "ban" && bot === "rush") return 55;
+  if (cardId === "emergency_powers" && choiceId === "sign" && bot === "command") return 90;
+  if (cardId === "emergency_powers" && choiceId === "sign" && bot === "fixer") return 60;
+  return 0;
+}
 
 function effectScore(
   state: GameState,
@@ -15,7 +64,7 @@ function effectScore(
 ): number {
   const card = SITUATION_CARDS.find((item) => item.id === state.activeCardId);
   const choice = card?.choices.find((item) => item.id === action.choiceId);
-  if (!choice) return -100;
+  if (!card || !choice) return -100;
   const resourceValue = Object.values(choice.effects.resources ?? {}).reduce(
     (sum, value) => sum + value,
     0,
@@ -33,29 +82,42 @@ function effectScore(
       total +
       (changes.loyalty ?? 0) * 0.2 +
       (changes.alignment ?? 0) * 0.2 -
-      (changes.leverage ?? 0) * (bot === "defensive" ? 0.8 : 0.5),
+      (changes.leverage ?? 0) *
+        (bot === "fixer" || bot === "command" ? 0.1 : isOneOf(bot, PUBLIC_BOTS) ? 0.8 : 0.5),
     0,
   );
-  const routeValues = {
-    balanced: { open: 30, advance: 25, complete: 45, close: 0 },
-    defensive: { open: 24, advance: 22, complete: 40, close: 0 },
-    rush: { open: 6, advance: 8, complete: 15, close: 0 },
-  } as const;
+  const routeValues = isOneOf(bot, RUSH_BOTS)
+    ? { touch: 2, open: 6, advance: 8, complete: 15, close: 0, reopen: 8 }
+    : isOneOf(bot, PUBLIC_BOTS)
+      ? { touch: 8, open: 24, advance: 22, complete: 40, close: 0, reopen: 28 }
+      : { touch: 8, open: 30, advance: 25, complete: 45, close: 0, reopen: 30 };
   const routeValue = (choice.routeChanges ?? []).reduce(
-    (total, change) => total + routeValues[bot][change.effect],
+    (total, change) => total + routeValues[change.effect],
     0,
   );
   const cardsAdded = choice.echoes.reduce(
     (total, echo) => total + (echo.type === "card" ? (echo.addCardIds?.length ?? 0) : 0),
     0,
   );
-  const futureCardValue = cardsAdded * (bot === "balanced" ? 18 : bot === "defensive" ? 12 : 2);
+  const futureCardValue = cardsAdded *
+    (isOneOf(bot, RUSH_BOTS) ? 2 : isOneOf(bot, PUBLIC_BOTS) ? 12 : 18);
   const archetypeLiability =
     state.archetypeId === "technocrat" && choice.tags?.includes("opaque")
       ? -3
       : state.archetypeId === "populist" && choice.tags?.includes("public_betrayal")
         ? -6.5
         : 0;
+  const alternativeChoiceBonus = card.choices[1]?.id === choice.id
+    ? bot === "command"
+      ? 55
+      : bot === "fixer"
+        ? 35
+        : bot === "rush"
+          ? 30
+          : bot === "delayed_deposit"
+            ? 25
+            : 0
+    : 0;
   return (
     resourceValue +
     pressureValue +
@@ -67,7 +129,7 @@ function effectScore(
     (choice.effects.institutions ?? 0) * 1.2 -
     (choice.effects.corporationProgress ?? 0) * 1.2 -
     (choice.effects.corporationThreat ?? 0) * 0.6
-  );
+  ) + cardChoiceBonus(state, card.id, choice.id, bot) + alternativeChoiceBonus;
 }
 
 function scoreAction(state: GameState, action: MajorAction, bot: BotId): number {
@@ -119,7 +181,21 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
   if (valid.length === 0) throw new Error("Bot has no valid actions in an active run.");
 
   const activation = valid.find((action) => action.type === "activate_brb");
-  if (activation && state.corporation.progress < 80) return activation;
+  const civicReady =
+    state.tracks.legitimacy >= 75 &&
+    state.tracks.stability >= 75 &&
+    state.institutions >= 55 &&
+    state.pressures.panic < 60;
+  const commandReady =
+    state.archetypeId !== "operator" ||
+    state.systemModifiers.includes("emergency_rule") ||
+    state.advisors.fixer.leverage >= 60;
+  if (
+    activation &&
+    state.corporation.progress < 80 &&
+    (bot !== "institutionalist" || civicReady) &&
+    (bot !== "command" || commandReady)
+  ) return activation;
 
   const cardChoices = valid.filter(
     (action): action is Extract<MajorAction, { type: "resolve_card" }> =>
@@ -128,14 +204,25 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
   const bestCard = cardChoices.sort(
     (a, b) => effectScore(state, b, bot) - effectScore(state, a, bot),
   )[0];
-  if (bestCard && state.activeCardId && FOLLOW_UP_CARD_IDS.has(state.activeCardId)) {
-    return bestCard;
-  }
-  const cardInterval = bot === "rush" ? 5 : bot === "balanced" ? 4 : 3;
-  if (bestCard && state.turn % cardInterval === 0) return bestCard;
+  if (bestCard && shouldResolvePresentedCard(state, bot)) return bestCard;
+
+  const strengthen = valid.find((action) => action.type === "strengthen_faction");
+  if (
+    strengthen &&
+    bot === "coalition" &&
+    state.turn % 4 === 1
+  ) return strengthen;
+
+  const targetedProtection = valid.find((action) => action.type === "protect_institutions");
+  if (
+    targetedProtection &&
+    ((bot === "defensive" && state.turn === 4) ||
+      (bot === "institutionalist" && state.institutions < 30 && state.turn % 3 === 2))
+  ) return targetedProtection;
 
   const predictedStrategy = state.consultation?.predictedStrategy ?? state.corporation.strategy;
-  const counterThreshold = bot === "rush" ? 66 : bot === "balanced" ? 58 : 48;
+  const counterThreshold =
+    bot === "institutionalist" ? 85 : isOneOf(bot, RUSH_BOTS) ? 66 : bot === "balanced" ? 58 : 48;
   const counter = valid.find(
     (action) =>
       action.type === "counter_corporation" &&
@@ -144,7 +231,8 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
   if (activation && counter) return counter;
   if (counter && state.corporation.progress >= counterThreshold) return counter;
 
-  const leverageLimit = state.archetypeId === "operator" ? 72 : 65;
+  const leverageLimit =
+    bot === "fixer" ? 55 : bot === "command" ? 86 : state.archetypeId === "operator" ? 72 : 65;
   const riskyAdvisor = (Object.keys(state.advisors) as (keyof typeof state.advisors)[]).find(
     (id) => state.advisors[id].active && state.advisors[id].leverage >= leverageLimit,
   );
@@ -159,21 +247,41 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
   const lowestTrack = [...TRACK_KEYS].sort(
     (a, b) => state.tracks[a] - state.tracks[b],
   )[0] as (typeof TRACK_KEYS)[number];
-  const preferredSize = state.tracks[lowestTrack] < 32 ? "large" : "standard";
+  const focusTrack =
+    bot === "engineering_first" && state.tracks.engineering < 50 ? "engineering" :
+    bot === "access_first" && state.tracks.access < 50 ? "access" :
+    bot === "legitimacy_first" && state.tracks.legitimacy < 50 ? "legitimacy" :
+    bot === "stability_first" && state.tracks.stability < 50 ? "stability" :
+    bot === "institutionalist" && state.tracks.legitimacy < 75 ? "legitimacy" :
+    bot === "institutionalist" && state.tracks.stability < 75 ? "stability" :
+    bot === "coalition" && state.tracks.legitimacy < 60 ? "legitimacy" :
+    bot === "fixer" && state.tracks.access < 60 ? "access" :
+    bot === "command" && state.tracks.access < 60 ? "access" :
+    lowestTrack;
+  const focusedDepositor = [
+    "institutionalist",
+    "command",
+    "engineering_first",
+    "legitimacy_first",
+    "stability_first",
+    "access_first",
+  ].includes(bot);
+  const preferredSize = state.tracks[focusTrack] < (focusedDepositor ? 60 : 32) ? "large" : "standard";
+  const delayDeposit = bot === "delayed_deposit" && state.turn <= 5;
   const deposit = valid.find(
     (action) =>
       action.type === "deposit" &&
-      action.track === lowestTrack &&
+      action.track === focusTrack &&
       action.size === preferredSize,
   ) ?? valid.find(
     (action) =>
       action.type === "deposit" &&
-      action.track === lowestTrack &&
+      action.track === focusTrack &&
       action.size === "standard",
   );
-  if (deposit) return deposit;
+  if (deposit && !delayDeposit) return deposit;
 
-  const cost = DEPOSIT_COSTS[lowestTrack];
+  const cost = DEPOSIT_COSTS[focusTrack];
   const missingResource = (Object.keys(cost) as (keyof typeof cost)[])
     .filter((resource) => state.resources[resource] < cost[resource])
     .sort(
@@ -186,12 +294,16 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
   if (recovery) return recovery;
 
   if (bestCard) return bestCard;
+  if (deposit) return deposit;
   return [...valid].sort((a, b) => scoreAction(state, b, bot) - scoreAction(state, a, bot))[0] as MajorAction;
 }
 
 function advisorForBot(state: GameState, bot: BotId): keyof typeof ADVISORS {
-  if (bot === "rush") return "analyst";
-  if (bot === "defensive") return "steward";
+  if (["fixer", "command"].includes(bot)) return "fixer";
+  if (["institutionalist", "coalition", "legitimacy_first", "stability_first", "defensive"].includes(bot)) {
+    return "steward";
+  }
+  if (["rush", "engineering_first", "access_first"].includes(bot)) return "analyst";
   const matching = (Object.keys(ADVISORS) as (keyof typeof ADVISORS)[]).find(
     (id) => ADVISORS[id].crisisSpecialty === state.corporation.strategy && state.advisors[id].active,
   );
@@ -202,6 +314,7 @@ export function playBotRun(initialState: GameState, bot: BotId): {
   state: GameState;
   actionCounts: Record<ReturnType<typeof getActionCategory>, number>;
   consultationCounts: Record<keyof typeof ADVISORS, number>;
+  trace: BotMonthTrace[];
 } {
   let state = initialState;
   let commitments = 0;
@@ -216,17 +329,21 @@ export function playBotRun(initialState: GameState, bot: BotId): {
     activate: 0,
   };
   const consultationCounts = { analyst: 0, fixer: 0, steward: 0 };
+  const trace: BotMonthTrace[] = [];
 
   while (state.phase !== "ended") {
     commitments += 1;
-    if (commitments > state.maxTurns + 2) {
-      throw new Error("Bot exceeded the run turn limit without reaching an ending.");
+    if (commitments > BOT_NON_TERMINATION_GUARD_MONTHS) {
+      throw new Error("Bot exceeded the 100-year simulation safety guard without reaching an ending.");
     }
+    let consultationAdvisorId: keyof typeof ADVISORS | null = null;
     const shouldConsult =
       state.resources.intelligence >= 2 &&
       ((bot === "balanced" && state.turn % 3 === 0) ||
-        (bot === "defensive" && state.turn % 2 === 0) ||
-        (bot === "rush" && state.turn % 4 === 0));
+        (bot === "command" && state.advisors.fixer.leverage < 60) ||
+        (["defensive", "fixer", "coalition"].includes(bot) && state.turn % 2 === 0) ||
+        (isOneOf(bot, RUSH_BOTS) && state.turn % 4 === 0) ||
+        (["legitimacy_first", "stability_first", "delayed_deposit"].includes(bot) && state.turn % 3 === 0));
     if (shouldConsult) {
       const advisorId = advisorForBot(state, bot);
       if (state.advisors[advisorId].active) {
@@ -237,17 +354,38 @@ export function playBotRun(initialState: GameState, bot: BotId): {
         );
         if (result.accepted) {
           consultationCounts[advisorId] += 1;
+          consultationAdvisorId = advisorId;
           state = result.state;
         }
       }
     }
 
+    const activeCardId = state.activeCardId;
     const action = chooseBotAction(state, bot);
+    const confirmedCardAbandonment = activeCardId !== null && action.type !== "resolve_card";
     actionCounts[getActionCategory(action)] += 1;
-    const result = commitAction(state, action);
+    const result = commitAction(
+      state,
+      action,
+      confirmedCardAbandonment ? { confirmCardAbandonment: true } : {},
+    );
     if (!result.accepted) throw new Error(result.error ?? "Bot action was rejected.");
     state = result.state;
+    trace.push({
+      month: action.type === "activate_brb" ? state.turn : state.turn - 1,
+      activeCardId,
+      consultationAdvisorId,
+      action,
+      confirmedCardAbandonment,
+      abandonedCardId: confirmedCardAbandonment ? activeCardId : null,
+      tracks: { ...state.tracks },
+      corporationProgress: state.corporation.progress,
+      institutions: state.institutions,
+      panic: state.pressures.panic,
+      highestLeverage: Math.max(...Object.values(state.advisors).map((advisor) => advisor.leverage)),
+      laborCoalitionStatus: state.routes.labor_coalition.status,
+    });
   }
 
-  return { state, actionCounts, consultationCounts };
+  return { state, actionCounts, consultationCounts, trace };
 }

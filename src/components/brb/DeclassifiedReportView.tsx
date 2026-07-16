@@ -28,14 +28,26 @@ export function DeclassifiedReportView({ report, onTestTheory, onOpenNewFile, on
         </dl>
 
         <section className="report-section">
-          <p className="file-label">PIVOTAL DECISION · TURN {report.pivotalDecision.turn}</p>
-          <h2>{report.pivotalDecision.summary}</h2>
-          <p className="score-label">Counterfactual weight {report.pivotalDecision.score}</p>
+          <p className="file-label">NARRATIVE PIVOT · MONTH {report.narrativePivot.turn}</p>
+          <h2>{report.narrativePivot.summary}</h2>
+          <p className="score-label">Narrative weight {report.narrativePivot.score}</p>
           <ul className="echo-list">
-            {report.pivotalDecision.echoHints.length > 0
-              ? report.pivotalDecision.echoHints.map((echo) => <li key={echo}>{echo}</li>)
+            {report.narrativePivot.echoHints.length > 0
+              ? report.narrativePivot.echoHints.map((echo) => <li key={echo}>{echo}</li>)
               : <li>No delayed echo was recovered from this decision.</li>}
           </ul>
+        </section>
+
+        <section className="report-section">
+          <p className="file-label">STRATEGIC PIVOT · MONTH {report.strategicPivot.turn}</p>
+          <h2>{report.strategicPivot.summary}</h2>
+          <p className="score-label">Strategic weight {report.strategicPivot.score}</p>
+        </section>
+
+        <section className="report-section">
+          <p className="file-label">FINAL TURNING POINT · MONTH {report.finalTurningPoint.turn}</p>
+          <h2>{report.finalTurningPoint.summary}</h2>
+          <p className="score-label">Final weight {report.finalTurningPoint.score}</p>
         </section>
 
         <section className="report-section classified-section">

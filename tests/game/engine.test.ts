@@ -8,6 +8,8 @@ import {
   consultAdvisor,
   createGame,
   deserializeGame,
+  formatCampaignTime,
+  getCompletionPressure,
   serializeGame,
 } from "../../src/game/index.js";
 
@@ -61,6 +63,81 @@ describe("consultation phase", () => {
 });
 
 describe("major commitments", () => {
+  it("treats commitments as months without ending at an arbitrary deadline", () => {
+    const state = createGame(2);
+    state.activeCardId = null;
+    state.turn = 120;
+    state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    state.corporation.progress = 0;
+    state.pressures = { stress: 0, panic: 0 };
+    state.institutions = 100;
+
+    const result = commitAction(state, { type: "recover_resource", resource: "money" });
+
+    expect(result.accepted).toBe(true);
+    expect(result.state.phase).not.toBe("ended");
+    expect(result.state.turn).toBe(121);
+    expect(formatCampaignTime(120)).toBe("Month 120 · Year 10, Month 12");
+  });
+
+  it("raises monthly pressure as BRB completion approaches readiness", () => {
+    const state = createGame(3);
+    state.tracks = { engineering: 0, access: 0, legitimacy: 0, stability: 0 };
+    expect(getCompletionPressure(state)).toMatchObject({
+      tier: "quiet",
+      corporationProgressEveryMonths: null,
+      panicEveryMonths: null,
+    });
+
+    state.tracks.engineering = 50;
+    expect(getCompletionPressure(state)).toMatchObject({
+      tier: "watched",
+      corporationProgressEveryMonths: 4,
+      panicEveryMonths: null,
+    });
+
+    state.tracks.access = 50;
+    expect(getCompletionPressure(state)).toMatchObject({
+      tier: "contested",
+      corporationProgressEveryMonths: 3,
+      panicEveryMonths: null,
+    });
+
+    state.tracks.legitimacy = 50;
+    expect(getCompletionPressure(state)).toMatchObject({
+      tier: "severe",
+      corporationProgressEveryMonths: 2,
+      panicEveryMonths: 4,
+    });
+
+    state.tracks.stability = 30;
+    expect(getCompletionPressure(state)).toMatchObject({
+      tier: "critical",
+      corporationProgressEveryMonths: 1,
+      panicEveryMonths: 3,
+    });
+  });
+
+  it("applies the critical surcharge during an eligible month", () => {
+    const low = createGame(8);
+    low.activeCardId = null;
+    low.turn = 12;
+    low.tracks = { engineering: 0, access: 0, legitimacy: 0, stability: 0 };
+    low.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    low.corporation.progress = 0;
+    low.corporation.strategy = "expanding";
+    low.pressures = { stress: 0, panic: 0 };
+    low.institutions = 100;
+
+    const critical = structuredClone(low);
+    critical.tracks = { engineering: 50, access: 50, legitimacy: 50, stability: 30 };
+    const lowResult = commitAction(low, { type: "recover_resource", resource: "money" });
+    const criticalResult = commitAction(critical, { type: "recover_resource", resource: "money" });
+
+    expect(criticalResult.state.corporation.progress).toBe(lowResult.state.corporation.progress + 1);
+    expect(criticalResult.state.pressures.panic).toBe(lowResult.state.pressures.panic + 1);
+  });
+
   it("permanently transfers deposit costs and advances exactly one turn", () => {
     const initial = createGame(3, "technocrat");
     initial.activeCardId = null;
@@ -79,8 +156,53 @@ describe("major commitments", () => {
     expect(result.state.deposited.intelligence).toBe(3);
     expect(result.state.deposited.capacity).toBe(7);
     expect(result.state.resources.money).toBe(before.resources.money - 10);
-    expect(result.state.tracks.engineering).toBe(before.tracks.engineering + 20);
+    expect(result.state.tracks.engineering).toBe(before.tracks.engineering + 25);
     expect(initial).toEqual(before);
+  });
+
+  it("adds 40 progress for a large deposit without changing its 175% cost", () => {
+    const initial = createGame(4, "technocrat");
+    initial.activeCardId = null;
+    initial.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    const result = commitAction(initial, { type: "deposit", track: "engineering", size: "large" });
+
+    expect(result.state.tracks.engineering).toBe(initial.tracks.engineering + 40);
+    expect(result.state.deposited.money).toBe(18);
+    expect(result.state.deposited.intelligence).toBe(6);
+    expect(result.state.deposited.capacity).toBe(13);
+  });
+
+  it("requires explicit confirmation before abandoning an active card", () => {
+    const initial = createGame(73);
+    initial.activeCardId = "budget_shortfall";
+    initial.cardHistory.push({
+      cardId: "budget_shortfall",
+      turn: initial.turn,
+      choiceId: null,
+      outcomeId: null,
+      causedByDecisionId: null,
+      status: "presented",
+    });
+    const before = structuredClone(initial);
+
+    const rejected = commitAction(initial, { type: "recover_resource", resource: "money" });
+    expect(rejected.accepted).toBe(false);
+    expect(rejected.error).toMatch(/confirm/i);
+    expect(rejected.state).toEqual(before);
+
+    const confirmed = commitAction(
+      initial,
+      { type: "recover_resource", resource: "money" },
+      { confirmCardAbandonment: true },
+    );
+    expect(confirmed.accepted).toBe(true);
+    expect(
+      confirmed.state.cardHistory.some(
+        (encounter) => encounter.cardId === "budget_shortfall" && encounter.status === "ignored",
+      ),
+    ).toBe(true);
+    expect(confirmed.state.decisionHistory.at(-2)?.choiceId).toBe("ignored");
+    expect(confirmed.state.decisionHistory.at(-1)?.category).toBe("recover");
   });
 
   it("blocks the Corporation when the player counters the predicted strategy", () => {
@@ -101,6 +223,7 @@ describe("major commitments", () => {
 
   it("rejects actions the player cannot afford without mutating state", () => {
     const initial = createGame(7);
+    initial.activeCardId = null;
     initial.resources.money = 0;
     const before = structuredClone(initial);
     const result = commitAction(initial, {
@@ -122,7 +245,8 @@ describe("endings", () => {
     state.institutions = 80;
     state.pressures.panic = 20;
     state.corporation.progress = 30;
-    state.routes.labor_coalition.status = "completed";
+    state.activeCardId = null;
+    state.endingContributors.push("public_testimony");
     for (const advisor of Object.values(state.advisors)) advisor.leverage = 20;
 
     const result = commitAction(state, { type: "activate_brb" });
@@ -135,8 +259,21 @@ describe("endings", () => {
     const state = createGame(22);
     state.tracks = { engineering: 60, access: 60, legitimacy: 60, stability: 60 };
     state.corporation.progress = 85;
+    state.activeCardId = null;
 
     const result = commitAction(state, { type: "activate_brb" });
     expect(result.state.ending?.id).toBe("corporate_capture");
+  });
+
+  it("makes Government by Command directly reachable for an Operator", () => {
+    const state = createGame(23, "operator");
+    state.tracks = { engineering: 60, access: 60, legitimacy: 60, stability: 60 };
+    state.corporation.progress = 20;
+    state.advisors.fixer.leverage = 60;
+    state.activeCardId = null;
+
+    const result = commitAction(state, { type: "activate_brb" });
+    expect(result.state.ending?.id).toBe("compromised_activation");
+    expect(result.state.ending?.variationId).toBe("government_by_command");
   });
 });

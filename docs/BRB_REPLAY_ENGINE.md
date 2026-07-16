@@ -31,13 +31,13 @@ Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards remain futur
 - Immediate effects
 - At least one delayed echo
 
-Common cards can be drawn twice and require four turns between draws. Rare cards can be drawn once. Follow-up cards begin outside the available deck and enter only through a prior echo. A card can also remove a future card, making a closed route mechanically real rather than descriptive text.
+Common cards can be drawn twice and require four months between draws. Rare cards can be drawn once. Follow-up cards begin outside the available deck and enter only through a prior echo. A card can also remove a future card, making a closed route mechanically real rather than descriptive text.
 
 Corporation cards show a scheme or fallout the player can answer. They do not replace the automatic Corporation response after the player's major commitment.
 
 ## Seeded draw order
 
-Each turn makes a seeded 65% appearance roll. An eligible card must:
+Each month makes a seeded 55% appearance roll. An eligible card must:
 
 1. Be present in the current deck.
 2. Meet turn, resource, track, flag, and Corporation-strategy requirements.
@@ -45,6 +45,8 @@ Each turn makes a seeded 65% appearance roll. An eligible card must:
 4. Be outside its cooldown window.
 
 The engine then performs a seeded weighted choice. An archetype multiplies the weight of its favored card type by 1.25. Identical seed and decisions therefore produce identical cards, history, and reports.
+
+An active card must be resolved or explicitly abandoned. Choosing a non-card commitment first opens a confirmation; accepting applies the card's ignored or suppressed outcome and then performs the selected commitment in the same turn. Activation instead preserves the card's existing `expired` classification. Bots use deterministic presentation-count policies, and always resolve follow-up cards, so their card tempo remains reproducible without turn-number intervals.
 
 ## Echoes and provenance
 
@@ -67,13 +69,27 @@ Thresholds decide whether a card can activate. Route history, advisor memories, 
 
 `protest_spark → national_march`
 
-Meeting organizers opens the route and adds the march. Clearing or ignoring the protest closes it. The second card can complete or close the route and adds public-history evidence to the ending.
+Meeting organizers opens the route and adds the march. Clearing or ignoring the protest closes it. Addressing the later march may explicitly reconcile a closed coalition: the history records `closed → reopened → completed`, with the closing and reopening decisions preserved. Completion can never silently overwrite closure.
 
 ### Corporate Exposure
 
 `audit_discrepancy → silent_partner`
 
 Following the discrepancy opens the route and adds the ownership follow-up. Closing or ignoring the audit removes it. Resolving the silent partner records whether the Corporation was exposed, entangled with government, or allowed to ascend.
+
+### Route integrity and provenance
+
+Route status is explicit: `unseen`, `touched`, `open`, `closed`, `reopened`, or `completed`. Every transition records its prior and next state, effect, decision ID, turn, step, and reason. The legal paths are:
+
+```text
+unseen → touched
+touched → open | closed
+open → completed | closed
+closed → reopened
+reopened → completed | closed
+```
+
+Illegal transitions throw during resolution. A completed route is classified as normal, reconciled, or invalid; invalid completions are excluded from endings, reports, and Archive completion history.
 
 ## Archetype replay differences
 
@@ -103,13 +119,15 @@ Following the discrepancy opens the route and adds the ownership follow-up. Clos
 Every ending produces one deterministic `DeclassifiedReport` with:
 
 - Ending and optional archetype variation
-- One pivotal decision
+- One narrative pivot
+- One strategic pivot
+- One final turning point from the last five months
 - Echoes caused by that decision
 - One completed route, if any
 - One unseen-route hint
 - One concrete next-run experiment
 
-The score is additive:
+The narrative score is additive:
 
 | Evidence | Score |
 | --- | ---: |
@@ -122,7 +140,7 @@ The score is additive:
 | Later linked consequence | +5 each |
 | Immediate state change | Up to +15 |
 
-Ties favor the earlier turn, then the earlier deterministic decision ID. The report is derived entirely from final `GameState`, so regenerating it is stable.
+The strategic score caps immediate and persistent impact at 20 each; scores route changes at 20, ending contributors at 15, and deck changes at 10; caps Corporation impact at 20; adds at most 12 for irreversibility; and scores advisor memories at 8 and system modifiers at 15. Deposit cost and progress are therefore represented without being counted repeatedly. The final-turn score uses the same evidence but only considers the final five months. Narrative and strategic ties favor the earlier month; final-turn ties favor the later month. The report is derived entirely from final `GameState`, so regenerating it is stable.
 
 Hint selection first chooses a route closed by the pivotal choice, then an incomplete route. When neither route was touched, it shows a classified silhouette without exposing requirements. The suggested experiment converts the hint into a direct, non-mechanical objective.
 
@@ -169,11 +187,15 @@ The Next.js App Router build uses static export. Hosting and itch.io publishing 
 Post-replay reports add:
 
 - Card draws by type and rarity
+- Cards presented, resolved, ignored, expired, auto-resolved, and suppressed
+- Choice selections per card
 - Echo counts by category
-- Routes touched and deliberately opened
-- Chains started and completed
-- Routes closed
-- Pivotal-decision categories
+- Routes touched, opened, reopened, unfinished, and permanently closed
+- Normal, reconciled, and invalid completions
+- Narrative, strategic, and final-turn pivot categories
+- Ordered ending funnels with entered, passed, and dropped counts
+- A deterministic closest-attempt trace for the institutional bot's Civic Legacy candidate
+- Results by basic, political, command, Fixer, institutional, and deposit-specialist bots
 - Ending-contributor counts
 - Archetype ending variations
 
@@ -185,8 +207,13 @@ The prior 10,000-run report remains labeled **pre-replay architecture**. The new
 - Seeded weighted draws, requirements, cooldowns, limits, additions, and removals
 - Identical choices reproduce history; one changed choice creates traceable divergence
 - Every card outcome records immediate effects, an echo, and provenance
+- Closed routes cannot complete without an explicit reopen; invalid completions remain zero
+- Presented cards receive an explicit final classification
+- Important card choices are exercised by at least one strategy
 - Advisor memories, archetype abilities, liabilities, routes, and ending variations operate in the engine
 - Every ending creates a stable pivotal decision, hint, and experiment
 - Archive merging is idempotent, reveals only knowledge, and grants no power
 - Browser tests cover card choices, immediate consequences, hidden echo details, silhouettes, report rendering, and both replay buttons
 - TypeScript, unit/component tests, static build, and the 10,000-run simulator pass before Phase 2 tuning
+
+The corrected 10,000-run architecture report passes provenance and coverage checks. Phase 1.5 is still not approved for balance: Civic Legacy remains absent, only 36.1% of presented cards are actively resolved, and the victory rate remains below the prototype target.

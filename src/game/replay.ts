@@ -1,9 +1,16 @@
 import { ROUTE_DEFINITIONS, SITUATION_CARDS } from "./content";
 import { ROUTE_IDS, type ArchiveV0, type DeclassifiedReport, type DecisionRecord, type GameState, type ReplayIntent, type RouteId, type UnseenRouteHint } from "./types";
 
+function routeCompletionIsValid(state: GameState, routeId: RouteId): boolean {
+  const route = state.routes[routeId];
+  if (route.status !== "completed" || !route.completedByDecisionId || route.completedTurn === null) return false;
+  const completion = [...route.transitions].reverse().find((transition) => transition.effect === "complete");
+  return completion?.from === "open" || completion?.from === "reopened";
+}
+
 export function scoreDecision(decision: DecisionRecord): number {
   return (
-    (decision.routesOpened.length + decision.routesClosed.length) * 40 +
+    (decision.routesOpened.length + decision.routesReopened.length + decision.routesClosed.length) * 40 +
     (decision.routesAdvanced.length + decision.routesCompleted.length) * 30 +
     (decision.cardsAdded.length + decision.cardsRemoved.length) * 20 +
     decision.endingContributors.length * 20 +
@@ -14,15 +21,36 @@ export function scoreDecision(decision: DecisionRecord): number {
   );
 }
 
-function selectPivotalDecision(state: GameState): DecisionRecord {
-  for (const decision of state.decisionHistory) {
-    decision.pivotalScore = scoreDecision(decision);
-  }
-  const selected = [...state.decisionHistory].sort(
-    (a, b) => b.pivotalScore - a.pivotalScore || a.turn - b.turn,
-  )[0];
-  if (selected) return selected;
+export function scoreStrategicDecision(decision: DecisionRecord): number {
+  const routeImpact =
+    decision.routesOpened.length +
+    decision.routesReopened.length +
+    decision.routesAdvanced.length +
+    decision.routesCompleted.length +
+    decision.routesClosed.length;
+  return Math.round(
+    Math.min(20, decision.immediateDeltaScore) +
+    Math.min(20, decision.persistentImpactScore) +
+    routeImpact * 20 +
+    decision.endingContributors.length * 15 +
+    (decision.cardsAdded.length + decision.cardsRemoved.length) * 10 +
+    Math.min(20, decision.corporationImpactScore * 1.5) +
+    Math.min(12, decision.irreversibilityScore * 0.15) +
+    decision.advisorMemories.length * 8 +
+    decision.systemModifiers.length * 15,
+  );
+}
 
+function scoreFinalTurningPoint(decision: DecisionRecord): number {
+  return (
+    scoreStrategicDecision(decision) +
+    decision.endingContributors.length * 20 +
+    decision.routesCompleted.length * 20 +
+    decision.linkedConsequences * 5
+  );
+}
+
+function fallbackDecision(state: GameState): DecisionRecord {
   return {
     id: "system-no-decision",
     turn: state.turn,
@@ -37,6 +65,7 @@ function selectPivotalDecision(state: GameState): DecisionRecord {
     cardsAdded: [],
     cardsRemoved: [],
     routesOpened: [],
+    routesReopened: [],
     routesAdvanced: [],
     routesCompleted: [],
     routesClosed: [],
@@ -45,7 +74,50 @@ function selectPivotalDecision(state: GameState): DecisionRecord {
     advisorMemories: [],
     linkedConsequences: 0,
     immediateDeltaScore: 0,
+    persistentImpactScore: 0,
+    corporationImpactScore: 0,
+    resourceOpportunityCost: 0,
+    irreversibilityScore: 0,
+    narrativeScore: 0,
+    strategicScore: 0,
+    finalTurningPointScore: 0,
     pivotalScore: 0,
+  };
+}
+
+function selectPivotalDecisions(state: GameState): {
+  narrative: DecisionRecord;
+  strategic: DecisionRecord;
+  finalTurningPoint: DecisionRecord;
+} {
+  for (const decision of state.decisionHistory) {
+    decision.narrativeScore = scoreDecision(decision);
+    decision.strategicScore = scoreStrategicDecision(decision);
+    decision.finalTurningPointScore = scoreFinalTurningPoint(decision);
+    decision.pivotalScore = decision.narrativeScore;
+  }
+  const fallback = fallbackDecision(state);
+  const narrative = [...state.decisionHistory].sort(
+    (a, b) => b.narrativeScore - a.narrativeScore || a.turn - b.turn,
+  )[0] ?? fallback;
+  const strategic = [...state.decisionHistory].sort(
+    (a, b) => b.strategicScore - a.strategicScore || a.turn - b.turn,
+  )[0] ?? fallback;
+  const finalWindowStart = Math.max(1, state.turn - 5);
+  const lateDecisions = state.decisionHistory.filter((decision) => decision.turn >= finalWindowStart);
+  const finalTurningPoint = [...(lateDecisions.length > 0 ? lateDecisions : state.decisionHistory)].sort(
+    (a, b) => b.finalTurningPointScore - a.finalTurningPointScore || b.turn - a.turn,
+  )[0] ?? fallback;
+  return { narrative, strategic, finalTurningPoint };
+}
+
+function asPivot(decision: DecisionRecord, score: number): DeclassifiedReport["pivotalDecision"] {
+  return {
+    decisionId: decision.id,
+    turn: decision.turn,
+    summary: decision.summary,
+    score,
+    echoHints: [...decision.echoHints],
   };
 }
 
@@ -57,7 +129,9 @@ function chooseUnseenRouteHint(state: GameState, pivotal: DecisionRecord): Unsee
   );
   const incomplete = ROUTE_IDS.find(
     (routeId) =>
-      state.routes[routeId].status === "opened" ||
+      state.routes[routeId].status === "open" ||
+      state.routes[routeId].status === "reopened" ||
+      state.routes[routeId].status === "touched" ||
       (state.routes[routeId].status === "closed" && state.routes[routeId].discoveredSteps.length > 0),
   );
   const routeId = closedByPivotal ?? incomplete;
@@ -71,7 +145,7 @@ function chooseUnseenRouteHint(state: GameState, pivotal: DecisionRecord): Unsee
     };
   }
 
-  const untouched = ROUTE_IDS.find((id) => state.routes[id].status === "unknown") ?? "labor_coalition";
+  const untouched = ROUTE_IDS.find((id) => state.routes[id].status === "unseen") ?? "labor_coalition";
   return {
     routeId: null,
     label: "████████ — CLASSIFIED",
@@ -98,7 +172,7 @@ function suggestedExperiment(
       : "Change the pivotal Situation Card decision and follow its echo.";
   }
   if (pivotal.category === "deposit") {
-    return `Delay the Turn ${pivotal.turn} deposit and answer the political pressure first.`;
+    return `Delay the Month ${pivotal.turn} deposit and answer the political pressure first.`;
   }
   if (state.archetypeId === "technocrat") return "Activate without using an opaque solution.";
   if (state.archetypeId === "populist") return "Reach activation without betraying a public promise.";
@@ -107,24 +181,25 @@ function suggestedExperiment(
 
 export function buildDeclassifiedReport(state: GameState): DeclassifiedReport {
   if (!state.ending) throw new Error("A Declassified Report requires a completed run.");
-  const pivotal = selectPivotalDecision(state);
-  const hint = chooseUnseenRouteHint(state, pivotal);
-  const completedRoute = ROUTE_IDS.find((id) => state.routes[id].status === "completed") ?? null;
+  const pivots = selectPivotalDecisions(state);
+  const hint = chooseUnseenRouteHint(state, pivots.narrative);
+  const completedRoute = ROUTE_IDS.find((id) => routeCompletionIsValid(state, id)) ?? null;
+  const narrativePivot = asPivot(pivots.narrative, pivots.narrative.narrativeScore);
   return {
     runId: state.runId,
     seed: state.seed,
     archetypeId: state.archetypeId,
     ending: structuredClone(state.ending),
-    pivotalDecision: {
-      decisionId: pivotal.id,
-      turn: pivotal.turn,
-      summary: pivotal.summary,
-      score: pivotal.pivotalScore,
-      echoHints: [...pivotal.echoHints],
-    },
+    pivotalDecision: narrativePivot,
+    narrativePivot,
+    strategicPivot: asPivot(pivots.strategic, pivots.strategic.strategicScore),
+    finalTurningPoint: asPivot(
+      pivots.finalTurningPoint,
+      pivots.finalTurningPoint.finalTurningPointScore,
+    ),
     completedRoute,
     unseenRouteHint: hint,
-    suggestedExperiment: suggestedExperiment(state, pivotal, hint),
+    suggestedExperiment: suggestedExperiment(state, pivots.narrative, hint),
   };
 }
 
@@ -167,7 +242,7 @@ export function mergeRunIntoArchive(archive: ArchiveV0, state: GameState): Archi
       next.routes[routeId].highestStep,
       route.discoveredSteps.length,
     );
-    if (route.status === "completed") next.routes[routeId].completed = true;
+    if (routeCompletionIsValid(state, routeId)) next.routes[routeId].completed = true;
   }
   return next;
 }

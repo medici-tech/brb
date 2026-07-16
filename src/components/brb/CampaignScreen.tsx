@@ -5,13 +5,15 @@ import {
   getBriefing,
   getValidActions,
 } from "../../game/engine";
+import { formatCampaignTime } from "../../game/progression";
 import { RESOURCE_KEYS, TRACK_KEYS } from "../../game/types";
-import type { AdvisorId, GameState, MajorAction } from "../../game/types";
+import type { AdvisorId, CommitOptions, GameState, MajorAction } from "../../game/types";
+import { ConfirmActionDialog } from "./ui/decisions";
 
 type Props = {
   state: GameState;
   error: string | null;
-  onCommit: (action: MajorAction) => void;
+  onCommit: (action: MajorAction, options?: CommitOptions) => void;
   onConsult: (advisorId: AdvisorId, useAbility: boolean) => void;
   onOpenArchive: () => void;
 };
@@ -34,12 +36,45 @@ export function CampaignScreen({ state, error, onCommit, onConsult, onOpenArchiv
   const latestDecision = state.decisionHistory.at(-1);
   const canActivate = valid.some((action) => action.type === "activate_brb");
 
+  function commitmentButton(
+    key: string,
+    label: string,
+    action: MajorAction,
+    className?: string,
+    disabled = false,
+  ) {
+    const trigger = (
+      <button key={key} className={className} disabled={disabled} onClick={card ? undefined : () => onCommit(action)}>
+        {label}
+      </button>
+    );
+    if (!card) return trigger;
+    const expires = action.type === "activate_brb";
+    return (
+      <ConfirmActionDialog
+        key={key}
+        trigger={trigger}
+        title={expires ? `Activate with “${card.title}” unresolved?` : `Ignore “${card.title}”?`}
+        description={
+          expires
+            ? "Activation ends the campaign and this Situation Card will expire unresolved."
+            : `${card.ignoredOutcome.echoHint} Confirming applies that consequence before the selected commitment.`
+        }
+        confirmAction={{
+          label: expires ? "Expire card and activate" : `Ignore card and ${label}`,
+          disabled,
+          onSelect: () => onCommit(action, { confirmCardAbandonment: true }),
+        }}
+      />
+    );
+  }
+
   return (
     <main className="shell campaign-shell">
       <header className="masthead">
         <div>
           <p className="eyebrow">BRB CONTROL ROOM · {state.runId.slice(0, 14)}</p>
-          <strong>Turn {state.turn} / {state.maxTurns}</strong>
+          <strong>{formatCampaignTime(state.turn)}</strong>
         </div>
         <button className="text-button" onClick={onOpenArchive}>Archive</button>
       </header>
@@ -98,19 +133,13 @@ export function CampaignScreen({ state, error, onCommit, onConsult, onOpenArchiv
                 <div><span>{LABELS[track]}</span><strong>{state.tracks[track]} / 50</strong></div>
                 <progress max="100" value={state.tracks[track]} />
                 <div className="track-actions">
-                  <button onClick={() => onCommit({ type: "deposit", track, size: "standard" })}>
-                    Deposit
-                  </button>
-                  <button onClick={() => onCommit({ type: "deposit", track, size: "large" })}>
-                    Large
-                  </button>
+                  {commitmentButton(`${track}-standard`, "Deposit", { type: "deposit", track, size: "standard" })}
+                  {commitmentButton(`${track}-large`, "Large", { type: "deposit", track, size: "large" })}
                 </div>
                 <small>Standard: {Object.entries(DEPOSIT_COSTS[track]).filter(([, amount]) => amount > 0).map(([key, amount]) => `${amount} ${LABELS[key]}`).join(" · ")}</small>
               </div>
             ))}
-            <button className="activate-button" disabled={!canActivate} onClick={() => onCommit({ type: "activate_brb" })}>
-              Activate BRB
-            </button>
+            {commitmentButton("activate", "Activate BRB", { type: "activate_brb" }, "activate-button", !canActivate)}
           </section>
         </aside>
       </div>
@@ -138,11 +167,11 @@ export function CampaignScreen({ state, error, onCommit, onConsult, onOpenArchiv
         <article className="dark-panel actions-panel">
           <p className="file-label">OTHER COMMITMENTS</p>
           <div className="button-grid">
-            <button onClick={() => onCommit({ type: "counter_corporation", predictedStrategy: state.consultation?.predictedStrategy ?? state.corporation.strategy })}>Counter {state.consultation?.predictedStrategy ?? state.corporation.strategy}</button>
-            <button onClick={() => onCommit({ type: "protect_institutions" })}>Protect institutions</button>
-            <button onClick={() => onCommit({ type: "strengthen_faction" })}>Strengthen coalition</button>
-            <button onClick={() => onCommit({ type: "manage_advisor", advisorId: "fixer" })}>Manage Fixer</button>
-            {RESOURCE_KEYS.map((resource) => <button key={resource} onClick={() => onCommit({ type: "recover_resource", resource })}>Recover {LABELS[resource]}</button>)}
+            {commitmentButton("counter", `Counter ${state.consultation?.predictedStrategy ?? state.corporation.strategy}`, { type: "counter_corporation", predictedStrategy: state.consultation?.predictedStrategy ?? state.corporation.strategy })}
+            {commitmentButton("institutions", "Protect institutions", { type: "protect_institutions" })}
+            {commitmentButton("faction", "Strengthen coalition", { type: "strengthen_faction" })}
+            {commitmentButton("fixer", "Manage Fixer", { type: "manage_advisor", advisorId: "fixer" })}
+            {RESOURCE_KEYS.map((resource) => commitmentButton(`recover-${resource}`, `Recover ${LABELS[resource]}`, { type: "recover_resource", resource }))}
           </div>
         </article>
 

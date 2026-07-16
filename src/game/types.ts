@@ -118,8 +118,9 @@ export type CardEcho =
 
 export type RouteChange = {
   routeId: RouteId;
-  effect: "open" | "advance" | "complete" | "close";
+  effect: "touch" | "open" | "advance" | "complete" | "close" | "reopen";
   stepId?: string;
+  reason?: string;
 };
 
 export type SituationOutcome = {
@@ -212,15 +213,43 @@ export type CardEncounter = {
   choiceId: string | null;
   outcomeId: string | null;
   causedByDecisionId: string | null;
+  status: CardEncounterStatus;
 };
 
-export type RouteStatus = "unknown" | "opened" | "completed" | "closed";
+export type CardEncounterStatus =
+  | "presented"
+  | "resolved"
+  | "ignored"
+  | "expired"
+  | "auto_resolved"
+  | "suppressed";
+
+export type RouteStatus = "unseen" | "touched" | "open" | "closed" | "reopened" | "completed";
+
+export type RouteTransition = {
+  from: RouteStatus;
+  to: RouteStatus;
+  effect: RouteChange["effect"];
+  decisionId: string;
+  turn: number;
+  stepId: string | null;
+  reason: string;
+};
 
 export type RouteState = {
   status: RouteStatus;
   discoveredSteps: string[];
+  touchedByDecisionId: string | null;
+  touchedTurn: number | null;
   openedByDecisionId: string | null;
+  openedTurn: number | null;
   closedByDecisionId: string | null;
+  closedTurn: number | null;
+  reopenedByDecisionId: string | null;
+  reopenedTurn: number | null;
+  completedByDecisionId: string | null;
+  completedTurn: number | null;
+  transitions: RouteTransition[];
 };
 
 export type DecisionRecord = {
@@ -237,6 +266,7 @@ export type DecisionRecord = {
   cardsAdded: string[];
   cardsRemoved: string[];
   routesOpened: RouteId[];
+  routesReopened: RouteId[];
   routesAdvanced: RouteId[];
   routesCompleted: RouteId[];
   routesClosed: RouteId[];
@@ -245,6 +275,13 @@ export type DecisionRecord = {
   advisorMemories: string[];
   linkedConsequences: number;
   immediateDeltaScore: number;
+  persistentImpactScore: number;
+  corporationImpactScore: number;
+  resourceOpportunityCost: number;
+  irreversibilityScore: number;
+  narrativeScore: number;
+  strategicScore: number;
+  finalTurningPointScore: number;
   pivotalScore: number;
 };
 
@@ -269,6 +306,9 @@ export type DeclassifiedReport = {
   archetypeId: ArchetypeId;
   ending: Ending;
   pivotalDecision: PivotalDecision;
+  narrativePivot: PivotalDecision;
+  strategicPivot: PivotalDecision;
+  finalTurningPoint: PivotalDecision;
   completedRoute: RouteId | null;
   unseenRouteHint: UnseenRouteHint;
   suggestedExperiment: string;
@@ -283,12 +323,11 @@ export type DeckState = {
 };
 
 export type GameState = {
-  version: 2;
+  version: 3;
   runId: string;
   seed: number;
   rngState: number;
   turn: number;
-  maxTurns: number;
   phase: "briefing" | "consulted" | "ended";
   archetypeId: ArchetypeId;
   experiment: string | null;
@@ -324,7 +363,6 @@ export type GameState = {
 export type CreateGameOptions = {
   seed: number;
   archetypeId?: ArchetypeId;
-  maxTurns?: number;
   runId?: string;
   experiment?: string;
 };
@@ -344,6 +382,10 @@ export type MajorAction =
   | { type: "recover_resource"; resource: ResourceKey }
   | { type: "protect_institutions" }
   | { type: "activate_brb" };
+
+export type CommitOptions = {
+  confirmCardAbandonment?: boolean;
+};
 
 export type ActionResult = {
   state: GameState;
@@ -377,7 +419,87 @@ export type ReplayIntent = {
   experiment: string;
 };
 
-export type BotId = "balanced" | "rush" | "defensive";
+export type BotId =
+  | "balanced"
+  | "rush"
+  | "defensive"
+  | "fixer"
+  | "institutionalist"
+  | "command"
+  | "coalition"
+  | "engineering_first"
+  | "legitimacy_first"
+  | "stability_first"
+  | "access_first"
+  | "delayed_deposit";
+
+export type CivicRequirementId =
+  | "all_tracks_50"
+  | "corporation_access_safe"
+  | "legitimacy_75"
+  | "stability_75"
+  | "institutions_55"
+  | "panic_below_60"
+  | "leverage_below_65"
+  | "no_emergency_rule"
+  | "civic_history";
+
+export type CivicRequirementObservation = {
+  id: CivicRequirementId;
+  label: string;
+  passed: boolean;
+  actual: number | boolean | string;
+  target: string;
+};
+
+export type CivicLegacyEvaluation = {
+  eligible: boolean;
+  observations: CivicRequirementObservation[];
+};
+
+export type EndingFunnelStage = {
+  id: string;
+  label: string;
+  entered: number;
+  passed: number;
+  dropped: number;
+};
+
+export type BotMonthTrace = {
+  month: number;
+  activeCardId: string | null;
+  consultationAdvisorId: AdvisorId | null;
+  action: MajorAction;
+  confirmedCardAbandonment: boolean;
+  abandonedCardId: string | null;
+  tracks: TrackPool;
+  corporationProgress: number;
+  institutions: number;
+  panic: number;
+  highestLeverage: number;
+  laborCoalitionStatus: RouteStatus;
+};
+
+export type ClosestAttemptTrace = {
+  botId: "institutionalist";
+  runIndex: number;
+  seed: number;
+  archetypeId: ArchetypeId;
+  endingId: EndingId;
+  matchedRequirements: number;
+  totalRequirements: number;
+  deficitScore: number;
+  firstFailedStageId: string;
+  observations: CivicRequirementObservation[];
+  months: BotMonthTrace[];
+};
+
+export type EndingFunnel = {
+  candidates: number;
+  stages: EndingFunnelStage[];
+  completions: number;
+  closestAttempt?: ClosestAttemptTrace;
+};
 
 export type SimulationOptions = {
   runs: number;
@@ -391,17 +513,42 @@ export type SimulationReport = {
   endings: Record<EndingId, number>;
   endingVariations: Record<EndingVariationId, number>;
   victories: number;
-  averageTurns: number;
+  averageMonths: number;
+  outcomeSummary: {
+    activations: number;
+    activationRate: number;
+    collapseRate: number;
+    corporateCaptureRate: number;
+    premiumEndings: number;
+    premiumEndingRate: number;
+  };
+  cardTempo: {
+    presentedPerRun: number;
+    activelyResolvedPerRun: number;
+    ignoredPerRun: number;
+  };
   actionUsage: Record<ActionCategory, number>;
   cardDrawsByType: Record<CardType, number>;
   cardDrawsByRarity: Record<CardRarity, number>;
   echoCategories: Record<EchoType, number>;
   routesTouched: Record<RouteId, number>;
   routesOpened: Record<RouteId, number>;
+  routesReopened: Record<RouteId, number>;
   chainsStarted: Record<RouteId, number>;
   chainsCompleted: Record<RouteId, number>;
+  normalCompletions: Record<RouteId, number>;
+  reconciledCompletions: Record<RouteId, number>;
+  invalidCompletions: Record<RouteId, number>;
+  openUnfinished: Record<RouteId, number>;
+  closedPermanently: Record<RouteId, number>;
   routesClosed: Record<RouteId, number>;
+  cardEncounterStatuses: Record<CardEncounterStatus, number>;
+  cardChoiceSelections: Record<string, Record<string, number>>;
   pivotalDecisionCategories: Record<ActionCategory, number>;
+  narrativePivotCategories: Record<ActionCategory, number>;
+  strategicPivotCategories: Record<ActionCategory, number>;
+  finalTurningPointCategories: Record<ActionCategory, number>;
+  endingFunnels: Record<"civic_legacy" | "government_by_command", EndingFunnel>;
   endingContributorCounts: Record<string, number>;
   advisorConsultations: Record<AdvisorId, number>;
   averageFinalLeverage: Record<AdvisorId, number>;

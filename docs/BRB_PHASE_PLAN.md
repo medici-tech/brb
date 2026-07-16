@@ -27,13 +27,13 @@ Build the revised turn loop, consultation phase, consequence phase, interactive 
 
 The engine entry point is [`src/game/index.ts`](../src/game/index.ts). Run `npm test`, `npm run typecheck`, or `npm run simulate -- 1000 20260715` from the project root.
 
-## Phase 1.5: Counterfactual replay slice — Complete
+## Phase 1.5: Counterfactual replay slice — Correction gate
 
 Add the replay engine before changing balance values. Replace Events with the 15-card Situation Deck, make delayed consequences traceable to their originating decisions, and ensure every ending leaves one unfinished question.
 
 **Goal:** Make a completed run provoke: “I wonder what happens if…”
 
-**Exit criterion:** Identical seeds and choices produce identical histories and reports; changing one choice creates a traceable divergence; every completed run creates one pivotal decision, one valid hint, and one suggested experiment; Archive v0 stores knowledge without changing starting power.
+**Exit criterion:** Identical seeds and choices produce identical histories and reports; changing one choice creates a traceable divergence; all route completions have legal provenance; important card choices receive strategy-dependent use; every ending creates narrative, strategic, and final-turn pivots; Archive v0 stores knowledge without changing starting power.
 
 **Delivered:**
 
@@ -46,8 +46,10 @@ Add the replay engine before changing balance values. Replace Events with the 15
 - Versioned local storage with safe fallback for active run, Archive, latest report, and replay intent
 - Static Next.js App Router browser application with Start, Campaign, Report, and Archive views
 - Replay-aware simulator fields and a separate post-replay baseline
+- Explicit route transition history with open, close, reopen, and completion provenance
+- Targeted simulator strategies, ending funnels, card-outcome classifications, and three pivot categories
 
-The replay rules are locked in [BRB Replay Engine](BRB_REPLAY_ENGINE.md).
+The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Route integrity now passes, but Phase 1.5 remains open until Civic Legacy viability, card-resolution frequency, and prototype difficulty meet the completion gate.
 
 ## Phase 2: Balance prototype
 

@@ -15,7 +15,7 @@ import {
   saveLatestReport,
   saveReplayIntent,
 } from "../../game/storage";
-import type { AdvisorId, ArchetypeId, ArchiveV0, DeclassifiedReport, GameState, MajorAction, ReplayIntent } from "../../game/types";
+import type { AdvisorId, ArchetypeId, ArchiveV0, CommitOptions, DeclassifiedReport, GameState, MajorAction, ReplayIntent } from "../../game/types";
 import { ArchiveView } from "./ArchiveView";
 import { CampaignScreen } from "./CampaignScreen";
 import { DeclassifiedReportView } from "./DeclassifiedReportView";
@@ -84,9 +84,9 @@ export function BRBApp() {
     setView("report");
   }
 
-  function handleCommit(action: MajorAction): void {
+  function handleCommit(action: MajorAction, options: CommitOptions = {}): void {
     if (!state) return;
-    const result = commitAction(state, action);
+    const result = commitAction(state, action, options);
     if (!result.accepted) {
       setError(result.error ?? "The action was rejected.");
       return;

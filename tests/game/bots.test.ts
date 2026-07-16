@@ -24,4 +24,20 @@ describe("replay-aware bot policy", () => {
       choiceId: "seize",
     });
   });
+
+  it("lets covert strategies choose the contaminated Corporate Exposure deal", () => {
+    const state = createGame({ seed: 7, archetypeId: "operator" });
+    state.turn = 6;
+    state.activeCardId = "silent_partner";
+    state.deck.addedCardIds.push("silent_partner");
+
+    expect(chooseBotAction(state, "fixer")).toEqual({
+      type: "resolve_card",
+      choiceId: "deal",
+    });
+    expect(chooseBotAction(state, "command")).toEqual({
+      type: "resolve_card",
+      choiceId: "deal",
+    });
+  });
 });

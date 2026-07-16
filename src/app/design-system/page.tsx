@@ -121,7 +121,7 @@ function MockBriefing() {
       <MetricStrip stats={metrics} />
 
       <DossierPanel
-        eyebrow="Situation file 07 · Turn 12"
+        eyebrow="Situation file 07 · Month 12"
         title="The Impossible Appropriation"
         summary="The committee will fund the machine, but only if the Directorate transfers oversight to a private authority before dawn."
         classification="Eyes only"
@@ -130,7 +130,7 @@ function MockBriefing() {
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-3">
             <DecisionOption index="01" title="Accept the transfer" description="Secure immediate funding and surrender an unknown degree of control." metadata="Money +18 · Access risk detected" />
-            <DecisionOption index="02" title="Force a public appropriation" description="Expose the project to legislative scrutiny and preserve formal authority." metadata="Trust +8 · Two-turn delay" selected />
+            <DecisionOption index="02" title="Force a public appropriation" description="Expose the project to legislative scrutiny and preserve formal authority." metadata="Trust +8 · Two-month delay" selected />
             <DecisionOption index="03" title="Close the file" description="Refuse the offer and recover capacity elsewhere." metadata="No immediate cost · Route may close" disabled />
           </div>
           <ArtworkPlaceholder icon={Landmark} aspect="portrait" label="Committee chamber placeholder" />
