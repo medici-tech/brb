@@ -1,0 +1,142 @@
+import { describe, expect, it } from "vitest";
+import {
+  CORPORATION_MOVES,
+  DEPOSIT_COSTS,
+  SITUATION_CARDS,
+  SITUATION_CHAINS,
+  commitAction,
+  consultAdvisor,
+  createGame,
+  deserializeGame,
+  serializeGame,
+} from "../../src/game/index.js";
+
+describe("Phase 1.5 content lock", () => {
+  it("ships the agreed Situation Deck, chain, and Corporation move counts", () => {
+    expect(SITUATION_CARDS).toHaveLength(15);
+    expect(SITUATION_CHAINS).toHaveLength(2);
+    expect(Object.keys(CORPORATION_MOVES)).toHaveLength(4);
+    expect(new Set(SITUATION_CARDS.map((card) => card.type))).toEqual(
+      new Set(["crisis", "advisor", "corporation"]),
+    );
+    expect(SITUATION_CARDS.filter((card) => card.rarity === "common")).toHaveLength(10);
+    expect(SITUATION_CARDS.filter((card) => card.rarity === "rare")).toHaveLength(5);
+    expect(SITUATION_CARDS.every((card) => card.choices.every((choice) => choice.echoes.length > 0))).toBe(true);
+    expect(SITUATION_CARDS.every((card) => card.ignoredOutcome.echoes.length > 0)).toBe(true);
+  });
+
+  it("gives each BRB track a different resource cost", () => {
+    const signatures = Object.values(DEPOSIT_COSTS).map((cost) => JSON.stringify(cost));
+    expect(new Set(signatures).size).toBe(4);
+  });
+});
+
+describe("seeded runs", () => {
+  it("creates the same state from the same seed and archetype", () => {
+    expect(createGame(42, "populist")).toEqual(createGame(42, "populist"));
+  });
+
+  it("round-trips a run through a local-save-safe JSON string", () => {
+    const state = createGame(99, "operator");
+    expect(deserializeGame(serializeGame(state))).toEqual(state);
+  });
+});
+
+describe("consultation phase", () => {
+  it("allows one consultation without consuming the major action", () => {
+    const initial = createGame(12);
+    const first = consultAdvisor(initial, "analyst");
+
+    expect(first.accepted).toBe(true);
+    expect(first.state.turn).toBe(initial.turn);
+    expect(first.state.resources.intelligence).toBe(initial.resources.intelligence - 2);
+    expect(first.state.advisors.analyst.leverage).toBeGreaterThan(
+      initial.advisors.analyst.leverage,
+    );
+
+    const second = consultAdvisor(first.state, "fixer");
+    expect(second.accepted).toBe(false);
+    expect(second.error).toMatch(/one consultation/i);
+  });
+});
+
+describe("major commitments", () => {
+  it("permanently transfers deposit costs and advances exactly one turn", () => {
+    const initial = createGame(3, "technocrat");
+    initial.activeCardId = null;
+    initial.corporation.strategy = "expanding";
+    const before = structuredClone(initial);
+
+    const result = commitAction(initial, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    });
+
+    expect(result.accepted).toBe(true);
+    expect(result.state.turn).toBe(before.turn + 1);
+    expect(result.state.deposited.money).toBe(10);
+    expect(result.state.deposited.intelligence).toBe(3);
+    expect(result.state.deposited.capacity).toBe(7);
+    expect(result.state.resources.money).toBe(before.resources.money - 10);
+    expect(result.state.tracks.engineering).toBe(before.tracks.engineering + 20);
+    expect(initial).toEqual(before);
+  });
+
+  it("blocks the Corporation when the player counters the predicted strategy", () => {
+    const initial = createGame(5);
+    initial.activeCardId = null;
+    initial.corporation.strategy = "expanding";
+    initial.corporation.progress = 30;
+    const result = commitAction(initial, {
+      type: "counter_corporation",
+      predictedStrategy: "expanding",
+    });
+
+    expect(result.accepted).toBe(true);
+    expect(result.state.corporation.progress).toBe(22);
+    expect(result.state.corporation.lastMove).toBe("expanding");
+    expect(result.state.history.some((entry) => entry.message === "Expand failed.")).toBe(true);
+  });
+
+  it("rejects actions the player cannot afford without mutating state", () => {
+    const initial = createGame(7);
+    initial.resources.money = 0;
+    const before = structuredClone(initial);
+    const result = commitAction(initial, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    });
+
+    expect(result.accepted).toBe(false);
+    expect(result.error).toMatch(/costs more resources/i);
+    expect(initial).toEqual(before);
+  });
+});
+
+describe("endings", () => {
+  it("produces the civic ending when activation is safe and legitimate", () => {
+    const state = createGame(21);
+    state.tracks = { engineering: 80, access: 80, legitimacy: 80, stability: 80 };
+    state.institutions = 80;
+    state.pressures.panic = 20;
+    state.corporation.progress = 30;
+    state.routes.labor_coalition.status = "completed";
+    for (const advisor of Object.values(state.advisors)) advisor.leverage = 20;
+
+    const result = commitAction(state, { type: "activate_brb" });
+    expect(result.accepted).toBe(true);
+    expect(result.state.phase).toBe("ended");
+    expect(result.state.ending?.id).toBe("civic_legacy");
+  });
+
+  it("allows activation to become a Corporation loss", () => {
+    const state = createGame(22);
+    state.tracks = { engineering: 60, access: 60, legitimacy: 60, stability: 60 };
+    state.corporation.progress = 85;
+
+    const result = commitAction(state, { type: "activate_brb" });
+    expect(result.state.ending?.id).toBe("corporate_capture");
+  });
+});

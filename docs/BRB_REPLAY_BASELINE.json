@@ -1,0 +1,116 @@
+{
+  "architecture": "post-replay",
+  "command": "npm run simulate:baseline",
+  "seed": 20260715,
+  "runs": 10000,
+  "endings": {
+    "civic_legacy": 0,
+    "compromised_activation": 620,
+    "corporate_capture": 3455,
+    "state_collapse": 5925
+  },
+  "victories": 620,
+  "averageTurns": 18.97,
+  "actionUsage": {
+    "deposit": 69269,
+    "card": 33793,
+    "counter": 21925,
+    "faction": 0,
+    "advisor": 0,
+    "recover": 59638,
+    "institutions": 0,
+    "activate": 620
+  },
+  "advisorConsultations": {
+    "analyst": 15523,
+    "fixer": 169,
+    "steward": 29862
+  },
+  "averageFinalLeverage": {
+    "analyst": 14.03,
+    "fixer": 23.38,
+    "steward": 18.08
+  },
+  "advisorDepartures": 432,
+  "cardDrawsByType": {
+    "crisis": 55343,
+    "advisor": 31123,
+    "corporation": 33859
+  },
+  "cardDrawsByRarity": {
+    "common": 98246,
+    "rare": 22079
+  },
+  "echoCategories": {
+    "card": 15172,
+    "relationship": 14713,
+    "system": 11455,
+    "ending": 80463
+  },
+  "routesTouched": {
+    "labor_coalition": 7085,
+    "corporate_exposure": 8087
+  },
+  "routesOpened": {
+    "labor_coalition": 1990,
+    "corporate_exposure": 1034
+  },
+  "chainsStarted": {
+    "labor_coalition": 7085,
+    "corporate_exposure": 1034
+  },
+  "chainsCompleted": {
+    "labor_coalition": 5605,
+    "corporate_exposure": 868
+  },
+  "routesClosed": {
+    "labor_coalition": 1105,
+    "corporate_exposure": 7053
+  },
+  "pivotalDecisionCategories": {
+    "deposit": 0,
+    "card": 9995,
+    "counter": 0,
+    "faction": 0,
+    "advisor": 5,
+    "recover": 0,
+    "institutions": 0,
+    "activate": 0
+  },
+  "endingContributorCounts": {
+    "fiscal_neglect": 7641,
+    "ignored_whistleblower": 7290,
+    "exposed_lobby": 2325,
+    "unchallenged_lobby": 5427,
+    "labor_backed_activation": 5605,
+    "ignored_labor": 6043,
+    "corporate_narrative": 5755,
+    "ignored_blackout": 5278,
+    "missed_defector": 4144,
+    "corporation_exposed": 868,
+    "public_testimony": 2432,
+    "confirmed_leak": 4441,
+    "technocratic_opacity": 474,
+    "public_betrayal": 857,
+    "austerity_first": 2384,
+    "spent_public_mandate": 1828,
+    "labor_accommodation": 2181,
+    "public_grid_first": 2159,
+    "emergency_indecision": 2834
+  },
+  "endingVariations": {
+    "perfect_machine_empty_state": 404,
+    "crowd_presses_button": 11,
+    "government_by_command": 0
+  },
+  "byBot": {
+    "balanced": { "runs": 3334, "victories": 214 },
+    "rush": { "runs": 3333, "victories": 320 },
+    "defensive": { "runs": 3333, "victories": 86 }
+  },
+  "byArchetype": {
+    "technocrat": { "runs": 3334, "victories": 404 },
+    "populist": { "runs": 3333, "victories": 87 },
+    "operator": { "runs": 3333, "victories": 129 }
+  }
+}
