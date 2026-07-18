@@ -1,10 +1,21 @@
 # BRB Documentation
 
-These files are the current source of truth:
+BRB is in **Phase 2: Balance prototype — In progress**.
 
-- [BRB Core Design](BRB_CORE_DESIGN.md): what the game is and what belongs in the prototype
-- [BRB Phase Plan](BRB_PHASE_PLAN.md): delivery order and completion status
-- [BRB Balance Targets](BRB_BALANCE_TARGETS.md): current numbers and what Phase 2 must validate
-- [BRB Replay Engine](BRB_REPLAY_ENGINE.md): Situation Deck, echoes, reports, and knowledge persistence
+Use these sources in this order:
 
-The older GDD and brief files in the project root describe previous versions of BRB. Keep them as design history, but do not use their idle-game rules when implementing the current prototype.
+1. The TypeScript engine and tests define implemented behavior.
+2. [BRB Jargon Reference and FAQ](BRB_JARGON_AND_FAQ.md) maps player language to code IDs and answers rules questions.
+3. [BRB Core Design](BRB_CORE_DESIGN.md) defines the current game vision and prototype boundaries.
+4. [BRB Replay Engine](BRB_REPLAY_ENGINE.md) defines seeded cards, echoes, reports, routes, and knowledge persistence.
+5. [BRB Balance Targets](BRB_BALANCE_TARGETS.md) defines accepted values, current findings, and the chronological experiment record.
+6. [BRB Phase Plan](BRB_PHASE_PLAN.md) defines delivery status and the next validation gate.
+
+Supporting evidence:
+
+- [BRB Simulation Run Log](BRB_SIMULATION_LOG.md): runs recorded after automatic logging was introduced
+- [BRB Solo Guided Playtest](BRB_GUIDED_PLAYTEST.md): six-run self-play matrix, journal workflow, and evaluation rules
+- [BRB Replay Baseline](BRB_REPLAY_BASELINE.json): preserved machine-readable historical baseline
+- [Documentation Archive](archive/README.md): superseded GDDs and briefs retained as design history
+
+Archived documents are not implementation guidance, even when their original titles say “canonical,” “final,” or “ready for implementation.”

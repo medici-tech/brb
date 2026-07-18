@@ -1,6 +1,7 @@
 import { ARCHETYPES } from "../../game/content";
 import { formatCampaignTime } from "../../game/progression";
 import type { ArchetypeId, GameState, ReplayIntent } from "../../game/types";
+import { HowToPlayDialog } from "./HowToPlayDialog";
 
 type Props = {
   savedRun: GameState | null;
@@ -8,14 +9,20 @@ type Props = {
   onStart: (archetypeId: ArchetypeId) => void;
   onResume: () => void;
   onOpenArchive: () => void;
+  onOpenPlaytest?: () => void;
+  newRunBlocked?: boolean;
 };
 
-export function StartScreen({ savedRun, replayIntent, onStart, onResume, onOpenArchive }: Props) {
+export function StartScreen({ savedRun, replayIntent, onStart, onResume, onOpenArchive, onOpenPlaytest, newRunBlocked = false }: Props) {
   return (
     <main className="shell start-shell">
       <header className="masthead">
         <p className="eyebrow">Federal Continuity Directorate · File BRB-01</p>
-        <button className="text-button" onClick={onOpenArchive}>Intelligence Archive</button>
+        <div className="header-actions">
+          <HowToPlayDialog />
+          {onOpenPlaytest ? <button className="text-button" type="button" onClick={onOpenPlaytest}>Playtest Journal</button> : null}
+          <button className="text-button" type="button" onClick={onOpenArchive}>Intelligence Archive</button>
+        </div>
       </header>
 
       <section className="hero paper-panel">
@@ -33,9 +40,12 @@ export function StartScreen({ savedRun, replayIntent, onStart, onResume, onOpenA
           </aside>
         ) : null}
         {savedRun ? (
-          <button className="primary-button resume-button" onClick={onResume}>
-            Resume file · {formatCampaignTime(savedRun.turn)}
-          </button>
+          <>
+            <button className="primary-button resume-button" onClick={onResume}>
+              Resume file · {formatCampaignTime(savedRun.turn)}
+            </button>
+            <p className="saved-run-notice">Resume or clear the active file from the Playtest Journal before starting another run.</p>
+          </>
         ) : null}
       </section>
 
@@ -56,7 +66,7 @@ export function StartScreen({ savedRun, replayIntent, onStart, onResume, onOpenA
                   <div><dt>Bias</dt><dd>{archetype.favoredCardType} files</dd></div>
                   <div><dt>Liability</dt><dd>{archetype.liability}</dd></div>
                 </dl>
-                <button className="primary-button" onClick={() => onStart(id)}>
+                <button className="primary-button" disabled={newRunBlocked} onClick={() => onStart(id)}>
                   Open {archetype.name} File
                 </button>
               </article>

@@ -27,7 +27,7 @@ Build the revised turn loop, consultation phase, consequence phase, interactive 
 
 The engine entry point is [`src/game/index.ts`](../src/game/index.ts). Run `npm test`, `npm run typecheck`, or `npm run simulate -- 1000 20260715` from the project root.
 
-## Phase 1.5: Counterfactual replay slice — Correction gate
+## Phase 1.5: Counterfactual replay slice — Complete
 
 Add the replay engine before changing balance values. Replace Events with the 15-card Situation Deck, make delayed consequences traceable to their originating decisions, and ensure every ending leaves one unfinished question.
 
@@ -49,15 +49,19 @@ Add the replay engine before changing balance values. Replace Events with the 15
 - Explicit route transition history with open, close, reopen, and completion provenance
 - Targeted simulator strategies, ending funnels, card-outcome classifications, and three pivot categories
 
-The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Route integrity now passes, but Phase 1.5 remains open until Civic Legacy viability, card-resolution frequency, and prototype difficulty meet the completion gate.
+The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Determinism, route integrity, decision provenance, card coverage, stable reports, knowledge-only persistence, browser tests, and the static build now pass. Difficulty, ending frequency, and strategy viability are balance questions owned by Phase 2.
 
-## Phase 2: Balance prototype
+## Phase 2: Balance prototype — In progress
 
 Use simulation to produce 10,000-run reports. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model.
 
 **Goal:** Confirm that multiple strategies are viable and the game is not mathematically broken.
 
 **Exit criterion:** No dominant strategy, impossible required state, or unexplained ending-frequency outlier remains in the chosen targets.
+
+**Current findings:** The accepted Corporation cadence gives normal automated campaigns a 24-month median, an 8.43% activation rate, and a 0.62% Civic Legacy rate. State collapse and Corporation capture remain near 46% each, and outcomes vary sharply by strategy. A separate long-horizon diagnostic proves that five- and ten-year campaigns are mechanically possible, but normal strategies do not produce them.
+
+**Remaining work:** Validate archetype and strategy parity, activation and premium-ending targets, card tempo, late-game pressure, and whether human players can discover a satisfying defensive style. Preserve single-variable simulation experiments so each balance effect remains attributable.
 
 ## Phase 3: Human playtest build
 

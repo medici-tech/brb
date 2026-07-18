@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The replay engine exists to make a player finish a run thinking: “I wonder what happens if…” It is the source of truth for Phase 1.5 and sits between the completed logic prototype and Phase 2 balance work.
+The replay engine exists to make a player finish a run thinking: “I wonder what happens if…” It is the completed Phase 1.5 replay layer and remains the design source for replay behavior during Phase 2 balance work.
 
 The prototype does not try to expose the entire narrative graph. Every run builds a unique classified political history. Players should finish feeling they uncovered one version of the truth, not the entire game.
 
 ## Prototype contract
 
-Phase 1.5 keeps the itch.io slice compact:
+The completed Phase 1.5 slice keeps the itch.io prototype compact:
 
 - 15 Situation Cards: 6 Crisis, 4 Advisor, and 5 Corporation
 - 10 Common and 5 Rare cards; rarity means story frequency, not strength
@@ -34,6 +34,8 @@ Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards remain futur
 Common cards can be drawn twice and require four months between draws. Rare cards can be drawn once. Follow-up cards begin outside the available deck and enter only through a prior echo. A card can also remove a future card, making a closed route mechanically real rather than descriptive text.
 
 Corporation cards show a scheme or fallout the player can answer. They do not replace the automatic Corporation response after the player's major commitment.
+
+The automatic response uses a deterministic completion-tier cadence: every 4 months while Quiet, every 3 while Watched, every 2 while Contested, and monthly while Severe or Critical. The saved `lastResponseMonth` clock carries across tier changes and save/load boundaries. The separate completion-pressure surcharges remain unchanged.
 
 ## Seeded draw order
 
@@ -169,9 +171,9 @@ The browser adapter uses versioned local-storage keys:
 
 | Key | Content |
 | --- | --- |
-| `brb.active-run.v2` | Current deterministic `GameState` |
+| `brb.active-run.v3` | Current deterministic `GameState` |
 | `brb.archive.v0` | Knowledge archive |
-| `brb.latest-report.v1` | Latest Declassified Report only |
+| `brb.latest-report.v2` | Latest Declassified Report only |
 | `brb.replay-intent.v1` | Seed, archetype, and suggested experiment |
 
 Invalid or old values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. There are no accounts, cloud saves, analytics, or backend APIs.
@@ -198,10 +200,19 @@ Post-replay reports add:
 - Results by basic, political, command, Fixer, institutional, and deposit-specialist bots
 - Ending-contributor counts
 - Archetype ending variations
+- Campaign-length percentiles, five/ten-year counts, and ending buckets by duration
+- Outcomes by bot strategy and activation failure reason
+- Months, Corporation responses, Corporation/Panic gain, and net gain per month by pressure tier
+- Panic gains and reductions attributed to actions/cards, Corporation responses, base pressure, or completion pressure
+- A deterministic longest-campaign trace with its seed, strategy, ending, final pressure state, and every monthly decision
 
-The prior 10,000-run report remains labeled **pre-replay architecture**. The new 10,000-run report must be recorded separately before Phase 2 changes any balance values.
+The `long_horizon` bot is diagnostic-only and is not part of the default simulation rotation. It exists to test whether deliberate survival and slow deposits can cross five- and ten-year thresholds without changing game rules or contaminating the normal outcome distribution.
 
-## Acceptance checklist
+The pre-replay and post-replay 10,000-run baselines remain preserved as historical checkpoints. Phase 2 cadence and long-horizon results are recorded separately in [BRB Balance Targets](BRB_BALANCE_TARGETS.md), so their rule changes and strategy-only diagnostics remain attributable.
+
+## Phase 1.5 acceptance record
+
+All replay-layer acceptance checks pass:
 
 - Exactly 15 cards, three types, two rarities, and two chains
 - Seeded weighted draws, requirements, cooldowns, limits, additions, and removals
@@ -214,6 +225,6 @@ The prior 10,000-run report remains labeled **pre-replay architecture**. The new
 - Every ending creates a stable pivotal decision, hint, and experiment
 - Archive merging is idempotent, reveals only knowledge, and grants no power
 - Browser tests cover card choices, immediate consequences, hidden echo details, silhouettes, report rendering, and both replay buttons
-- TypeScript, unit/component tests, static build, and the 10,000-run simulator pass before Phase 2 tuning
+- TypeScript, unit/component tests, the static build, and the 10,000-run simulator passed before Phase 2 tuning
 
-The corrected 10,000-run architecture report passes provenance and coverage checks. Phase 1.5 is still not approved for balance: Civic Legacy remains absent, only 36.1% of presented cards are actively resolved, and the victory rate remains below the prototype target.
+The corrected architecture report passes provenance and coverage checks, and the full test, TypeScript, and static-build gates pass. Phase 1.5 is complete. Its historical zero-Civic-Legacy and 36.1% card-resolution findings became Phase 2 inputs; the accepted cadence now reaches Civic Legacy in 0.62% of normal automated runs and actively resolves about 73.7% of presented cards. Those values still require balance and human-playtest validation.

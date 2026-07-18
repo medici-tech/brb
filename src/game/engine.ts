@@ -21,6 +21,8 @@ import {
   describeCompletionPressure,
   formatCampaignTime,
   getCompletionPressure,
+  getCorporationPressure,
+  isCorporationResponseDue,
 } from "./progression";
 import { nextRandom, randomInt } from "./rng";
 import { getRouteCompletionKind, validateRouteIntegrity } from "./routes";
@@ -29,10 +31,14 @@ import {
   applyEffects,
   clamp,
   cloneState,
+  diffEffectSnapshots,
+  hasStateDelta,
   linkConsequence,
   patchNumberRecord,
   pushUnique,
   recordSimpleDecision,
+  snapshotGameEffects,
+  type EffectSnapshot,
 } from "./state-helpers";
 import {
   CARD_TYPES,
@@ -51,10 +57,15 @@ import {
   type CreateGameOptions,
   type Ending,
   type EndingVariationId,
+  type Effects,
   type GameState,
   type MajorAction,
+  type MeterAudit,
+  type MonthAudit,
   type ResourcePool,
+  type ResolvedEffect,
   type TrackKey,
+  type TurnResolution,
 } from "./types";
 
 export { getActiveCard, getEligibleSituationCards } from "./cards";
@@ -120,7 +131,7 @@ export function createGame(
   const options = normalizeCreateOptions(seedOrOptions, archetypeId);
   const firstRandom = randomInt(options.seed, CORPORATION_STRATEGIES.length);
   const state: GameState = {
-    version: 3,
+    version: 4,
     runId: options.runId,
     seed: options.seed,
     rngState: firstRandom.state,
@@ -144,7 +155,10 @@ export function createGame(
       progress: 8,
       threat: 15,
       lastMove: null,
+      lastResponseMonth: 0,
     },
+    lastMonthAudit: null,
+    lastTurnResolution: null,
     activeCardId: null,
     deck: {
       drawCounts: {},
@@ -296,7 +310,7 @@ export function consultAdvisor(
   return { state: next, accepted: true };
 }
 
-function depositCost(track: TrackKey, size: "standard" | "large"): ResourcePool {
+export function getDepositCost(track: TrackKey, size: "standard" | "large"): ResourcePool {
   const multiplier = size === "large" ? 1.75 : 1;
   const cost = { ...DEPOSIT_COSTS[track] };
   for (const resource of RESOURCE_KEYS) cost[resource] = Math.ceil(cost[resource] * multiplier);
@@ -313,7 +327,7 @@ function counterCost(state: GameState): { intelligence: number; influence: numbe
     : { intelligence: 7, influence: 3 };
 }
 
-function actionError(
+export function getActionError(
   state: GameState,
   action: MajorAction,
   options: CommitOptions = {},
@@ -326,7 +340,7 @@ function actionError(
   ) {
     return "Confirm that the active Situation Card will be abandoned before choosing another commitment.";
   }
-  if (action.type === "deposit" && !canAfford(state.resources, depositCost(action.track, action.size))) {
+  if (action.type === "deposit" && !canAfford(state.resources, getDepositCost(action.track, action.size))) {
     return "The deposit costs more resources than are available.";
   }
   if (action.type === "resolve_card") {
@@ -359,7 +373,7 @@ function actionError(
 }
 
 function applyDeposit(state: GameState, track: TrackKey, size: "standard" | "large"): void {
-  const cost = depositCost(track, size);
+  const cost = getDepositCost(track, size);
   for (const resource of RESOURCE_KEYS) {
     state.resources[resource] -= cost[resource];
     state.deposited[resource] += cost[resource];
@@ -466,9 +480,79 @@ function applyAdvisorReactions(state: GameState, category: ActionCategory): void
   }
 }
 
+function scaleAdverseAmount(amount: number, multiplier: number, adverse: "positive" | "negative"): number {
+  if ((adverse === "positive" && amount <= 0) || (adverse === "negative" && amount >= 0)) {
+    return amount;
+  }
+  const scaled = amount * multiplier;
+  return scaled < 0 ? Math.floor(scaled) : Math.ceil(scaled);
+}
+
+function scaleCorporationEffects(effects: Effects, multiplier: number): Effects {
+  if (multiplier === 1) return effects;
+  const scaled: Effects = {};
+  if (effects.resources) {
+    scaled.resources = Object.fromEntries(
+      Object.entries(effects.resources).map(([key, amount]) => [
+        key,
+        scaleAdverseAmount(amount, multiplier, "negative"),
+      ]),
+    );
+  }
+  if (effects.pressures) {
+    scaled.pressures = Object.fromEntries(
+      Object.entries(effects.pressures).map(([key, amount]) => [
+        key,
+        scaleAdverseAmount(amount, multiplier, "positive"),
+      ]),
+    );
+  }
+  if (effects.tracks) {
+    scaled.tracks = Object.fromEntries(
+      Object.entries(effects.tracks).map(([key, amount]) => [
+        key,
+        scaleAdverseAmount(amount, multiplier, "negative"),
+      ]),
+    );
+  }
+  if (effects.institutions !== undefined) {
+    scaled.institutions = scaleAdverseAmount(effects.institutions, multiplier, "negative");
+  }
+  if (effects.corporationProgress !== undefined) {
+    scaled.corporationProgress = scaleAdverseAmount(
+      effects.corporationProgress,
+      multiplier,
+      "positive",
+    );
+  }
+  // Threat determines the multiplier, so its own increase is deliberately never amplified.
+  if (effects.corporationThreat !== undefined) scaled.corporationThreat = effects.corporationThreat;
+  if (effects.advisors) {
+    scaled.advisors = Object.fromEntries(
+      Object.entries(effects.advisors).map(([advisorId, changes]) => [
+        advisorId,
+        Object.fromEntries(
+          Object.entries(changes).map(([key, amount]) => [
+            key,
+            typeof amount === "number"
+              ? scaleAdverseAmount(
+                  amount,
+                  multiplier,
+                  key === "leverage" ? "positive" : "negative",
+                )
+              : amount,
+          ]),
+        ),
+      ]),
+    );
+  }
+  return scaled;
+}
+
 function applyCorporationMove(state: GameState, blocked: boolean, causedByDecisionId: string | null): void {
   const strategy = state.corporation.strategy;
   state.corporation.lastMove = strategy;
+  state.corporation.lastResponseMonth = state.turn;
   if (blocked) {
     addHistory(
       state,
@@ -479,7 +563,11 @@ function applyCorporationMove(state: GameState, blocked: boolean, causedByDecisi
     linkConsequence(state, causedByDecisionId);
     return;
   }
-  applyEffects(state, CORPORATION_MOVES[strategy].effects);
+  const pressure = getCorporationPressure(state);
+  applyEffects(
+    state,
+    scaleCorporationEffects(CORPORATION_MOVES[strategy].effects, pressure.severityMultiplier),
+  );
   addHistory(
     state,
     "corporation",
@@ -517,6 +605,71 @@ function applyPressure(state: GameState): void {
   if (state.institutions <= 30) state.pressures.panic = clamp(state.pressures.panic + 4);
   if (state.pressures.stress >= 80) state.resources.trust = clamp(state.resources.trust - 4);
   if (state.systemModifiers.includes("emergency_rule")) state.institutions = clamp(state.institutions - 1);
+}
+
+type AuditSnapshot = {
+  corporationProgress: number;
+  panic: number;
+};
+
+function auditSnapshot(state: GameState): AuditSnapshot {
+  return {
+    corporationProgress: state.corporation.progress,
+    panic: state.pressures.panic,
+  };
+}
+
+function buildMeterAudit(
+  key: keyof AuditSnapshot,
+  start: AuditSnapshot,
+  afterAction: AuditSnapshot,
+  afterCorporation: AuditSnapshot,
+  afterBasePressure: AuditSnapshot,
+  afterCompletionPressure: AuditSnapshot,
+): MeterAudit {
+  return {
+    before: start[key],
+    after: afterCompletionPressure[key],
+    actionOrCard: afterAction[key] - start[key],
+    corporationResponse: afterCorporation[key] - afterAction[key],
+    basePressure: afterBasePressure[key] - afterCorporation[key],
+    completionPressure: afterCompletionPressure[key] - afterBasePressure[key],
+  };
+}
+
+function buildMonthAudit(
+  state: GameState,
+  corporationResponded: boolean,
+  start: AuditSnapshot,
+  afterAction: AuditSnapshot,
+  afterCorporation: AuditSnapshot,
+  afterBasePressure: AuditSnapshot,
+  afterCompletionPressure: AuditSnapshot,
+): MonthAudit {
+  const pressure = getCompletionPressure(state);
+  const corporationPressure = getCorporationPressure(state);
+  return {
+    month: state.turn,
+    pressureTier: pressure.tier,
+    corporationResponseIntervalMonths: corporationPressure.responseIntervalMonths,
+    corporationResponded,
+    corporationProgress: buildMeterAudit(
+      "corporationProgress",
+      start,
+      afterAction,
+      afterCorporation,
+      afterBasePressure,
+      afterCompletionPressure,
+    ),
+    panic: buildMeterAudit(
+      "panic",
+      start,
+      afterAction,
+      afterCorporation,
+      afterBasePressure,
+      afterCompletionPressure,
+    ),
+  };
 }
 
 function endingVariation(state: GameState, ending: Ending): {
@@ -661,28 +814,130 @@ function evaluateTerminalState(state: GameState): void {
   }
 }
 
+function resolvedEffect(
+  label: string,
+  before: EffectSnapshot,
+  after: EffectSnapshot,
+  includeWhenEmpty = false,
+): ResolvedEffect | null {
+  const delta = diffEffectSnapshots(before, after);
+  return includeWhenEmpty || hasStateDelta(delta) ? { label, delta } : null;
+}
+
 export function commitAction(
   state: GameState,
   action: MajorAction,
   options: CommitOptions = {},
 ): ActionResult {
-  const error = actionError(state, action, options);
+  const error = getActionError(state, action, options);
   if (error) return { state, accepted: false, error };
 
   const next = cloneState(state);
+  const start = auditSnapshot(next);
   if (action.type === "activate_brb") {
+    const beforeCommitment = snapshotGameEffects(next);
     applyPlayerAction(next, action);
+    const afterAction = auditSnapshot(next);
+    next.lastTurnResolution = {
+      month: next.turn,
+      ignoredSituation: null,
+      commitment: resolvedEffect(
+        "BRB activation authorized",
+        beforeCommitment,
+        snapshotGameEffects(next),
+        true,
+      ) as ResolvedEffect,
+      advisorReactions: null,
+      corporationResponse: null,
+      monthlyPressure: null,
+    };
+    next.lastMonthAudit = buildMonthAudit(
+      next,
+      false,
+      start,
+      afterAction,
+      afterAction,
+      afterAction,
+      afterAction,
+    );
     activate(next);
     return { state: next, accepted: true };
   }
 
-  if (next.activeCardId && action.type !== "resolve_card") applyIgnoredCard(next);
+  let ignoredSituation: ResolvedEffect | null = null;
+  if (next.activeCardId && action.type !== "resolve_card") {
+    const ignoredTitle = getActiveCard(next)?.title ?? "Situation file";
+    const beforeIgnored = snapshotGameEffects(next);
+    applyIgnoredCard(next);
+    ignoredSituation = resolvedEffect(
+      `Ignored: ${ignoredTitle}`,
+      beforeIgnored,
+      snapshotGameEffects(next),
+    );
+  }
+  const beforeCommitment = snapshotGameEffects(next);
   const playerResult = applyPlayerAction(next, action);
+  const commitmentLabel = next.decisionHistory.at(-1)?.summary ?? "Commitment resolved";
+  const commitment = resolvedEffect(
+    commitmentLabel,
+    beforeCommitment,
+    snapshotGameEffects(next),
+    true,
+  ) as ResolvedEffect;
+  const afterAction = auditSnapshot(next);
   const category = getActionCategory(action);
+  const beforeAdvisorReactions = snapshotGameEffects(next);
   applyAdvisorReactions(next, category);
-  applyCorporationMove(next, playerResult.corporationBlocked, playerResult.decisionId);
+  const advisorReactions = resolvedEffect(
+    "Advisor reactions",
+    beforeAdvisorReactions,
+    snapshotGameEffects(next),
+  );
+  const pressureTier = getCompletionPressure(next).tier;
+  const corporationResponded = isCorporationResponseDue(next, pressureTier);
+  const beforeCorporation = snapshotGameEffects(next);
+  const beforeCorporationStrategy = next.corporation.strategy;
+  if (corporationResponded) {
+    applyCorporationMove(next, playerResult.corporationBlocked, playerResult.decisionId);
+  }
+  const corporationResponse = corporationResponded
+    ? resolvedEffect(
+        playerResult.corporationBlocked
+          ? `${CORPORATION_MOVES[beforeCorporationStrategy].name} operation blocked`
+          : `Corporation response: ${CORPORATION_MOVES[beforeCorporationStrategy].name}`,
+        beforeCorporation,
+        snapshotGameEffects(next),
+        true,
+      )
+    : null;
+  const afterCorporation = auditSnapshot(next);
+  const beforeMonthlyPressure = snapshotGameEffects(next);
   applyPressure(next);
+  const afterBasePressure = auditSnapshot(next);
   applyCompletionPressure(next);
+  const afterCompletionPressure = auditSnapshot(next);
+  const monthlyPressure = resolvedEffect(
+    "End-of-month pressure",
+    beforeMonthlyPressure,
+    snapshotGameEffects(next),
+  );
+  next.lastMonthAudit = buildMonthAudit(
+    next,
+    corporationResponded,
+    start,
+    afterAction,
+    afterCorporation,
+    afterBasePressure,
+    afterCompletionPressure,
+  );
+  next.lastTurnResolution = {
+    month: next.turn,
+    ignoredSituation,
+    commitment,
+    advisorReactions,
+    corporationResponse,
+    monthlyPressure,
+  };
   chooseCorporationStrategy(next, action);
 
   next.turn += 1;
@@ -703,16 +958,16 @@ export function getValidActions(state: GameState): MajorAction[] {
   for (const track of TRACK_KEYS) {
     for (const size of ["standard", "large"] as const) {
       const candidate: MajorAction = { type: "deposit", track, size };
-      if (!actionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
+      if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
     }
   }
   for (const predictedStrategy of CORPORATION_STRATEGIES) {
     const candidate: MajorAction = { type: "counter_corporation", predictedStrategy };
-    if (!actionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
+    if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
   }
   for (const advisorId of Object.keys(ADVISORS) as AdvisorId[]) {
     const candidate: MajorAction = { type: "manage_advisor", advisorId };
-    if (!actionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
+    if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
   }
   for (const resource of RESOURCE_KEYS) actions.push({ type: "recover_resource", resource });
   for (const action of [
@@ -720,7 +975,7 @@ export function getValidActions(state: GameState): MajorAction[] {
     { type: "protect_institutions" },
     { type: "activate_brb" },
   ] as MajorAction[]) {
-    if (!actionError(state, action, { confirmCardAbandonment: true })) actions.push(action);
+    if (!getActionError(state, action, { confirmCardAbandonment: true })) actions.push(action);
   }
   return actions;
 }
@@ -735,6 +990,7 @@ export function canUseArchetypeConsultation(state: GameState, advisorId: Advisor
 export function getBriefing(state: GameState): string[] {
   const card = getActiveCard(state);
   const completionPressure = getCompletionPressure(state);
+  const corporationPressure = getCorporationPressure(state);
   const weakestResource = RESOURCE_KEYS.reduce((lowest, key) =>
     state.resources[key] < state.resources[lowest] ? key : lowest,
   );
@@ -742,7 +998,8 @@ export function getBriefing(state: GameState): string[] {
     formatCampaignTime(state.turn),
     card ? `${card.title}: ${card.description}` : "No Situation Card demands an immediate response.",
     `Weakest resource: ${weakestResource} (${state.resources[weakestResource]})`,
-    `Corporation threat: ${state.corporation.threat}; activity estimate: ${state.corporation.strategy.replace("_", " ")}`,
+    `Corporation Threat: ${state.corporation.threat} (${corporationPressure.tier}); Posture: ${state.corporation.strategy.replace("_", " ")}`,
+    `Corporation response cadence: every ${corporationPressure.responseIntervalMonths} month${corporationPressure.responseIntervalMonths === 1 ? "" : "s"}; next response due Month ${corporationPressure.nextResponseMonth}.`,
     `BRB completion pressure: ${completionPressure.tier} (${completionPressure.completionPercent}%; ${describeCompletionPressure(completionPressure)}).`,
   ];
 }
@@ -753,10 +1010,23 @@ export function serializeGame(state: GameState): string {
 
 export function deserializeGame(serialized: string): GameState {
   const parsed: unknown = JSON.parse(serialized);
-  if (!parsed || typeof parsed !== "object" || !("version" in parsed) || parsed.version !== 3) {
+  if (
+    !parsed
+    || typeof parsed !== "object"
+    || !("version" in parsed)
+    || (parsed.version !== 3 && parsed.version !== 4)
+  ) {
     throw new Error("Unsupported or invalid BRB save.");
   }
-  return parsed as GameState;
+  const migrated = parsed as Record<string, unknown>;
+  if (migrated.version === 3) migrated.version = 4;
+  if (typeof migrated.lastTurnResolution === "undefined") migrated.lastTurnResolution = null;
+  const state = migrated as unknown as GameState;
+  if (!Number.isInteger(state.corporation.lastResponseMonth)) {
+    state.corporation.lastResponseMonth = Math.max(0, state.turn - 1);
+  }
+  if (typeof state.lastMonthAudit === "undefined") state.lastMonthAudit = null;
+  return state;
 }
 
 export const SITUATION_DECK_CARD_TYPES = CARD_TYPES;

@@ -30,10 +30,10 @@ Every run builds a unique classified political history. Players should finish fe
 > Assess → Investigate → Commit → Endure consequences → Adapt
 
 1. **Receive the briefing.** See the current Situation Card, changes from the prior turn, resource pressure, an estimate of Corporation activity, and advisor reactions.
-2. **Investigate and consult.** Take one limited information action without using the major commitment. Consult an advisor, spend Intelligence, inspect a faction, investigate the Corporation, or request projections. Information can be accurate, incomplete, or biased.
+2. **Investigate and consult.** The prototype allows one optional advisor consultation before the major commitment. It costs Intelligence and can be accurate, incomplete, or biased. Separate faction inspections, Corporation investigations, and projection requests remain future information-action hooks.
 3. **Make one major commitment.** Deposit resources, resolve the crisis, counter the Corporation, strengthen a political faction, manage an advisor, recover or produce resources, or protect stability.
 4. **Resolve rival and faction responses.** The Corporation acts; advisors and factions react according to the chosen action, weak resources, leverage, prior cards, BRB progress, and archetype.
-5. **Show consequences clearly.** Show resource changes, BRB progress, reactions, Corporation activity, new risks, and delayed-consequence hints.
+5. **Show consequences clearly.** Before commitment, show exact costs plus qualitative results and exposure. After commitment, attribute every exact meter change to the Situation, commitment, advisor reaction, Corporation response, or monthly pressure. Show Delayed Echo categories without revealing their classified future content.
 6. **Prepare the next turn.** Give a short report and return the player to a changed situation.
 
 ## Nested loops
@@ -98,7 +98,7 @@ Each advisor has:
 - **Competence:** effectiveness at their work.
 - **Agenda, relationship tags, crisis specialty, and a hidden breaking point.**
 
-An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence.
+An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence. Each consultation produces one legal, specific recommendation shaped by that advisor's agenda; it is explicitly advice, not an optimality claim.
 
 ## Corporation
 
@@ -110,6 +110,8 @@ The Corporation is a visible rival with a strategy, not a random attack meter. T
 - Buying influence
 
 Players should infer the current state and adapt. Corporation moves respond to player choices and vulnerabilities rather than firing without context.
+
+Corporation Watch separates three related signals. **Progress** is the rival victory meter and ends the campaign at 100. **Posture** identifies the kind of move being prepared. **Threat** controls response cadence and move severity: Monitored (0–24) is 100% severity, Mobilized (25–49) is 110%, Aggressive (50–74) is 125% and one month faster, and Critical (75–100) is 150% and two months faster. Threat modifies the existing BRB-completion cadence with a one-month minimum.
 
 ## Situation Deck
 

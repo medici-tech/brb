@@ -46,4 +46,21 @@ describe("versioned browser persistence", () => {
     expect(loadReplayIntent(storage)).toBeNull();
     expect(createGame(18).resources).toEqual(createGame(18).resources);
   });
+
+  it("loads a legacy v3 key and replaces it on the next save", () => {
+    const storage = memoryStorage();
+    const legacy = JSON.parse(JSON.stringify(createGame(21)));
+    legacy.version = 3;
+    delete legacy.lastTurnResolution;
+    storage.setItem(STORAGE_KEYS.legacyActiveRun, JSON.stringify(legacy));
+
+    const restored = loadActiveRun(storage);
+    expect(restored?.version).toBe(4);
+    expect(restored?.lastTurnResolution).toBeNull();
+
+    if (!restored) throw new Error("Expected migrated save");
+    saveActiveRun(storage, restored);
+    expect(storage.getItem(STORAGE_KEYS.legacyActiveRun)).toBeNull();
+    expect(storage.getItem(STORAGE_KEYS.activeRun)).not.toBeNull();
+  });
 });
