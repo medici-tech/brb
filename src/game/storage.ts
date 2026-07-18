@@ -3,7 +3,8 @@ import { deserializeArchive, serializeArchive } from "./replay";
 import type { ArchiveV0, DeclassifiedReport, GameState, ReplayIntent } from "./types";
 
 export const STORAGE_KEYS = {
-  activeRun: "brb.active-run.v3",
+  activeRun: "brb.active-run.v4",
+  legacyActiveRun: "brb.active-run.v3",
   archive: "brb.archive.v0",
   latestReport: "brb.latest-report.v2",
   replayIntent: "brb.replay-intent.v1",
@@ -18,16 +19,19 @@ function safely<T>(read: () => T): T | null {
 }
 
 export function loadActiveRun(storage: Storage): GameState | null {
-  const raw = storage.getItem(STORAGE_KEYS.activeRun);
+  const raw = storage.getItem(STORAGE_KEYS.activeRun)
+    ?? storage.getItem(STORAGE_KEYS.legacyActiveRun);
   return raw ? safely(() => deserializeGame(raw)) : null;
 }
 
 export function saveActiveRun(storage: Storage, state: GameState): void {
   storage.setItem(STORAGE_KEYS.activeRun, serializeGame(state));
+  storage.removeItem(STORAGE_KEYS.legacyActiveRun);
 }
 
 export function clearActiveRun(storage: Storage): void {
   storage.removeItem(STORAGE_KEYS.activeRun);
+  storage.removeItem(STORAGE_KEYS.legacyActiveRun);
 }
 
 export function loadArchive(storage: Storage): ArchiveV0 | null {

@@ -27,6 +27,25 @@ export type RouteId = (typeof ROUTE_IDS)[number];
 export type ResourcePool = Record<ResourceKey, number>;
 export type TrackPool = Record<TrackKey, number>;
 
+export type CompletionPressureTier = "quiet" | "watched" | "contested" | "severe" | "critical";
+export type PanicAuditSource = "action_or_card" | "corporation_response" | "base_pressure" | "completion_pressure";
+export type CampaignLengthBucket =
+  | "under_1_year"
+  | "year_2"
+  | "years_3_to_5"
+  | "years_6_to_10"
+  | "over_10_years";
+export type ActivationFailureReason =
+  | "activated"
+  | "activation_corporate_capture"
+  | "tracks_never_ready"
+  | "panic_before_activation"
+  | "institutions_before_activation"
+  | "advisors_before_activation"
+  | "corporation_capture_before_activation"
+  | "corporation_unsafe_before_activation"
+  | "strategy_delayed_after_readiness";
+
 export type PressurePool = {
   stress: number;
   panic: number;
@@ -68,6 +87,34 @@ export type AdvisorState = {
   leverage: number;
   competence: number;
   active: boolean;
+};
+
+export type AdvisorDelta = Partial<
+  Pick<AdvisorState, "loyalty" | "alignment" | "leverage" | "competence" | "active">
+>;
+
+export type StateDelta = {
+  resources: Partial<ResourcePool>;
+  pressures: Partial<PressurePool>;
+  tracks: Partial<TrackPool>;
+  institutions?: number;
+  corporationProgress?: number;
+  corporationThreat?: number;
+  advisors: Partial<Record<AdvisorId, AdvisorDelta>>;
+};
+
+export type ResolvedEffect = {
+  label: string;
+  delta: StateDelta;
+};
+
+export type TurnResolution = {
+  month: number;
+  ignoredSituation: ResolvedEffect | null;
+  commitment: ResolvedEffect;
+  advisorReactions: ResolvedEffect | null;
+  corporationResponse: ResolvedEffect | null;
+  monthlyPressure: ResolvedEffect | null;
 };
 
 export type ArchetypeDefinition = {
@@ -207,6 +254,26 @@ export type ConsultationResult = {
   archetypeAbilityApplied: boolean;
 };
 
+export type ActionPreview = {
+  actionKey: string;
+  label: string;
+  costs: string[];
+  result: string;
+  risk: string | null;
+  delayedConsequence: string | null;
+  permanent: boolean;
+  disabledReason: string | null;
+};
+
+export type AdvisorRecommendation = {
+  advisorId: AdvisorId;
+  action: MajorAction;
+  actionKey: string;
+  actionLabel: string;
+  rationale: string;
+  warning: string;
+};
+
 export type CardEncounter = {
   cardId: string;
   turn: number;
@@ -322,8 +389,38 @@ export type DeckState = {
   cardSources: Record<string, string>;
 };
 
+export type MeterAudit = {
+  before: number;
+  after: number;
+  actionOrCard: number;
+  corporationResponse: number;
+  basePressure: number;
+  completionPressure: number;
+};
+
+export type MonthAudit = {
+  month: number;
+  pressureTier: CompletionPressureTier;
+  corporationResponseIntervalMonths: number;
+  corporationResponded: boolean;
+  corporationProgress: MeterAudit;
+  panic: MeterAudit;
+};
+
+export type CorporationThreatTier = "monitored" | "mobilized" | "aggressive" | "critical";
+
+export type CorporationPressure = {
+  tier: CorporationThreatTier;
+  severityMultiplier: number;
+  intervalModifierMonths: number;
+  baseResponseIntervalMonths: number;
+  responseIntervalMonths: number;
+  nextResponseMonth: number;
+  monthsUntilResponse: number;
+};
+
 export type GameState = {
-  version: 3;
+  version: 4;
   runId: string;
   seed: number;
   rngState: number;
@@ -343,7 +440,10 @@ export type GameState = {
     progress: number;
     threat: number;
     lastMove: CorporationStrategy | null;
+    lastResponseMonth: number;
   };
+  lastMonthAudit: MonthAudit | null;
+  lastTurnResolution: TurnResolution | null;
   activeCardId: string | null;
   deck: DeckState;
   cardHistory: CardEncounter[];
@@ -431,7 +531,8 @@ export type BotId =
   | "legitimacy_first"
   | "stability_first"
   | "access_first"
-  | "delayed_deposit";
+  | "delayed_deposit"
+  | "long_horizon";
 
 export type CivicRequirementId =
   | "all_tracks_50"
@@ -478,6 +579,7 @@ export type BotMonthTrace = {
   panic: number;
   highestLeverage: number;
   laborCoalitionStatus: RouteStatus;
+  audit: MonthAudit;
 };
 
 export type ClosestAttemptTrace = {
@@ -491,6 +593,20 @@ export type ClosestAttemptTrace = {
   deficitScore: number;
   firstFailedStageId: string;
   observations: CivicRequirementObservation[];
+  months: BotMonthTrace[];
+};
+
+export type LongestCampaignTrace = {
+  runIndex: number;
+  seed: number;
+  botId: BotId;
+  archetypeId: ArchetypeId;
+  ending: EndingId;
+  monthsSurvived: number;
+  finalCorporationProgress: number;
+  finalPanic: number;
+  finalInstitutions: number;
+  finalTracks: TrackPool;
   months: BotMonthTrace[];
 };
 
@@ -510,6 +626,7 @@ export type SimulationOptions = {
 
 export type SimulationReport = {
   runs: number;
+  seed: number;
   endings: Record<EndingId, number>;
   endingVariations: Record<EndingVariationId, number>;
   victories: number;
@@ -527,6 +644,49 @@ export type SimulationReport = {
     activelyResolvedPerRun: number;
     ignoredPerRun: number;
   };
+  campaignLength: {
+    min: number;
+    p25: number;
+    median: number;
+    p75: number;
+    p90: number;
+    p95: number;
+    max: number;
+    exceeding5Years: number;
+    exceeding10Years: number;
+  };
+  longestCampaign: LongestCampaignTrace;
+  corporationResponseCadence: Record<CompletionPressureTier, number>;
+  outcomeByStrategy: Record<BotId, { runs: number; endings: Record<EndingId, number> }>;
+  panicSources: Record<PanicAuditSource, {
+    gained: number;
+    reduced: number;
+    net: number;
+    netPerMonth: number;
+  }>;
+  meterGainByPressureTier: Record<CompletionPressureTier, {
+    months: number;
+    corporationResponses: number;
+    corporationResponseRate: number;
+    corporationGain: number;
+    corporationGainPerMonth: number;
+    corporationNet: number;
+    corporationNetPerMonth: number;
+    panicGain: number;
+    panicGainPerMonth: number;
+    panicNet: number;
+    panicNetPerMonth: number;
+  }>;
+  monthsByPressureTier: Record<CompletionPressureTier, {
+    months: number;
+    perRun: number;
+    sharePercent: number;
+  }>;
+  activationFailureReasons: Record<ActivationFailureReason, number>;
+  outcomesByCampaignLength: Record<CampaignLengthBucket, {
+    runs: number;
+    endings: Record<EndingId, number>;
+  }>;
   actionUsage: Record<ActionCategory, number>;
   cardDrawsByType: Record<CardType, number>;
   cardDrawsByRarity: Record<CardRarity, number>;

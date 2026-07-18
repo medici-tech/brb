@@ -10,6 +10,7 @@ import {
   deserializeGame,
   formatCampaignTime,
   getCompletionPressure,
+  getCorporationResponseInterval,
   serializeGame,
 } from "../../src/game/index.js";
 
@@ -42,6 +43,33 @@ describe("seeded runs", () => {
     const state = createGame(99, "operator");
     expect(deserializeGame(serializeGame(state))).toEqual(state);
   });
+
+  it("persists the Corporation cadence clock after a response", () => {
+    const state = createGame(100);
+    state.activeCardId = null;
+    state.turn = 4;
+    state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    const responded = commitAction(state, { type: "recover_resource", resource: "money" }).state;
+
+    expect(responded.lastMonthAudit?.corporationResponded).toBe(true);
+    expect(responded.corporation.lastResponseMonth).toBe(4);
+    expect(deserializeGame(serializeGame(responded))).toEqual(responded);
+  });
+
+  it("migrates an older version-3 save to a deterministic cadence clock", () => {
+    const legacy = JSON.parse(serializeGame(createGame(102)));
+    legacy.version = 3;
+    legacy.turn = 9;
+    delete legacy.corporation.lastResponseMonth;
+    delete legacy.lastMonthAudit;
+    delete legacy.lastTurnResolution;
+
+    const restored = deserializeGame(JSON.stringify(legacy));
+    expect(restored.version).toBe(4);
+    expect(restored.corporation.lastResponseMonth).toBe(8);
+    expect(restored.lastMonthAudit).toBeNull();
+    expect(restored.lastTurnResolution).toBeNull();
+  });
 });
 
 describe("consultation phase", () => {
@@ -63,6 +91,35 @@ describe("consultation phase", () => {
 });
 
 describe("major commitments", () => {
+  it("uses only the pressure tier to determine Corporation response cadence", () => {
+    expect({
+      quiet: getCorporationResponseInterval("quiet"),
+      watched: getCorporationResponseInterval("watched"),
+      contested: getCorporationResponseInterval("contested"),
+      severe: getCorporationResponseInterval("severe"),
+      critical: getCorporationResponseInterval("critical"),
+    }).toEqual({ quiet: 4, watched: 3, contested: 2, severe: 1, critical: 1 });
+  });
+
+  it("resumes a saved Quiet cadence without resetting its response clock", () => {
+    let state = createGame(101);
+    state.activeCardId = null;
+    state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    state.tracks = { engineering: 0, access: 0, legitimacy: 0, stability: 0 };
+
+    for (const expectedMonth of [1, 2, 3]) {
+      const result = commitAction(state, { type: "recover_resource", resource: "money" });
+      expect(result.state.lastMonthAudit?.month).toBe(expectedMonth);
+      expect(result.state.lastMonthAudit?.corporationResponded).toBe(false);
+      state = deserializeGame(serializeGame(result.state));
+      state.activeCardId = null;
+    }
+
+    const monthFour = commitAction(state, { type: "recover_resource", resource: "money" }).state;
+    expect(monthFour.lastMonthAudit?.corporationResponded).toBe(true);
+    expect(monthFour.corporation.lastResponseMonth).toBe(4);
+  });
+
   it("treats commitments as months without ending at an arbitrary deadline", () => {
     const state = createGame(2);
     state.activeCardId = null;
@@ -208,6 +265,7 @@ describe("major commitments", () => {
   it("blocks the Corporation when the player counters the predicted strategy", () => {
     const initial = createGame(5);
     initial.activeCardId = null;
+    initial.turn = 4;
     initial.corporation.strategy = "expanding";
     initial.corporation.progress = 30;
     const result = commitAction(initial, {

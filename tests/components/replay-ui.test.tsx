@@ -50,7 +50,7 @@ describe("campaign replay UI", () => {
     state.activeCardId = "budget_shortfall";
     const onCommit = vi.fn();
     render(<CampaignScreen state={state} error={null} onCommit={onCommit} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
-    expect(screen.getByText("Month 1 · Year 1, Month 1")).toBeInTheDocument();
+    expect(screen.getAllByText("Month 1 · Year 1, Month 1").length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole("button", { name: /cut public programs/i }));
     expect(onCommit).toHaveBeenCalledWith({ type: "resolve_card", choiceId: "cut" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -70,14 +70,14 @@ describe("campaign replay UI", () => {
     expect(onCommit).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: /recover money/i }));
-    fireEvent.click(screen.getByRole("button", { name: /ignore card and recover money/i }));
+    fireEvent.click(screen.getByRole("button", { name: /ignore file and recover money/i }));
     expect(onCommit).toHaveBeenCalledWith(
       { type: "recover_resource", resource: "money" },
       { confirmCardAbandonment: true },
     );
   });
 
-  it("shows an immediate consequence while keeping its delayed echo collapsed", () => {
+  it("shows exact immediate changes while keeping delayed details classified", () => {
     const state = createGame(12);
     state.activeCardId = "budget_shortfall";
     state.cardHistory.push({
@@ -90,9 +90,12 @@ describe("campaign replay UI", () => {
     });
     const resolved = commitAction(state, { type: "resolve_card", choiceId: "cut" }).state;
     render(<CampaignScreen state={resolved} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
-    expect(screen.getByLabelText(/latest consequence/i)).toHaveTextContent(/missing appropriation/i);
-    const details = screen.getByText(/delayed echo detected/i).closest("details");
-    expect(details).not.toHaveAttribute("open");
+    const result = screen.getByLabelText(/last month’s result/i);
+    expect(result).toHaveTextContent(/missing appropriation/i);
+    expect(result).toHaveTextContent(/money \+12/i);
+    expect(result).toHaveTextContent(/trust −8/i);
+    expect(result).toHaveTextContent(/delayed echo registered/i);
+    expect(result).not.toHaveTextContent(/austerity entered the historical record/i);
   });
 
   it("renders undiscovered Archive entries as silhouettes", () => {

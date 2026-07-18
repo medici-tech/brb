@@ -6,7 +6,10 @@ import {
   getRouteCompletionKind,
   validateRouteIntegrity,
 } from "./engine";
+import { getCorporationResponseInterval } from "./progression";
+import { TRACK_KEYS } from "./types";
 import type {
+  ActivationFailureReason,
   ActionCategory,
   AdvisorId,
   ArchetypeId,
@@ -14,12 +17,16 @@ import type {
   CardEncounterStatus,
   CardRarity,
   CardType,
+  CampaignLengthBucket,
   ClosestAttemptTrace,
+  CompletionPressureTier,
   EchoType,
   EndingFunnel,
   EndingId,
   EndingVariationId,
   GameState,
+  LongestCampaignTrace,
+  PanicAuditSource,
   RouteId,
   SimulationOptions,
   SimulationReport,
@@ -74,6 +81,7 @@ function recordFunnelCandidate(funnel: EndingFunnel, checks: boolean[]): void {
 }
 
 function percent(count: number, total: number): number {
+  if (total === 0) return 0;
   return Number(((count / total) * 100).toFixed(2));
 }
 
@@ -110,7 +118,7 @@ function isCloserAttempt(
   return candidate.runIndex < current.runIndex;
 }
 
-const ALL_BOTS: BotId[] = [
+const DEFAULT_BOTS: BotId[] = [
   "balanced",
   "rush",
   "defensive",
@@ -124,6 +132,7 @@ const ALL_BOTS: BotId[] = [
   "access_first",
   "delayed_deposit",
 ];
+const ALL_BOTS: BotId[] = [...DEFAULT_BOTS, "long_horizon"];
 const ALL_ARCHETYPES: ArchetypeId[] = ["technocrat", "populist", "operator"];
 const PREFERRED_ARCHETYPES: Partial<Record<BotId, ArchetypeId>> = {
   fixer: "operator",
@@ -134,6 +143,7 @@ const PREFERRED_ARCHETYPES: Partial<Record<BotId, ArchetypeId>> = {
   legitimacy_first: "populist",
   stability_first: "technocrat",
   access_first: "operator",
+  long_horizon: "technocrat",
 };
 const ALL_ENDINGS: EndingId[] = [
   "civic_legacy",
@@ -172,12 +182,59 @@ const ALL_VARIATIONS: EndingVariationId[] = [
   "crowd_presses_button",
   "government_by_command",
 ];
+const ALL_PRESSURE_TIERS: CompletionPressureTier[] = [
+  "quiet",
+  "watched",
+  "contested",
+  "severe",
+  "critical",
+];
+const ALL_PANIC_SOURCES: PanicAuditSource[] = [
+  "action_or_card",
+  "corporation_response",
+  "base_pressure",
+  "completion_pressure",
+];
+const ALL_ACTIVATION_FAILURE_REASONS: ActivationFailureReason[] = [
+  "activated",
+  "activation_corporate_capture",
+  "tracks_never_ready",
+  "panic_before_activation",
+  "institutions_before_activation",
+  "advisors_before_activation",
+  "corporation_capture_before_activation",
+  "corporation_unsafe_before_activation",
+  "strategy_delayed_after_readiness",
+];
+const ALL_CAMPAIGN_LENGTH_BUCKETS: CampaignLengthBucket[] = [
+  "under_1_year",
+  "year_2",
+  "years_3_to_5",
+  "years_6_to_10",
+  "over_10_years",
+];
+
+function emptyEndingCounts(): Record<EndingId, number> {
+  return Object.fromEntries(ALL_ENDINGS.map((id) => [id, 0])) as Record<EndingId, number>;
+}
+
+function campaignLengthBucket(months: number): CampaignLengthBucket {
+  if (months <= 12) return "under_1_year";
+  if (months <= 24) return "year_2";
+  if (months <= 60) return "years_3_to_5";
+  if (months <= 120) return "years_6_to_10";
+  return "over_10_years";
+}
+
+function percentile(sorted: number[], fraction: number): number {
+  return sorted[Math.floor((sorted.length - 1) * fraction)] ?? 0;
+}
 
 export function runSimulation(options: SimulationOptions): SimulationReport {
   if (!Number.isInteger(options.runs) || options.runs <= 0) {
     throw new Error("Simulation runs must be a positive integer.");
   }
-  const bots = options.bots?.length ? options.bots : ALL_BOTS;
+  const bots = options.bots?.length ? options.bots : DEFAULT_BOTS;
   const archetypes = options.archetypes?.length ? options.archetypes : ALL_ARCHETYPES;
   const hasExplicitArchetypes = Boolean(options.archetypes?.length);
   const endings = Object.fromEntries(ALL_ENDINGS.map((id) => [id, 0])) as Record<EndingId, number>;
@@ -218,11 +275,43 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
     government_by_command: createEndingFunnel(COMMAND_STAGE_DEFINITIONS),
   };
   const endingContributors: Record<string, number> = {};
+  const campaignMonths: number[] = [];
+  const outcomeByStrategy = Object.fromEntries(
+    ALL_BOTS.map((id) => [id, { runs: 0, endings: emptyEndingCounts() }]),
+  ) as SimulationReport["outcomeByStrategy"];
+  const panicSources = Object.fromEntries(
+    ALL_PANIC_SOURCES.map((source) => [source, { gained: 0, reduced: 0, net: 0, netPerMonth: 0 }]),
+  ) as SimulationReport["panicSources"];
+  const meterGainByPressureTier = Object.fromEntries(
+    ALL_PRESSURE_TIERS.map((tier) => [tier, {
+      months: 0,
+      corporationResponses: 0,
+      corporationResponseRate: 0,
+      corporationGain: 0,
+      corporationGainPerMonth: 0,
+      corporationNet: 0,
+      corporationNetPerMonth: 0,
+      panicGain: 0,
+      panicGainPerMonth: 0,
+      panicNet: 0,
+      panicNetPerMonth: 0,
+    }]),
+  ) as SimulationReport["meterGainByPressureTier"];
+  const monthsByPressureTier = Object.fromEntries(
+    ALL_PRESSURE_TIERS.map((tier) => [tier, { months: 0, perRun: 0, sharePercent: 0 }]),
+  ) as SimulationReport["monthsByPressureTier"];
+  const activationFailureReasons = Object.fromEntries(
+    ALL_ACTIVATION_FAILURE_REASONS.map((reason) => [reason, 0]),
+  ) as Record<ActivationFailureReason, number>;
+  const outcomesByCampaignLength = Object.fromEntries(
+    ALL_CAMPAIGN_LENGTH_BUCKETS.map((bucket) => [bucket, { runs: 0, endings: emptyEndingCounts() }]),
+  ) as SimulationReport["outcomesByCampaignLength"];
 
   let victories = 0;
   let premiumEndings = 0;
   let totalMonths = 0;
   let advisorDepartures = 0;
+  let longestCampaign: LongestCampaignTrace | undefined;
   for (let index = 0; index < options.runs; index += 1) {
     const bot = bots[index % bots.length] as BotId;
     const fallbackArchetype = archetypes[Math.floor(index / bots.length) % archetypes.length] as ArchetypeId;
@@ -234,10 +323,64 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
     const ending = result.state.ending;
     if (!ending) throw new Error("A completed simulation did not produce an ending.");
 
+    if (!longestCampaign || result.trace.length > longestCampaign.monthsSurvived) {
+      longestCampaign = {
+        runIndex: index,
+        seed,
+        botId: bot,
+        archetypeId: archetype,
+        ending: ending.id,
+        monthsSurvived: result.trace.length,
+        finalCorporationProgress: result.state.corporation.progress,
+        finalPanic: result.state.pressures.panic,
+        finalInstitutions: result.state.institutions,
+        finalTracks: { ...result.state.tracks },
+        months: structuredClone(result.trace),
+      };
+    }
+
     endings[ending.id] += 1;
     byBot[bot].runs += 1;
     byArchetype[archetype].runs += 1;
     totalMonths += result.trace.length;
+    campaignMonths.push(result.trace.length);
+    outcomeByStrategy[bot].runs += 1;
+    outcomeByStrategy[bot].endings[ending.id] += 1;
+    const lengthBucket = campaignLengthBucket(result.trace.length);
+    outcomesByCampaignLength[lengthBucket].runs += 1;
+    outcomesByCampaignLength[lengthBucket].endings[ending.id] += 1;
+    for (const month of result.trace) {
+      const { audit } = month;
+      const tierAudit = meterGainByPressureTier[audit.pressureTier];
+      const tierMonths = monthsByPressureTier[audit.pressureTier];
+      tierAudit.months += 1;
+      tierMonths.months += 1;
+      if (audit.corporationResponded) tierAudit.corporationResponses += 1;
+      const corporationNet = audit.corporationProgress.after - audit.corporationProgress.before;
+      const panicNet = audit.panic.after - audit.panic.before;
+      tierAudit.corporationNet += corporationNet;
+      tierAudit.panicNet += panicNet;
+      tierAudit.corporationGain += Math.max(0, audit.corporationProgress.actionOrCard) +
+        Math.max(0, audit.corporationProgress.corporationResponse) +
+        Math.max(0, audit.corporationProgress.basePressure) +
+        Math.max(0, audit.corporationProgress.completionPressure);
+      tierAudit.panicGain += Math.max(0, audit.panic.actionOrCard) +
+        Math.max(0, audit.panic.corporationResponse) +
+        Math.max(0, audit.panic.basePressure) +
+        Math.max(0, audit.panic.completionPressure);
+      const panicDeltas: Record<PanicAuditSource, number> = {
+        action_or_card: audit.panic.actionOrCard,
+        corporation_response: audit.panic.corporationResponse,
+        base_pressure: audit.panic.basePressure,
+        completion_pressure: audit.panic.completionPressure,
+      };
+      for (const source of ALL_PANIC_SOURCES) {
+        const delta = panicDeltas[source];
+        panicSources[source].net += delta;
+        if (delta >= 0) panicSources[source].gained += delta;
+        else panicSources[source].reduced += -delta;
+      }
+    }
     if (ending.victory) {
       victories += 1;
       byBot[bot].victories += 1;
@@ -310,6 +453,30 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
     const activationAttempted = result.state.decisionHistory.some(
       (decision) => decision.category === "activate",
     );
+    const firstReadyMonth = result.trace.find((month) =>
+      TRACK_KEYS.every((track) => month.tracks[track] >= 50),
+    );
+    let activationResult: ActivationFailureReason;
+    if (activationAttempted) {
+      activationResult = ending.id === "corporate_capture"
+        ? "activation_corporate_capture"
+        : "activated";
+    } else if (!firstReadyMonth) {
+      activationResult = "tracks_never_ready";
+    } else if (result.state.corporation.progress >= 100) {
+      activationResult = "corporation_capture_before_activation";
+    } else if (result.state.pressures.panic >= 100) {
+      activationResult = "panic_before_activation";
+    } else if (result.state.institutions <= 0) {
+      activationResult = "institutions_before_activation";
+    } else if (Object.values(result.state.advisors).every((advisor) => !advisor.active)) {
+      activationResult = "advisors_before_activation";
+    } else if (firstReadyMonth.corporationProgress >= 80) {
+      activationResult = "corporation_unsafe_before_activation";
+    } else {
+      activationResult = "strategy_delayed_after_readiness";
+    }
+    activationFailureReasons[activationResult] += 1;
     const stagedCivicChecks = [
       true,
       civicChecks.all_tracks_50 ?? false,
@@ -368,8 +535,34 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
     }
   }
 
+  const sortedCampaignMonths = [...campaignMonths].sort((a, b) => a - b);
+  if (!longestCampaign) throw new Error("Simulation did not produce a longest campaign trace.");
+  for (const source of ALL_PANIC_SOURCES) {
+    panicSources[source].netPerMonth = Number((panicSources[source].net / totalMonths).toFixed(4));
+  }
+  for (const tier of ALL_PRESSURE_TIERS) {
+    const meterAudit = meterGainByPressureTier[tier];
+    const tierMonths = monthsByPressureTier[tier];
+    meterAudit.corporationResponseRate = percent(meterAudit.corporationResponses, meterAudit.months);
+    meterAudit.corporationGainPerMonth = meterAudit.months === 0
+      ? 0
+      : Number((meterAudit.corporationGain / meterAudit.months).toFixed(4));
+    meterAudit.corporationNetPerMonth = meterAudit.months === 0
+      ? 0
+      : Number((meterAudit.corporationNet / meterAudit.months).toFixed(4));
+    meterAudit.panicGainPerMonth = meterAudit.months === 0
+      ? 0
+      : Number((meterAudit.panicGain / meterAudit.months).toFixed(4));
+    meterAudit.panicNetPerMonth = meterAudit.months === 0
+      ? 0
+      : Number((meterAudit.panicNet / meterAudit.months).toFixed(4));
+    tierMonths.perRun = Number((tierMonths.months / options.runs).toFixed(2));
+    tierMonths.sharePercent = percent(tierMonths.months, totalMonths);
+  }
+
   return {
     runs: options.runs,
+    seed: options.seed,
     endings,
     victories,
     averageMonths: Number((totalMonths / options.runs).toFixed(2)),
@@ -386,6 +579,27 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
       activelyResolvedPerRun: Number((cardEncounterStatuses.resolved / options.runs).toFixed(2)),
       ignoredPerRun: Number((cardEncounterStatuses.ignored / options.runs).toFixed(2)),
     },
+    campaignLength: {
+      min: sortedCampaignMonths[0] ?? 0,
+      p25: percentile(sortedCampaignMonths, 0.25),
+      median: percentile(sortedCampaignMonths, 0.5),
+      p75: percentile(sortedCampaignMonths, 0.75),
+      p90: percentile(sortedCampaignMonths, 0.9),
+      p95: percentile(sortedCampaignMonths, 0.95),
+      max: sortedCampaignMonths.at(-1) ?? 0,
+      exceeding5Years: sortedCampaignMonths.filter((months) => months > 60).length,
+      exceeding10Years: sortedCampaignMonths.filter((months) => months > 120).length,
+    },
+    longestCampaign,
+    corporationResponseCadence: Object.fromEntries(
+      ALL_PRESSURE_TIERS.map((tier) => [tier, getCorporationResponseInterval(tier)]),
+    ) as Record<CompletionPressureTier, number>,
+    outcomeByStrategy,
+    panicSources,
+    meterGainByPressureTier,
+    monthsByPressureTier,
+    activationFailureReasons,
+    outcomesByCampaignLength,
     actionUsage,
     advisorConsultations,
     averageFinalLeverage: {

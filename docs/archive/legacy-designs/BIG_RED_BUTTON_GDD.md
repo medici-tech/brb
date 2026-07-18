@@ -1,3 +1,5 @@
+> **Historical design — not current implementation guidance.** This document preserves an obsolete BRB concept. Its original status labels and mechanics are superseded. See the [current documentation index](../../README.md).
+
 # Big Red Button — Complete Game Design Document (GDD)
 
 **Title:** Big Red Button
