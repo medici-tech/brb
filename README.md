@@ -36,9 +36,9 @@ Start with the [documentation index](docs/README.md), [BRB Jargon Reference and 
 For guided self-play, open **Playtest Journal** in the app and follow [BRB Solo Guided Playtest](docs/BRB_GUIDED_PLAYTEST.md). The journal stays in browser storage and can be exported as JSON at any time.
 
 Simulation summaries are recorded in [BRB Simulation Run Log](docs/BRB_SIMULATION_LOG.md).
-Routine checks are capped at 5,000 runs; a 10,000-run comparison requires an explicit request.
+Use 3,000 runs for routine comparisons of common outcomes, campaign duration, and card tempo. Use 5,000 when activation or sub-percentage-point movement matters; rare Civic Legacy and individual-strategy results still need more evidence or multiple seed blocks. A 10,000-run comparison requires an explicit request. See the [sample-size convergence audit](docs/BRB_BALANCE_TARGETS.md#normal-strategy-sample-size-convergence-audit) for the evidence behind these defaults.
 For example:
 
 ```bash
-npm run simulate -- 1000 20260715 --label "Cadence experiment" --notes "Changed only the Corporation response interval."
+npm run simulate -- 3000 20260715 --label "Cadence experiment" --notes "Changed only the Corporation response interval."
 ```
