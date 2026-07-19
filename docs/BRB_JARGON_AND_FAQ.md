@@ -230,7 +230,7 @@ A Corporation-type Situation Card does not replace the automatic Corporation res
 | Protect institutions | `protect_institutions` / `institutions` | Spend 6 Money and 4 Trust for +11 Institutions, -4 Stress, and -2 Panic |
 | Activate BRB | `activate_brb` / `activate` | End the run and evaluate the activation ending |
 
-The current campaign UI exposes **Manage Fixer**, although the engine supports managing any active advisor.
+The current campaign UI exposes **Manage Advisor** for each active advisor.
 
 **Coalition naming:** Strengthen coalition refers to the abstract governing coalition and uses the internal `faction` category. **Labor Coalition** is a separate named card route. The prototype does not track a general faction roster.
 

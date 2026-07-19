@@ -226,7 +226,7 @@ The campaign no longer ends because a fixed number of months elapsed. The same 1
 
 The first, stronger completion surcharge was rejected after it produced zero activations and 64% Corporation capture. The accepted interval-based rule preserves some activations while making escalation progressively more frequent near readiness. These results are a new balance input, not an approved difficulty result; the next tuning pass should change only the completion-pressure cadence if human playtests find the late game too abrupt.
 
-At this checkpoint, full Vitest, TypeScript, and Next build processes stalled in the workspace. That tooling issue is resolved: the current full suite contains 55 passing tests, TypeScript validation passes, and the static Next.js production build completes.
+At this checkpoint, full Vitest, TypeScript, and Next build processes had stalled in the workspace. That tooling issue was then resolved: the suite at this historical checkpoint contained 55 passing tests, TypeScript validation passed, and the static Next.js production build completed. Current gate status belongs in [BRB Current-State Audit](BRB_CURRENT_AUDIT.md).
 
 ## Isolated Corporation cadence experiment
 

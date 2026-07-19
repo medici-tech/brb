@@ -171,7 +171,8 @@ The browser adapter uses versioned local-storage keys:
 
 | Key | Content |
 | --- | --- |
-| `brb.active-run.v3` | Current deterministic `GameState` |
+| `brb.active-run.v4` | Current deterministic `GameState` |
+| `brb.active-run.v3` | Legacy active run accepted for migration and removed after the next save |
 | `brb.archive.v0` | Knowledge archive |
 | `brb.latest-report.v2` | Latest Declassified Report only |
 | `brb.replay-intent.v1` | Seed, archetype, and suggested experiment |
