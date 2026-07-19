@@ -7,7 +7,9 @@ import {
   getValidActions,
 } from "./engine";
 import {
+  ADVISOR_IDS,
   TRACK_KEYS,
+  type AdvisorId,
   type BotId,
   type BotMonthTrace,
   type GameState,
@@ -67,7 +69,7 @@ function chooseLongHorizonAction(state: GameState, valid: MajorAction[]): MajorA
     (state.pressures.panic >= 25 || state.institutions < 80 || state.pressures.stress >= 65)
   ) return protect;
 
-  const riskyAdvisor = (Object.keys(state.advisors) as (keyof typeof state.advisors)[])
+  const riskyAdvisor = ADVISOR_IDS
     .filter((id) => state.advisors[id].active)
     .sort((a, b) => state.advisors[b].leverage - state.advisors[a].leverage)[0];
   const manage = valid.find(
@@ -316,7 +318,7 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
 
   const leverageLimit =
     bot === "fixer" ? 55 : bot === "command" ? 86 : state.archetypeId === "operator" ? 72 : 65;
-  const riskyAdvisor = (Object.keys(state.advisors) as (keyof typeof state.advisors)[]).find(
+  const riskyAdvisor = ADVISOR_IDS.find(
     (id) => state.advisors[id].active && state.advisors[id].leverage >= leverageLimit,
   );
   const manage = valid.find(
@@ -381,14 +383,14 @@ export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
   return [...valid].sort((a, b) => scoreAction(state, b, bot) - scoreAction(state, a, bot))[0] as MajorAction;
 }
 
-function advisorForBot(state: GameState, bot: BotId): keyof typeof ADVISORS {
+function advisorForBot(state: GameState, bot: BotId): AdvisorId {
   if (bot === "long_horizon") return "analyst";
   if (["fixer", "command"].includes(bot)) return "fixer";
   if (["institutionalist", "coalition", "legitimacy_first", "stability_first", "defensive"].includes(bot)) {
     return "steward";
   }
   if (["rush", "engineering_first", "access_first"].includes(bot)) return "analyst";
-  const matching = (Object.keys(ADVISORS) as (keyof typeof ADVISORS)[]).find(
+  const matching = ADVISOR_IDS.find(
     (id) => ADVISORS[id].crisisSpecialty === state.corporation.strategy && state.advisors[id].active,
   );
   return matching ?? "fixer";
@@ -397,7 +399,7 @@ function advisorForBot(state: GameState, bot: BotId): keyof typeof ADVISORS {
 export function playBotRun(initialState: GameState, bot: BotId): {
   state: GameState;
   actionCounts: Record<ReturnType<typeof getActionCategory>, number>;
-  consultationCounts: Record<keyof typeof ADVISORS, number>;
+  consultationCounts: Record<AdvisorId, number>;
   trace: BotMonthTrace[];
 } {
   let state = initialState;

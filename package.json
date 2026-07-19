@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "simulate": "tsx scripts/simulate.ts",
-    "simulate:baseline": "tsx scripts/simulate.ts 10000 20260715"
+    "simulate:baseline": "tsx scripts/simulate.ts 5000 20260715"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

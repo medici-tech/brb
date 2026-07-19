@@ -91,7 +91,6 @@ describe("solo playtest journal", () => {
       "campaign",
       { category: "confusion", severity: "high", note: "The pressure source was unclear." },
       nextState,
-      null,
       "2026-07-16T12:02:00.000Z",
       "bookmark-1",
     );

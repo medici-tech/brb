@@ -53,7 +53,7 @@ The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). De
 
 ## Phase 2: Balance prototype — In progress
 
-Use simulation to produce 10,000-run reports. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model.
+Use 1,000–5,000-run simulations for routine reports. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model. Run a 10,000-run comparison only when explicitly requested.
 
 **Goal:** Confirm that multiple strategies are viable and the game is not mathematically broken.
 

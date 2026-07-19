@@ -190,7 +190,7 @@ export function BRBApp() {
   function bookmarkReport(input: BookmarkInput): void {
     if (!report || !journal.runs.some((run) => run.runId === report.runId)) return;
     const matchingState = state?.runId === report.runId ? state : null;
-    persistJournal(addPlaytestBookmark(journal, report.runId, "report", input, matchingState, report));
+    persistJournal(addPlaytestBookmark(journal, report.runId, "report", input, matchingState));
   }
 
   function saveRecap(recap: Omit<PlaytestRecap, "recordedAt">): void {
