@@ -13,6 +13,7 @@ Use these sources in this order:
 
 Supporting evidence:
 
+- [Current-State Audit](BRB_CURRENT_AUDIT.md): latest implementation, validation, and delivery-risk review
 - [BRB Simulation Run Log](BRB_SIMULATION_LOG.md): runs recorded after automatic logging was introduced
 - [BRB Solo Guided Playtest](BRB_GUIDED_PLAYTEST.md): six-run self-play matrix, journal workflow, and evaluation rules
 - [BRB Replay Baseline](BRB_REPLAY_BASELINE.json): preserved machine-readable historical baseline
