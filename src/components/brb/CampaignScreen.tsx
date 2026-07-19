@@ -17,6 +17,12 @@ import { BrbTracksPanel } from "./BrbTracksPanel";
 import { CampaignAdvisors } from "./CampaignAdvisors";
 import { CampaignActionControl } from "./CampaignActionControl";
 import { CorporationWatchPanel } from "./CorporationWatchPanel";
+import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation";
+import controlRoomStyles from "./control-room/ControlRoomPresentation.module.css";
+import {
+  derivePresentationInputs,
+  resolvePresentationModel,
+} from "./control-room/presentationStateResolver";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { LastTurnResult } from "./LastTurnResult";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
@@ -73,6 +79,9 @@ export function CampaignScreen({
       )
     : null;
   const onboarding = state.turn <= 3 ? ONBOARDING_STEPS[state.turn - 1] : null;
+  const controlRoomModel = resolvePresentationModel(
+    derivePresentationInputs(state, card?.type ?? null),
+  );
 
   return (
     <main className="shell campaign-shell">
@@ -149,40 +158,65 @@ export function CampaignScreen({
       </section>
 
       <div className="campaign-grid">
-        <section className="paper-panel situation-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="file-label">SITUATION DECK</p>
-              <h1>{card?.title ?? "No active file"}</h1>
-            </div>
-            {card ? (
-              <span className={`classification ${card.rarity}`}>
-                {card.type} · {card.rarity}
-              </span>
-            ) : null}
-          </div>
-          <p className="situation-copy">
-            {card?.description ?? "The desk is quiet. Choose where to commit the administration."}
-          </p>
-          {card ? (
-            <div className="choice-list">
-              {card.choices.map((choice) => (
-                <CampaignActionControl
-                  key={choice.id}
-                  state={state}
-                  action={{ type: "resolve_card", choiceId: choice.id }}
-                  recommendation={recommendation}
-                  activeCardTitle={card.title}
-                  onCommit={onCommit}
-                />
-              ))}
-            </div>
-          ) : null}
-
-          <LastTurnResult
-            resolution={state.lastTurnResolution}
-            echoTypes={latestDecision?.echoTypes ?? []}
+        <section
+          className={`situation-panel ${controlRoomStyles.situationWorkspace}`}
+        >
+          <ControlRoomPresentation
+            model={controlRoomModel}
+            turn={state.turn}
+            hasActiveSituation={Boolean(card)}
           />
+
+          {card ? (
+            <div className={`paper-panel ${controlRoomStyles.activeFile}`}>
+              <div className="panel-heading">
+                <div>
+                  <p className="file-label">SITUATION DECK</p>
+                  <h1>{card.title}</h1>
+                </div>
+                <span className={`classification ${card.rarity}`}>
+                  {card.type} · {card.rarity}
+                </span>
+              </div>
+              <p className="situation-copy">{card.description}</p>
+              <div className="choice-list">
+                {card.choices.map((choice) => (
+                  <CampaignActionControl
+                    key={choice.id}
+                    state={state}
+                    action={{ type: "resolve_card", choiceId: choice.id }}
+                    recommendation={recommendation}
+                    activeCardTitle={card.title}
+                    onCommit={onCommit}
+                  />
+                ))}
+              </div>
+              <LastTurnResult
+                resolution={state.lastTurnResolution}
+                echoTypes={latestDecision?.echoTypes ?? []}
+              />
+            </div>
+          ) : (
+            <>
+              <div className={controlRoomStyles.noActiveFile}>
+                <p className="file-label">SITUATION DECK · STANDBY</p>
+                <h1>No active file</h1>
+                <p>
+                  The desk is quiet. Choose where to commit the administration.
+                </p>
+              </div>
+              {state.lastTurnResolution ? (
+                <div
+                  className={`paper-panel ${controlRoomStyles.inactiveResult}`}
+                >
+                  <LastTurnResult
+                    resolution={state.lastTurnResolution}
+                    echoTypes={latestDecision?.echoTypes ?? []}
+                  />
+                </div>
+              ) : null}
+            </>
+          )}
         </section>
 
         <aside className="operations-column">
