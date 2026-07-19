@@ -78,6 +78,10 @@ export function BRBApp() {
     }
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [view]);
+
   function persistJournal(next: PlaytestJournalV1): void {
     savePlaytestJournal(window.localStorage, next);
     setJournal(next);

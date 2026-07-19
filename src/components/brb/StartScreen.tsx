@@ -33,6 +33,15 @@ export function StartScreen({ savedRun, replayIntent, onStart, onResume, onOpenA
           Every run builds a unique classified political history. Finish feeling you uncovered one
           version of the truth—not the entire game.
         </p>
+        {!savedRun ? (
+          <button
+            className="primary-button start-cta"
+            type="button"
+            onClick={() => document.getElementById("choose-director")?.scrollIntoView({ behavior: "auto", block: "start" })}
+          >
+            Choose an operating doctrine
+          </button>
+        ) : null}
         {replayIntent ? (
           <aside className="objective">
             <span>COUNTERFACTUAL OBJECTIVE</span>

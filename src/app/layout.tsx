@@ -8,18 +8,21 @@ const displayFont = Barlow_Condensed({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-brb-display",
+  preload: false,
 });
 
 const bodyFont = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-brb-body",
+  preload: false,
 });
 
 const monoFont = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-brb-mono",
+  preload: false,
 });
 
 export const metadata: Metadata = {
