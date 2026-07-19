@@ -133,7 +133,9 @@ Important boundaries:
 
 Use automated simulation to form hypotheses, not to replace human play.
 
-- Routine reports use 1,000–5,000 runs.
+- Routine comparisons of common outcomes, campaign duration, and card tempo use 3,000 runs. The fixed-seed convergence audit found that these measures changed negligibly between 3,000 and 5,000 runs.
+- Use 5,000 runs when activation, sub-percentage-point movement, or another uncommon outcome materially affects the decision. Even 5,000 runs is not enough for precise Civic Legacy or individual-bot claims.
+- A longer deterministic prefix does not test seed-to-seed robustness. Use a documented alternate seed or multiple seed blocks when robustness across seeds is the question.
 - A 10,000-run comparison requires an explicit user request.
 - `npm run simulate` appends to `docs/BRB_SIMULATION_LOG.md`; it is a mutating evidence command, not a harmless smoke test.
 - Always provide a useful `--label` and `--notes` when running a balance experiment.
@@ -145,7 +147,7 @@ Use automated simulation to form hypotheses, not to replace human play.
 Example:
 
 ```bash
-npm run simulate -- 1000 20260715 \
+npm run simulate -- 3000 20260715 \
   --label "Corporation cadence experiment" \
   --notes "Changed only the Watched response interval; comparing activation and collapse rates."
 ```

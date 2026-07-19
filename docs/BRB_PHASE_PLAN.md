@@ -25,7 +25,7 @@ Build the revised turn loop, consultation phase, consequence phase, interactive 
 - Three basic strategy bots and a command-line simulator
 - Deterministic behavior tests and TypeScript checks
 
-The engine entry point is [`src/game/index.ts`](../src/game/index.ts). Run `npm test`, `npm run typecheck`, or `npm run simulate -- 1000 20260715` from the project root.
+The engine entry point is [`src/game/index.ts`](../src/game/index.ts). Run `npm test`, `npm run typecheck`, or `npm run simulate -- 3000 20260715` from the project root.
 
 ## Phase 1.5: Counterfactual replay slice — Complete
 
@@ -53,7 +53,7 @@ The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). De
 
 ## Phase 2: Balance prototype — In progress
 
-Use 1,000–5,000-run simulations for routine reports. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model. Run a 10,000-run comparison only when explicitly requested.
+Use 3,000-run simulations for routine comparisons of common outcomes, duration, and card tempo; the current fixed-seed convergence audit found negligible movement from 3,000 to 5,000 on those measures. Use 5,000 when activation or sub-percentage-point movement matters, but do not treat that sample as precise evidence for Civic Legacy or individual strategies. Use alternate seeds or multiple seed blocks when testing seed-to-seed robustness. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model. Run a 10,000-run comparison only when explicitly requested.
 
 **Goal:** Confirm that multiple strategies are viable and the game is not mathematically broken.
 

@@ -295,3 +295,28 @@ The longest campaign was seed `2295661248`, simulation index 228. It survived 16
 This proves that five- and ten-year campaigns are mechanically reachable under the current rules. The zero long campaigns in the normal 10,000-run audit are a strategy-distribution result, not a hidden calendar limit or an absolute survival wall. Therefore the conditional defensive-economy experiment is not warranted yet, and no balance lever was changed. Human playtesting should determine whether normal players discover and enjoy this slower defensive style before it is promoted into the standard bot mix.
 
 Card verification now measures the unchanged monthly presentation rate and active-resolution share instead of absolute cards per run. Absolute counts naturally rise in longer campaigns even when the 55% appearance rule is unchanged.
+
+## Normal-strategy sample-size convergence audit
+
+> **Diagnostic only:** This audit changes no balance lever. It asks how many normal-strategy simulator runs are useful for routine comparisons under the current rules.
+
+The simulator was run at 1,000, 3,000, and 5,000 campaigns with seed `20260715`. Because the engine is deterministic and each larger run contains the earlier fixed-seed sequence, these are nested convergence checkpoints rather than three independent experiments. The comparison can show when the reported rates settle down; it cannot measure seed-to-seed sensitivity or substitute for human playtesting.
+
+| Metric | 1,000 runs | 3,000 runs | 5,000 runs | 1k → 3k change | 3k → 5k change |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Activations | 18 (1.80%) | 41 (1.37%) | 74 (1.48%) | -0.43 pp | +0.11 pp |
+| Civic Legacy | 2 (0.20%) | 4 (0.13%) | 6 (0.12%) | -0.07 pp | -0.01 pp |
+| State collapse | 468 (46.80%) | 1,402 (46.73%) | 2,338 (46.76%) | -0.07 pp | +0.03 pp |
+| Corporation capture | 514 (51.40%) | 1,557 (51.90%) | 2,588 (51.76%) | +0.50 pp | -0.14 pp |
+| Premium endings | 10 (1.00%) | 24 (0.80%) | 43 (0.86%) | -0.20 pp | +0.06 pp |
+| Average months | 21.48 | 21.64 | 21.61 | +0.16 | -0.03 |
+| Median months | 21 | 21 | 21 | 0 | 0 |
+| Cards presented / resolved | 11.83 / 8.78 | 11.91 / 8.84 | 11.86 / 8.80 | +0.08 / +0.06 | -0.05 / -0.04 |
+
+The high-frequency outcomes have effectively converged by 3,000 runs for routine design decisions. From 3,000 to 5,000, collapse moved only 0.03 percentage points, capture 0.14 points, average duration 0.03 months, and card tempo at most 0.05 cards per run. Their 5,000-run 95% Wilson intervals are 45.38–48.14% for collapse and 50.37–53.14% for capture; a 5,000-run sample still has about a ±1.38-point uncertainty margin for a result near 50%, even though the observed fixed-seed checkpoints moved much less.
+
+Rare outcomes have not reached the same precision. Activation's 95% Wilson interval narrows from 1.14–2.83% at 1,000 runs, to 1.01–1.85% at 3,000, and 1.18–1.85% at 5,000. The intervals overlap substantially, so the apparent 1.80% → 1.37% → 1.48% movement is sampling noise rather than evidence of a changed result. Civic Legacy is rarer still: only six examples appear in 5,000 runs, which is enough to establish reachability but not enough to estimate its rate or strategy distribution confidently.
+
+Campaign shape also settles by 3,000 runs: the median remains 21 months at every checkpoint, while P75/P90/P95 move from 23/26/28 at 1,000 to 24/27/29 at 3,000 and remain there at 5,000. The observed maximum rises from 40 to 59 months by 3,000 and then stays at 59, and no normal-strategy run exceeds five years. This reinforces the existing finding that long campaigns are reachable only through the separate diagnostic strategy, not present in the normal bot rotation.
+
+The practical cutoff is therefore **3,000 runs for routine comparisons of common outcomes, duration, and card tempo**. Moving to 5,000 makes the uncertainty bounds narrower but does not materially change this report's central numbers. Use 5,000 when the decision depends on sub-percentage-point movement or when activation is important. Even 5,000 is too small for strong claims about Civic Legacy or individual bot performance: each normal bot receives only about 416 campaigns, and Civic Legacy has only six total observations. A different base seed or multiple seed blocks would be the appropriate next check for robustness; simply extending this same deterministic prefix has diminishing value.
