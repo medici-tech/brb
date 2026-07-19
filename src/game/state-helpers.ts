@@ -1,4 +1,5 @@
 import {
+  ADVISOR_IDS,
   RESOURCE_KEYS,
   TRACK_KEYS,
   type ActionCategory,
@@ -36,7 +37,7 @@ export function snapshotGameEffects(state: GameState): EffectSnapshot {
       threat: state.corporation.threat,
     },
     advisors: Object.fromEntries(
-      (Object.keys(state.advisors) as AdvisorId[]).map((advisorId) => [
+      ADVISOR_IDS.map((advisorId) => [
         advisorId,
         { ...state.advisors[advisorId] },
       ]),
@@ -83,7 +84,7 @@ export function diffEffectSnapshots(before: EffectSnapshot, after: EffectSnapsho
   );
   if (corporationThreat !== undefined) delta.corporationThreat = corporationThreat;
 
-  for (const advisorId of Object.keys(after.advisors) as AdvisorId[]) {
+  for (const advisorId of ADVISOR_IDS) {
     const prior = before.advisors[advisorId];
     const current = after.advisors[advisorId];
     const advisorDelta: NonNullable<StateDelta["advisors"][AdvisorId]> = {};
@@ -202,7 +203,7 @@ export function populateDecisionImpact(
     (sum, key) => sum + Math.abs(after.deposited[key] - before.deposited[key]),
     0,
   );
-  const advisorImpact = (Object.keys(after.advisors) as AdvisorId[]).reduce(
+  const advisorImpact = ADVISOR_IDS.reduce(
     (sum, advisorId) => {
       const prior = before.advisors[advisorId];
       const current = after.advisors[advisorId];

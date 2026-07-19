@@ -1,8 +1,10 @@
 import { ADVISORS, CORPORATION_MOVES } from "./content";
 import {
+  canUseArchetypeConsultation,
+  getActionCategory,
+  getActionCost,
   getActionError,
   getActiveCard,
-  getDepositCost,
   getValidActions,
 } from "./engine";
 import { getCorporationPressure } from "./progression";
@@ -107,20 +109,14 @@ export function getActionLabel(state: GameState, action: MajorAction): string {
   return "Activate BRB";
 }
 
-function cardCosts(state: GameState, choice: SituationCardChoice): string[] {
-  const totals = Object.fromEntries(RESOURCE_KEYS.map((key) => [key, 0])) as Record<ResourceKey, number>;
-  for (const [resource, amount] of Object.entries(choice.effects.resources ?? {}) as [
-    ResourceKey,
-    number,
-  ][]) {
-    if (amount < 0) totals[resource] += Math.abs(amount);
-  }
-  if (state.archetypeId === "technocrat" && choice.tags?.includes("opaque")) {
-    totals.trust += 3;
-  }
-  return RESOURCE_KEYS
-    .filter((resource) => totals[resource] > 0)
-    .map((resource) => formatCost(resource, totals[resource]));
+function actionCosts(state: GameState, action: MajorAction): string[] {
+  const cost = getActionCost(state, action);
+  const displayOrder = action.type === "counter_corporation"
+    ? (["intelligence", "influence"] as const)
+    : RESOURCE_KEYS;
+  return displayOrder
+    .filter((resource) => (cost[resource] ?? 0) > 0)
+    .map((resource) => formatCost(resource, cost[resource] ?? 0));
 }
 
 function qualitativeCardResult(choice: SituationCardChoice): string {
@@ -179,6 +175,7 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   const base = {
     actionKey: actionKey(action),
     label: getActionLabel(state, action),
+    costs: actionCosts(state, action),
     delayedConsequence: null,
     permanent: false,
     disabledReason,
@@ -189,14 +186,12 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
     if (!choice) {
       return {
         ...base,
-        costs: [],
         result: "This Situation option is no longer available.",
         risk: null,
       };
     }
     return {
       ...base,
-      costs: cardCosts(state, choice),
       result: qualitativeCardResult(choice),
       risk: qualitativeCardRisk(state, choice),
       delayedConsequence: delayedCategory(choice),
@@ -204,12 +199,8 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   }
 
   if (action.type === "deposit") {
-    const cost = getDepositCost(action.track, action.size);
     return {
       ...base,
-      costs: RESOURCE_KEYS
-        .filter((resource) => cost[resource] > 0)
-        .map((resource) => formatCost(resource, cost[resource])),
       result: action.size === "large"
         ? `Substantially advances ${TRACK_LABELS[action.track]} toward its 50-point readiness threshold.`
         : `Moderately advances ${TRACK_LABELS[action.track]} toward its 50-point readiness threshold.`,
@@ -219,13 +210,8 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   }
 
   if (action.type === "counter_corporation") {
-    const emergency = state.systemModifiers.includes("emergency_rule");
     return {
       ...base,
-      costs: [
-        formatCost("intelligence", emergency ? 5 : 7),
-        formatCost("influence", emergency ? 2 : 3),
-      ],
       result: "A correct forecast pushes back Corporation Progress and Threat.",
       risk: "A wrong forecast wastes the operation and raises Corporation Threat.",
     };
@@ -233,7 +219,6 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   if (action.type === "strengthen_faction") {
     return {
       ...base,
-      costs: [formatCost("influence", 8)],
       result: "Reinforces Trust and Institutions.",
       risk: null,
     };
@@ -241,7 +226,6 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   if (action.type === "manage_advisor") {
     return {
       ...base,
-      costs: [formatCost("influence", 4)],
       result: `Restores ${ADVISORS[action.advisorId].name}’s Loyalty and reduces their Leverage.`,
       risk: "Other advisors still judge the policy category chosen this month.",
     };
@@ -249,7 +233,6 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   if (action.type === "recover_resource") {
     return {
       ...base,
-      costs: [],
       result: `Restores a major reserve of ${RESOURCE_LABELS[action.resource]}.`,
       risk: "Consumes the month, raises Stress, and gives the Corporation time to advance.",
     };
@@ -257,14 +240,12 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   if (action.type === "protect_institutions") {
     return {
       ...base,
-      costs: [formatCost("money", 6), formatCost("trust", 4)],
       result: "Reinforces Institutions and relieves Stress and Panic.",
       risk: null,
     };
   }
   return {
     ...base,
-    costs: [],
     result: "Ends the campaign and evaluates who controls the completed BRB.",
     risk: "Unsafe Corporation control, Panic, weak Institutions, or advisor Leverage can compromise activation.",
   };
@@ -296,21 +277,7 @@ function recommendationScore(
   action: MajorAction,
   predictedStrategy: CorporationStrategy,
 ): number {
-  const category = action.type === "resolve_card"
-    ? "card"
-    : action.type === "counter_corporation"
-      ? "counter"
-      : action.type === "strengthen_faction"
-        ? "faction"
-        : action.type === "manage_advisor"
-          ? "advisor"
-          : action.type === "recover_resource"
-            ? "recover"
-            : action.type === "protect_institutions"
-              ? "institutions"
-              : action.type === "activate_brb"
-                ? "activate"
-                : "deposit";
+  const category = getActionCategory(action);
   let score = ADVISORS[advisorId].agenda.includes(category) ? 45 : 10;
   if (action.type === "resolve_card") {
     const choice = getActiveCard(state)?.choices.find((candidate) => candidate.id === action.choiceId);
@@ -380,19 +347,12 @@ export function getAdvisorRecommendation(
   };
 }
 
-export function getConsultationCost(state: GameState): { intelligence: number; leverage: number } {
-  return {
-    intelligence: 2,
-    leverage: state.archetypeId === "operator" ? 4 : 2,
-  };
-}
-
 export function getArchetypeAbilityPreview(
   state: GameState,
   advisorId: AdvisorId,
 ): { name: string; cost: string; result: string } | null {
-  if (state.archetypeAbilityUsed) return null;
-  if (state.archetypeId === "populist" && advisorId === "steward" && state.resources.trust >= 6) {
+  if (!canUseArchetypeConsultation(state, advisorId)) return null;
+  if (state.archetypeId === "populist" && advisorId === "steward") {
     return {
       name: "Spend the Mandate",
       cost: "Consultation cost + 6 Trust",

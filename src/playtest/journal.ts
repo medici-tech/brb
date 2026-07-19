@@ -1,4 +1,4 @@
-import type { DeclassifiedReport, GameState } from "../game/types";
+import type { GameState } from "../game/types";
 import {
   PLAYTEST_BOOKMARK_CATEGORIES,
   PLAYTEST_SEVERITIES,
@@ -396,7 +396,6 @@ export function addPlaytestBookmark(
   location: PlaytestBookmark["location"],
   input: BookmarkInput,
   state?: GameState | null,
-  _report?: DeclassifiedReport | null,
   now?: string,
   bookmarkId?: string,
 ): PlaytestJournalV1 {

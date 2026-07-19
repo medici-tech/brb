@@ -161,9 +161,9 @@ Those gaps are Phase 2 inputs, not accepted balance. Phase 2 should first improv
 
 > **Historical checkpoint:** This records the replay architecture before the accepted Phase 2 cadence change. Its zero Civic Legacy result and card-resolution rate are not current findings.
 
-This baseline is generated separately with `npm run simulate:baseline` before any Phase 2 value changes. It adds Situation Deck, echo, route, pivotal-decision, ending-contributor, and archetype-variation fields. Results below describe the replay architecture as implemented; they do not approve its balance.
+This historical baseline was generated separately before any Phase 2 value changes. It adds Situation Deck, echo, route, pivotal-decision, ending-contributor, and archetype-variation fields. Results below describe the replay architecture as implemented; they do not approve its balance. The current `simulate:baseline` script is capped at 5,000 runs for routine checks.
 
-Verified with `npm run simulate:baseline` using seed `20260715`:
+Verified with an explicitly authorized 10,000-run simulation using seed `20260715`:
 
 | Metric | Result |
 | --- | ---: |

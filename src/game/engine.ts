@@ -41,6 +41,7 @@ import {
   type EffectSnapshot,
 } from "./state-helpers";
 import {
+  ADVISOR_IDS,
   CARD_TYPES,
   RESOURCE_KEYS,
   ROUTE_IDS,
@@ -223,23 +224,16 @@ export function consultAdvisor(
   advisorId: AdvisorId,
   useArchetypeAbility = false,
 ): ActionResult {
-  if (state.phase === "ended") return { state, accepted: false, error: "The run has ended." };
-  if (state.phase !== "briefing") {
-    return { state, accepted: false, error: "Only one consultation is allowed each turn." };
-  }
-  if (!state.advisors[advisorId].active) {
-    return { state, accepted: false, error: "That advisor is no longer active." };
-  }
-  if (state.resources.intelligence < 2) {
-    return { state, accepted: false, error: "Consultation requires 2 Intelligence." };
-  }
+  const consultationError = getConsultationError(state, advisorId);
+  if (consultationError) return { state, accepted: false, error: consultationError };
 
   const next = cloneState(state);
   const before = cloneState(next);
   const advisor = next.advisors[advisorId];
   const definition = ADVISORS[advisorId];
-  next.resources.intelligence -= 2;
-  const leverageGain = next.archetypeId === "operator" ? 4 : 2;
+  const consultationCost = getConsultationCost(next);
+  next.resources.intelligence -= consultationCost.intelligence;
+  const leverageGain = consultationCost.leverage;
   advisor.leverage = clamp(advisor.leverage + leverageGain);
   advisor.loyalty = clamp(advisor.loyalty + 1, 0, definition.loyaltyCeiling);
 
@@ -317,14 +311,45 @@ export function getDepositCost(track: TrackKey, size: "standard" | "large"): Res
   return cost;
 }
 
-function canAfford(resources: ResourcePool, cost: ResourcePool): boolean {
-  return RESOURCE_KEYS.every((resource) => resources[resource] >= cost[resource]);
+export function getActionCost(
+  state: GameState,
+  action: MajorAction,
+): Partial<ResourcePool> {
+  if (action.type === "deposit") return getDepositCost(action.track, action.size);
+  if (action.type === "resolve_card") {
+    const choice = getActiveCard(state)?.choices.find(
+      (candidate) => candidate.id === action.choiceId,
+    );
+    if (!choice) return {};
+    const cost: Partial<ResourcePool> = {};
+    for (const resource of RESOURCE_KEYS) {
+      const amount = choice.effects.resources?.[resource] ?? 0;
+      if (amount < 0) cost[resource] = Math.abs(amount);
+    }
+    if (state.archetypeId === "technocrat" && choice.tags?.includes("opaque")) {
+      cost.trust = (cost.trust ?? 0) + 3;
+    }
+    return cost;
+  }
+  if (action.type === "counter_corporation") {
+    return state.systemModifiers.includes("emergency_rule")
+      ? { intelligence: 5, influence: 2 }
+      : { intelligence: 7, influence: 3 };
+  }
+  if (action.type === "strengthen_faction") return { influence: 8 };
+  if (action.type === "manage_advisor") return { influence: 4 };
+  if (action.type === "protect_institutions") return { money: 6, trust: 4 };
+  return {};
 }
 
-function counterCost(state: GameState): { intelligence: number; influence: number } {
-  return state.systemModifiers.includes("emergency_rule")
-    ? { intelligence: 5, influence: 2 }
-    : { intelligence: 7, influence: 3 };
+function canAfford(resources: ResourcePool, cost: Partial<ResourcePool>): boolean {
+  return RESOURCE_KEYS.every((resource) => resources[resource] >= (cost[resource] ?? 0));
+}
+
+function spendResources(state: GameState, cost: Partial<ResourcePool>): void {
+  for (const resource of RESOURCE_KEYS) {
+    state.resources[resource] -= cost[resource] ?? 0;
+  }
 }
 
 export function getActionError(
@@ -351,19 +376,21 @@ export function getActionError(
     }
   }
   if (action.type === "counter_corporation") {
-    const cost = counterCost(state);
-    if (state.resources.intelligence < cost.intelligence || state.resources.influence < cost.influence) {
+    const cost = getActionCost(state, action);
+    if (!canAfford(state.resources, cost)) {
       return `Countering the Corporation requires ${cost.intelligence} Intelligence and ${cost.influence} Influence.`;
     }
   }
-  if (action.type === "strengthen_faction" && state.resources.influence < 8) {
+  if (action.type === "strengthen_faction" && !canAfford(state.resources, getActionCost(state, action))) {
     return "Strengthening the coalition requires 8 Influence.";
   }
   if (action.type === "manage_advisor") {
     if (!state.advisors[action.advisorId].active) return "That advisor is no longer active.";
-    if (state.resources.influence < 4) return "Managing an advisor requires 4 Influence.";
+    if (!canAfford(state.resources, getActionCost(state, action))) {
+      return "Managing an advisor requires 4 Influence.";
+    }
   }
-  if (action.type === "protect_institutions" && (state.resources.money < 6 || state.resources.trust < 4)) {
+  if (action.type === "protect_institutions" && !canAfford(state.resources, getActionCost(state, action))) {
     return "Protecting institutions requires 6 Money and 4 Trust.";
   }
   if (action.type === "activate_brb" && TRACK_KEYS.some((track) => state.tracks[track] < 50)) {
@@ -404,9 +431,7 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
   } else if (action.type === "resolve_card") {
     return { corporationBlocked, decisionId: resolveCard(state, action.choiceId) };
   } else if (action.type === "counter_corporation") {
-    const cost = counterCost(state);
-    state.resources.intelligence -= cost.intelligence;
-    state.resources.influence -= cost.influence;
+    spendResources(state, getActionCost(state, action));
     corporationBlocked = action.predictedStrategy === state.corporation.strategy;
     if (corporationBlocked) {
       state.corporation.progress = clamp(state.corporation.progress - 8);
@@ -417,10 +442,11 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
       summary = "The counter-operation targeted the wrong strategy.";
     }
   } else if (action.type === "strengthen_faction") {
-    applyEffects(state, { resources: { influence: -8, trust: 6 }, institutions: 5 });
+    spendResources(state, getActionCost(state, action));
+    applyEffects(state, { resources: { trust: 6 }, institutions: 5 });
     summary = "The governing coalition was strengthened.";
   } else if (action.type === "manage_advisor") {
-    state.resources.influence -= 4;
+    spendResources(state, getActionCost(state, action));
     state.advisors[action.advisorId].loyalty = clamp(state.advisors[action.advisorId].loyalty + 10);
     state.advisors[action.advisorId].leverage = clamp(state.advisors[action.advisorId].leverage - 6);
     summary = `${ADVISORS[action.advisorId].name} was brought back into line.`;
@@ -431,8 +457,8 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
     state.corporation.progress = clamp(state.corporation.progress + 3);
     summary = `${action.resource} was recovered while the Corporation used the delay.`;
   } else if (action.type === "protect_institutions") {
+    spendResources(state, getActionCost(state, action));
     applyEffects(state, {
-      resources: { money: -6, trust: -4 },
       institutions: 11,
       pressures: { stress: -4, panic: -2 },
     });
@@ -458,7 +484,7 @@ export function getActionCategory(action: MajorAction): ActionCategory {
 }
 
 function applyAdvisorReactions(state: GameState, category: ActionCategory): void {
-  for (const advisorId of Object.keys(ADVISORS) as AdvisorId[]) {
+  for (const advisorId of ADVISOR_IDS) {
     const definition = ADVISORS[advisorId];
     const advisor = state.advisors[advisorId];
     if (!advisor.active) continue;
@@ -965,7 +991,7 @@ export function getValidActions(state: GameState): MajorAction[] {
     const candidate: MajorAction = { type: "counter_corporation", predictedStrategy };
     if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
   }
-  for (const advisorId of Object.keys(ADVISORS) as AdvisorId[]) {
+  for (const advisorId of ADVISOR_IDS) {
     const candidate: MajorAction = { type: "manage_advisor", advisorId };
     if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
   }
@@ -985,6 +1011,29 @@ export function canUseArchetypeConsultation(state: GameState, advisorId: Advisor
   if (state.archetypeId === "populist") return advisorId === "steward" && state.resources.trust >= 6;
   if (state.archetypeId === "operator") return advisorId === "fixer";
   return false;
+}
+
+export function getConsultationCost(
+  state: GameState,
+): { intelligence: number; leverage: number } {
+  return {
+    intelligence: 2,
+    leverage: state.archetypeId === "operator" ? 4 : 2,
+  };
+}
+
+export function getConsultationError(
+  state: GameState,
+  advisorId: AdvisorId,
+): string | null {
+  if (state.phase === "ended") return "The run has ended.";
+  if (state.phase !== "briefing") return "Only one consultation is allowed each turn.";
+  if (!state.advisors[advisorId].active) return "That advisor is no longer active.";
+  const cost = getConsultationCost(state);
+  if (state.resources.intelligence < cost.intelligence) {
+    return `Consultation requires ${cost.intelligence} Intelligence.`;
+  }
+  return null;
 }
 
 export function getBriefing(state: GameState): string[] {

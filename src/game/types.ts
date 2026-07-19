@@ -13,6 +13,8 @@ export const TRACK_KEYS = [
   "stability",
 ] as const;
 
+export const ADVISOR_IDS = ["analyst", "fixer", "steward"] as const;
+
 export const CARD_TYPES = ["crisis", "advisor", "corporation"] as const;
 export const CARD_RARITIES = ["common", "rare"] as const;
 export const ECHO_TYPES = ["card", "relationship", "system", "ending"] as const;
@@ -51,7 +53,7 @@ export type PressurePool = {
   panic: number;
 };
 
-export type AdvisorId = "analyst" | "fixer" | "steward";
+export type AdvisorId = (typeof ADVISOR_IDS)[number];
 export type ArchetypeId = "technocrat" | "populist" | "operator";
 export type CorporationStrategy =
   | "expanding"

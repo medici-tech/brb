@@ -35,7 +35,9 @@ Start with the [documentation index](docs/README.md), [BRB Jargon Reference and 
 
 For guided self-play, open **Playtest Journal** in the app and follow [BRB Solo Guided Playtest](docs/BRB_GUIDED_PLAYTEST.md). The journal stays in browser storage and can be exported as JSON at any time.
 
-Simulation summaries are recorded in [BRB Simulation Run Log](docs/BRB_SIMULATION_LOG.md). For example:
+Simulation summaries are recorded in [BRB Simulation Run Log](docs/BRB_SIMULATION_LOG.md).
+Routine checks are capped at 5,000 runs; a 10,000-run comparison requires an explicit request.
+For example:
 
 ```bash
 npm run simulate -- 1000 20260715 --label "Cadence experiment" --notes "Changed only the Corporation response interval."

@@ -2,9 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   actionKey,
   commitAction,
+  consultAdvisor,
   createGame,
+  getActionCost,
   getActionPreview,
   getAdvisorRecommendation,
+  getConsultationCost,
+  getConsultationError,
   getCorporationPressure,
   getValidActions,
 } from "../../src/game/index.js";
@@ -49,6 +53,25 @@ describe("cause-and-effect guidance", () => {
       track: "engineering",
       size: "standard",
     }).disabledReason).toMatch(/costs more resources/i);
+  });
+
+  it("uses the same engine selectors for displayed costs and consultation eligibility", () => {
+    const state = createGame(20, "operator");
+    state.activeCardId = null;
+    state.systemModifiers.push("emergency_rule");
+    const counter = {
+      type: "counter_corporation",
+      predictedStrategy: "expanding",
+    } as const;
+
+    expect(getActionCost(state, counter)).toEqual({ intelligence: 5, influence: 2 });
+    expect(getActionPreview(state, counter).costs).toEqual(["5 Intel", "2 Influence"]);
+    expect(getConsultationCost(state)).toEqual({ intelligence: 2, leverage: 4 });
+
+    state.resources.intelligence = 1;
+    const error = getConsultationError(state, "fixer");
+    expect(error).toBe("Consultation requires 2 Intelligence.");
+    expect(consultAdvisor(state, "fixer").error).toBe(error);
   });
 
   it("produces deterministic, legal, personality-specific advice", () => {
