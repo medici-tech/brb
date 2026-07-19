@@ -7,6 +7,7 @@ import { HowToPlayDialog } from "../../src/components/brb/HowToPlayDialog.js";
 import { PlaytestBookmarkDialog } from "../../src/components/brb/PlaytestBookmarkDialog.js";
 import { PlaytestJournalView } from "../../src/components/brb/PlaytestJournalView.js";
 import { PlaytestRecapForm } from "../../src/components/brb/PlaytestRecapForm.js";
+import { StartScreen } from "../../src/components/brb/StartScreen.js";
 import { commitAction, consultAdvisor, createGame } from "../../src/game/index.js";
 import { createEmptyPlaytestJournal } from "../../src/playtest/journal.js";
 
@@ -85,6 +86,46 @@ describe("guided playtest UI", () => {
     const advanced = commitAction(state, { type: "recover_resource", resource: "money" }).state;
     rerender(<CampaignScreen state={advanced} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
     expect(screen.getByRole("heading", { name: /every change has a source/i })).toBeInTheDocument();
+  });
+
+  it("moves keyboard focus and the viewport to the Situation after a commitment", () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    const state = createGame(12);
+    const { rerender, unmount } = render(<CampaignScreen state={state} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
+    const prepared = structuredClone(state);
+    prepared.activeCardId = null;
+    const advanced = commitAction(prepared, { type: "recover_resource", resource: "money" }).state;
+
+    rerender(<CampaignScreen state={advanced} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
+
+    const workspace = screen.getByRole("region", { name: /situation workspace/i });
+    expect(workspace).toHaveFocus();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
+
+    unmount();
+    scrollIntoView.mockClear();
+    render(<CampaignScreen state={advanced} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
+    expect(screen.getByRole("region", { name: /situation workspace/i })).not.toHaveFocus();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+  });
+
+  it("offers a visible first step toward the doctrine controls", () => {
+    render(
+      <StartScreen
+        savedRun={null}
+        replayIntent={null}
+        onStart={vi.fn()}
+        onResume={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("button", { name: /choose an operating doctrine/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /open .* file/i })).toHaveLength(3);
   });
 
   it("collects a categorized bookmark note", () => {

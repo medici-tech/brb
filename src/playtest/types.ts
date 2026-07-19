@@ -46,13 +46,8 @@ export type PlaytestMatrixSlot = {
   replayCommitments: number;
 };
 
-export type PlaytestDecisionSnapshot = {
-  decisionId: string;
+type PlaytestStateCapture = {
   turn: number;
-  category: ActionCategory;
-  summary: string;
-  cardId: string | null;
-  choiceId: string | null;
   activeCardId: string | null;
   resources: ResourcePool;
   tracks: TrackPool;
@@ -66,6 +61,22 @@ export type PlaytestDecisionSnapshot = {
   advisorLeverage: Record<AdvisorId, number>;
   endingId: EndingId | null;
   capturedAt: string;
+};
+
+export type PlaytestMomentSnapshot = PlaytestStateCapture & {
+  decisionId: string | null;
+  category: ActionCategory | null;
+  summary: string | null;
+  cardId: string | null;
+  choiceId: string | null;
+};
+
+export type PlaytestDecisionSnapshot = PlaytestStateCapture & {
+  decisionId: string;
+  category: ActionCategory;
+  summary: string;
+  cardId: string | null;
+  choiceId: string | null;
 };
 
 export type PlaytestRecap = {
@@ -105,7 +116,7 @@ export type PlaytestBookmark = {
   severity: PlaytestSeverity;
   note: string;
   createdAt: string;
-  snapshot: PlaytestDecisionSnapshot | null;
+  snapshot: PlaytestMomentSnapshot | null;
 };
 
 export type PlaytestJournalV1 = {

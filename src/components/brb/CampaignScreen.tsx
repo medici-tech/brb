@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   getAdvisorRecommendation,
   RESOURCE_GUIDANCE,
@@ -70,6 +71,9 @@ export function CampaignScreen({
   const card = getActiveCard(state);
   const valid = getValidActions(state);
   const latestDecision = state.decisionHistory.at(-1);
+  const latestDecisionId = latestDecision?.id;
+  const situationWorkspaceRef = useRef<HTMLElement>(null);
+  const previousDecisionIdRef = useRef(latestDecisionId);
   const canActivate = valid.some((action) => action.type === "activate_brb");
   const recommendation = state.consultation
     ? getAdvisorRecommendation(
@@ -82,6 +86,15 @@ export function CampaignScreen({
   const controlRoomModel = resolvePresentationModel(
     derivePresentationInputs(state, card?.type ?? null),
   );
+
+  useEffect(() => {
+    if (!latestDecisionId || previousDecisionIdRef.current === latestDecisionId) return;
+    previousDecisionIdRef.current = latestDecisionId;
+    const workspace = situationWorkspaceRef.current;
+    if (!workspace) return;
+    workspace.focus({ preventScroll: true });
+    workspace.scrollIntoView({ behavior: "auto", block: "start" });
+  }, [latestDecisionId]);
 
   return (
     <main className="shell campaign-shell">
@@ -159,6 +172,9 @@ export function CampaignScreen({
 
       <div className="campaign-grid">
         <section
+          ref={situationWorkspaceRef}
+          aria-label="Situation workspace"
+          tabIndex={-1}
           className={`situation-panel ${controlRoomStyles.situationWorkspace}`}
         >
           <ControlRoomPresentation

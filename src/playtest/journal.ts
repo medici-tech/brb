@@ -8,6 +8,7 @@ import {
   type PlaytestJournalSummary,
   type PlaytestJournalV1,
   type PlaytestMatrixSlot,
+  type PlaytestMomentSnapshot,
   type PlaytestRecap,
   type PlaytestRunEntry,
   type PlaytestSeverity,
@@ -198,16 +199,12 @@ function cloneJournal(journal: PlaytestJournalV1, now?: string): PlaytestJournal
   return next;
 }
 
-function snapshotState(state: GameState, now?: string): PlaytestDecisionSnapshot | null {
-  const latestDecision = state.decisionHistory.at(-1);
-  if (!latestDecision) return null;
+function captureState(state: GameState, now?: string): Omit<
+  PlaytestMomentSnapshot,
+  "decisionId" | "category" | "summary" | "cardId" | "choiceId"
+> {
   return {
-    decisionId: latestDecision.id,
-    turn: latestDecision.turn,
-    category: latestDecision.category,
-    summary: latestDecision.summary,
-    cardId: latestDecision.cardId,
-    choiceId: latestDecision.choiceId,
+    turn: state.turn,
     activeCardId: state.activeCardId,
     resources: structuredClone(state.resources),
     tracks: structuredClone(state.tracks),
@@ -225,6 +222,33 @@ function snapshotState(state: GameState, now?: string): PlaytestDecisionSnapshot
     },
     endingId: state.ending?.id ?? null,
     capturedAt: timestamp(now),
+  };
+}
+
+function snapshotMoment(state: GameState, now?: string): PlaytestMomentSnapshot {
+  const latestDecision = state.decisionHistory.at(-1);
+  return {
+    ...captureState(state, now),
+    turn: latestDecision?.turn ?? state.turn,
+    decisionId: latestDecision?.id ?? null,
+    category: latestDecision?.category ?? null,
+    summary: latestDecision?.summary ?? null,
+    cardId: latestDecision?.cardId ?? null,
+    choiceId: latestDecision?.choiceId ?? null,
+  };
+}
+
+function snapshotState(state: GameState, now?: string): PlaytestDecisionSnapshot | null {
+  const latestDecision = state.decisionHistory.at(-1);
+  if (!latestDecision) return null;
+  return {
+    ...captureState(state, now),
+    turn: latestDecision.turn,
+    decisionId: latestDecision.id,
+    category: latestDecision.category,
+    summary: latestDecision.summary,
+    cardId: latestDecision.cardId,
+    choiceId: latestDecision.choiceId,
   };
 }
 
@@ -405,7 +429,7 @@ export function addPlaytestBookmark(
   const next = cloneJournal(journal, now);
   const run = next.runs.find((candidate) => candidate.runId === runId);
   if (!run) throw new Error("Bookmark run was not found in the journal.");
-  const currentSnapshot = state ? snapshotState(state, now) : null;
+  const currentSnapshot = state ? snapshotMoment(state, now) : null;
   const bookmark: PlaytestBookmark = {
     id: bookmarkId ?? `bookmark-${timestamp(now)}-${next.bookmarks.length + 1}`,
     runId,

@@ -101,6 +101,37 @@ describe("solo playtest journal", () => {
     expect(journal.bookmarks[0]?.snapshot?.corporation.progress).toBe(nextState.corporation.progress);
   });
 
+  it("captures the current briefing when bookmarked before the first commitment", () => {
+    const state = createGame({ seed: 19, archetypeId: "technocrat", runId: "primary-briefing" });
+    let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
+    journal = addPlaytestBookmark(
+      journal,
+      state.runId,
+      "campaign",
+      { category: "confusion", severity: "medium", note: "The opening file needs context." },
+      state,
+      "2026-07-16T12:00:30.000Z",
+      "bookmark-opening",
+    );
+
+    expect(journal.runs[0]?.seed).toBe(state.seed);
+    expect(journal.runs[0]?.decisions).toEqual([]);
+    expect(journal.bookmarks[0]?.snapshot).toMatchObject({
+      decisionId: null,
+      category: null,
+      summary: null,
+      turn: 1,
+      activeCardId: state.activeCardId,
+      resources: state.resources,
+      tracks: state.tracks,
+      pressures: state.pressures,
+    });
+
+    const storage = memoryStorage();
+    savePlaytestJournal(storage, journal);
+    expect(loadPlaytestJournal(storage).bookmarks[0]?.snapshot).toEqual(journal.bookmarks[0]?.snapshot);
+  });
+
   it("requires a recap before advancing a natural slot to replay", () => {
     const state = createGame({ seed: 21, archetypeId: "technocrat", runId: "primary-2" });
     let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);

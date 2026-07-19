@@ -30,4 +30,4 @@ Finish each primary run, read its Declassified Report, and save the recap. For t
 - After all six runs, sort findings into rules/balance, interface clarity, pacing, replay motivation, and defects.
 - Change one balance lever per follow-up experiment and record it in the simulation log.
 
-The journal is stored only in this browser. Export it after each run or whenever a note would be expensive to lose. **Clear active run** preserves completed journal data; **Delete journal** permanently removes matrix progress, run captures, bookmarks, and recaps.
+The journal is stored only in this browser. Export it after each run or whenever a note would be expensive to lose. A bookmark captures the current turn, active Situation, resources, tracks, pressures, Corporation state, and advisor Leverage even before the first commitment; the run entry supplies its seed and archetype. Journal V1 remains backward compatible because the JSON fields are unchanged: decision-specific bookmark fields are `null` until a commitment exists. **Clear active run** preserves completed journal data; **Delete journal** permanently removes matrix progress, run captures, bookmarks, and recaps.
