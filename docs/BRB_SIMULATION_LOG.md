@@ -131,3 +131,64 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 ### Notes
 
 > Final checkpoint in a fixed-seed 1k/3k/5k convergence comparison; no balance values changed.
+## 2026-07-19T20:23:53.892Z — Stress collapse threshold human-playtest follow-up
+
+- Runs: **3,000**
+- Seed: `20260715`
+- Source: `6e57fc8` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 2 (0.07%) |
+| Civic Legacy | 1 |
+| State collapse | 2,992 (99.73%) |
+| Corporate capture | 6 (0.2%) |
+| Average / median months | 14.3 / 14 |
+| Longest campaign | 26 months |
+| Cards presented / resolved per run | 7.9 / 6 |
+| Over 5 / 10 years | 0 / 0 |
+
+### Notes
+
+> Tested only a terminal Stress threshold after human-playtest feedback. The resulting 99.73% State Collapse rate was rejected, and the nonterminal Stress rule was restored without changing another balance value.
+## 2026-07-19T21:12:52.185Z — Loyalty departure experiment
+
+- Runs: **3,000**
+- Seed: `20260715`
+- Source: `6e57fc8` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 44 (1.47%) |
+| Civic Legacy | 3 |
+| State collapse | 1,425 (47.5%) |
+| Corporate capture | 1,531 (51.03%) |
+| Average / median months | 21.03 / 20 |
+| Longest campaign | 56 months |
+| Cards presented / resolved per run | 11.59 / 7.98 |
+| Over 5 / 10 years | 0 / 0 |
+
+### Notes
+
+> Changed only advisor reactions and departure: approved commitments give +4 Alignment/+1 Loyalty; disapproved commitments give -2 Alignment/-2 Loyalty; departure uses Loyalty below the existing threshold or Leverage at 90. Stress remains nonterminal; no compensating balance value changed.
+
+## 2026-07-19T21:15:30.767Z — Logic trustworthiness integrated checkpoint
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Source: `6e57fc8` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 70 (1.4%) |
+| Civic Legacy | 6 |
+| State collapse | 2,379 (47.58%) |
+| Corporate capture | 2,551 (51.02%) |
+| Average / median months | 20.99 / 20 |
+| Longest campaign | 56 months |
+| Cards presented / resolved per run | 11.49 / 7.93 |
+| Over 5 / 10 years | 0 / 0 |
+
+### Notes
+
+> Integrated checkpoint after mandatory card affordability, independent Corporation jitter, Loyalty and memory forecast effects, and deterministic downstream doctrine rules. This establishes reachability and tempo under the accepted mechanics; it is not final balance approval.

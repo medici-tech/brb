@@ -59,9 +59,26 @@ Use 3,000-run simulations for routine comparisons of common outcomes, duration, 
 
 **Exit criterion:** No dominant strategy, impossible required state, or unexplained ending-frequency outlier remains in the chosen targets.
 
-**Current findings:** The accepted Corporation cadence gives normal automated campaigns a 24-month median, an 8.43% activation rate, and a 0.62% Civic Legacy rate. State collapse and Corporation capture remain near 46% each, and outcomes vary sharply by strategy. A separate long-horizon diagnostic proves that five- and ten-year campaigns are mechanically possible, but normal strategies do not produce them.
+**Current findings:** After the logic-trustworthiness remediation and Loyalty departure change, the latest 3,000-run normal-strategy checkpoint has a 20-month median, 1.47% activation, 0.10% Civic Legacy, 47.50% State Collapse, and 51.03% Corporation capture. The earlier accepted cadence checkpoint remains useful historical evidence, but its 8.43% activation rate predates the current rule set. A separate long-horizon diagnostic proves that five- and ten-year campaigns are mechanically possible, but normal strategies do not produce them.
 
-**Remaining work:** Validate archetype and strategy parity, activation and premium-ending targets, card tempo, late-game pressure, and whether human players can discover a satisfying defensive style. Preserve single-variable simulation experiments so each balance effect remains attributable.
+**Current comprehension checkpoint:** The browser now leads with the objective and loss conditions, places consultation and Situation choices ahead of supporting systems, repeats exact routine effects in confirmation, preserves qualitative/classified Situation disclosure, shows activation and advisor thresholds, and versions reports with a final-state snapshot. This prepares rather than replaces the Phase 3 external onboarding gate.
+
+**Current delivery checkpoint:** The existing IBM Plex and Barlow fonts are self-hosted under OFL 1.1, and the static production export succeeds with network access denied. Chromium Playwright coverage now exercises Start, Campaign, consultation, commitment, attributed consequence, save/resume, Report, same-seed replay, Archive, keyboard navigation, narrow layout, reduced motion, and automated axe scans. These checks protect the current design; they do not approve balance or human comprehension.
+
+### Phase 2 exit checklist
+
+| Evidence | Status | What remains |
+| --- | --- | --- |
+| Deterministic rules, replay, storage, and route provenance | Complete | Preserve the green gate while tuning. |
+| Current fixed-seed automated baseline | Complete for reachability | The current 3,000/5,000 checkpoints are not precise enough to approve rare endings. |
+| Loyalty departure experiment | Automated safety accepted | Validate whether players understand disapproval, Loyalty loss, departure risk, and Manage Advisor. |
+| Six-run guided matrix and three five-commitment replays | Unverified | No completed journal export and cross-run synthesis is stored in the repository. Finish the first three without tuning, then complete the three targeted strategy runs. |
+| Archetype and normal-strategy parity | Incomplete | Compare the current rules across at least one documented alternate seed block; do not extend only the same deterministic prefix. |
+| Activation, premium-ending, and late-game targets | Incomplete | Decide whether the very low activation rate is intended difficulty or evidence for one isolated balance lever. |
+| Card tempo and defensive-style discoverability | Incomplete | Confirm through guided play whether players notice and enjoy the slower survival path. |
+| Final Phase 2 recommendation | Incomplete | Accept or reject the tested lever, rerun the proportionate baseline, and record the decision without rewriting historical checkpoints. |
+
+**Remaining work:** Finish the six-run guided evidence, run one alternate-seed robustness comparison, then choose at most one balance lever to test. Remain in Phase 2 until strategy viability and the low activation/premium-ending rates have an explicit accept-or-change decision.
 
 ## Phase 3: Human playtest build
 
