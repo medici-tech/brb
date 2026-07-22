@@ -4,6 +4,7 @@ import {
   commitAction,
   consultAdvisor,
   getActionCategory,
+  getActionCost,
   getValidActions,
 } from "./engine";
 import {
@@ -149,10 +150,15 @@ function effectScore(
   const card = SITUATION_CARDS.find((item) => item.id === state.activeCardId);
   const choice = card?.choices.find((item) => item.id === action.choiceId);
   if (!card || !choice) return -100;
-  const resourceValue = Object.values(choice.effects.resources ?? {}).reduce(
+  const resourceEffects = Object.values(choice.effects.resources ?? {}).reduce(
     (sum, value) => sum + value,
     0,
   );
+  const mandatoryCost = Object.values(getActionCost(state, action)).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+  const resourceValue = resourceEffects - mandatoryCost;
   const pressureValue = Object.values(choice.effects.pressures ?? {}).reduce(
     (sum, value) => sum - value * 1.3,
     0,

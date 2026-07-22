@@ -12,9 +12,16 @@ import {
   drawSituationCard,
   expireActiveCard,
   getActiveCard,
+  getCardChoiceCost,
   getEligibleSituationCards,
   resolveCard,
 } from "./cards";
+import {
+  getAdvisorForecastProfile,
+  modifierAppliesThisTurn,
+  surfaceForecastEchoes,
+  surfaceSystemModifier,
+} from "./echoes";
 import { buildDeclassifiedReport } from "./replay";
 import {
   applyCompletionPressure,
@@ -65,9 +72,11 @@ import {
   type MonthAudit,
   type ResourcePool,
   type ResolvedEffect,
+  type StateDelta,
   type TrackKey,
   type TurnResolution,
 } from "./types";
+import { assertGameState } from "./validation";
 
 export { getActiveCard, getEligibleSituationCards } from "./cards";
 export { getRouteCompletionKind, validateRouteIntegrity } from "./routes";
@@ -278,7 +287,9 @@ export function consultAdvisor(
   let predictedStrategy = next.corporation.strategy;
   let confidence: ConsultationResult["confidence"] = "high";
   if (!technocratPrecision) {
-    const accuracy = clamp(advisor.competence + advisor.alignment * 0.2 - advisor.leverage * 0.35);
+    const profile = getAdvisorForecastProfile(next, advisorId);
+    const accuracy = profile.accuracy;
+    surfaceForecastEchoes(next, profile);
     const random = nextRandom(next.rngState);
     next.rngState = random.state;
     if (random.value * 100 > accuracy) {
@@ -315,21 +326,22 @@ export function getActionCost(
   state: GameState,
   action: MajorAction,
 ): Partial<ResourcePool> {
-  if (action.type === "deposit") return getDepositCost(action.track, action.size);
+  if (action.type === "deposit") {
+    const cost: Partial<ResourcePool> = getDepositCost(action.track, action.size);
+    if (
+      action.track === "engineering"
+      && state.systemModifiers.includes("replacement_contractors")
+    ) {
+      cost.capacity = (cost.capacity ?? 0) + 3;
+    }
+    return cost;
+  }
   if (action.type === "resolve_card") {
     const choice = getActiveCard(state)?.choices.find(
       (candidate) => candidate.id === action.choiceId,
     );
     if (!choice) return {};
-    const cost: Partial<ResourcePool> = {};
-    for (const resource of RESOURCE_KEYS) {
-      const amount = choice.effects.resources?.[resource] ?? 0;
-      if (amount < 0) cost[resource] = Math.abs(amount);
-    }
-    if (state.archetypeId === "technocrat" && choice.tags?.includes("opaque")) {
-      cost.trust = (cost.trust ?? 0) + 3;
-    }
-    return cost;
+    return getCardChoiceCost(state, choice);
   }
   if (action.type === "counter_corporation") {
     return state.systemModifiers.includes("emergency_rule")
@@ -365,14 +377,20 @@ export function getActionError(
   ) {
     return "Confirm that the active Situation Card will be abandoned before choosing another commitment.";
   }
-  if (action.type === "deposit" && !canAfford(state.resources, getDepositCost(action.track, action.size))) {
-    return "The deposit costs more resources than are available.";
+  if (action.type === "deposit") {
+    if (state.tracks[action.track] >= 100) return "That BRB track is already complete at 100.";
+    if (!canAfford(state.resources, getActionCost(state, action))) {
+      return "The deposit costs more resources than are available.";
+    }
   }
   if (action.type === "resolve_card") {
     const card = getActiveCard(state);
     if (!card) return "There is no active Situation Card.";
     if (!card.choices.some((choice) => choice.id === action.choiceId)) {
       return "That choice does not belong to the active Situation Card.";
+    }
+    if (!canAfford(state.resources, getActionCost(state, action))) {
+      return "That Situation choice costs more resources than are available.";
     }
   }
   if (action.type === "counter_corporation") {
@@ -400,10 +418,10 @@ export function getActionError(
 }
 
 function applyDeposit(state: GameState, track: TrackKey, size: "standard" | "large"): void {
-  const cost = getDepositCost(track, size);
+  const cost = getActionCost(state, { type: "deposit", track, size });
   for (const resource of RESOURCE_KEYS) {
-    state.resources[resource] -= cost[resource];
-    state.deposited[resource] += cost[resource];
+    state.resources[resource] -= cost[resource] ?? 0;
+    state.deposited[resource] += cost[resource] ?? 0;
   }
   state.tracks[track] = clamp(state.tracks[track] + DEPOSIT_PROGRESS[size]);
   const sideEffect = size === "large" ? 2 : 1;
@@ -427,6 +445,16 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
   let summary = "";
   if (action.type === "deposit") {
     applyDeposit(state, action.track, action.size);
+    if (
+      action.track === "engineering"
+      && state.systemModifiers.includes("replacement_contractors")
+    ) {
+      surfaceSystemModifier(
+        state,
+        "replacement_contractors",
+        "Replacement contractors increased a later Engineering deposit’s Capacity commitment.",
+      );
+    }
     summary = `${action.size === "large" ? "Large" : "Standard"} ${action.track} deposit permanently committed.`;
   } else if (action.type === "resolve_card") {
     return { corporationBlocked, decisionId: resolveCard(state, action.choiceId) };
@@ -451,10 +479,31 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
     state.advisors[action.advisorId].leverage = clamp(state.advisors[action.advisorId].leverage - 6);
     summary = `${ADVISORS[action.advisorId].name} was brought back into line.`;
   } else if (action.type === "recover_resource") {
-    const gain = action.resource === "capacity" ? 28 : 30;
+    const parallelContractors = action.resource === "capacity"
+      && state.systemModifiers.includes("parallel_contractors");
+    const gain = action.resource === "capacity"
+      ? 28 + (parallelContractors ? 8 : 0)
+      : 30;
     state.resources[action.resource] = clamp(state.resources[action.resource] + gain);
     state.pressures.stress = clamp(state.pressures.stress + 7);
-    state.corporation.progress = clamp(state.corporation.progress + 3);
+    const acceptedDelay = state.systemModifiers.includes("accepted_delay");
+    state.corporation.progress = clamp(
+      state.corporation.progress + 3 + (acceptedDelay ? 2 : 0),
+    );
+    if (parallelContractors) {
+      surfaceSystemModifier(
+        state,
+        "parallel_contractors",
+        "Parallel contractors increased a later Capacity recovery.",
+      );
+    }
+    if (acceptedDelay) {
+      surfaceSystemModifier(
+        state,
+        "accepted_delay",
+        "Accepted delay gave the Corporation additional progress during a later recovery.",
+      );
+    }
     summary = `${action.resource} was recovered while the Corporation used the delay.`;
   } else if (action.type === "protect_institutions") {
     spendResources(state, getActionCost(state, action));
@@ -470,6 +519,17 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
     corporationBlocked,
     decisionId: recordSimpleDecision(state, before, getActionCategory(action), summary),
   };
+}
+
+export function getKnownActionDelta(
+  state: GameState,
+  action: MajorAction,
+): StateDelta | null {
+  if (action.type === "resolve_card" || action.type === "activate_brb") return null;
+  const preview = cloneState(state);
+  const before = snapshotGameEffects(preview);
+  applyPlayerAction(preview, action);
+  return diffEffectSnapshots(before, snapshotGameEffects(preview));
 }
 
 export function getActionCategory(action: MajorAction): ActionCategory {
@@ -491,16 +551,19 @@ function applyAdvisorReactions(state: GameState, category: ActionCategory): void
     if (definition.agenda.includes(category)) {
       advisor.alignment = clamp(advisor.alignment + 4);
       advisor.loyalty = clamp(advisor.loyalty + 1, 0, definition.loyaltyCeiling);
-    } else advisor.alignment = clamp(advisor.alignment - 2);
+    } else {
+      advisor.alignment = clamp(advisor.alignment - 2);
+      advisor.loyalty = clamp(advisor.loyalty - 2);
+    }
 
-    if (advisor.alignment < definition.breakingPoint || advisor.leverage >= 90) {
+    if (advisor.loyalty < definition.loyaltyBreakingPoint || advisor.leverage >= 90) {
       advisor.active = false;
       addHistory(
         state,
         "advisor",
         advisor.leverage >= 90
           ? `${definition.name} used accumulated leverage to leave on their own terms.`
-          : `${definition.name} resigned after a final policy break.`,
+          : `${definition.name} resigned after Loyalty fell below ${definition.loyaltyBreakingPoint}.`,
       );
     }
   }
@@ -615,12 +678,15 @@ function chooseCorporationStrategy(state: GameState, action: MajorAction): void 
     if (action.track === "legitimacy") scores.discrediting += 5;
     if (action.track === "stability") scores.expanding += 5;
   }
-  const random = nextRandom(state.rngState);
-  state.rngState = random.state;
-  const ranked = CORPORATION_STRATEGIES.map((strategy) => ({
-    strategy,
-    score: scores[strategy] + random.value * 2,
-  })).sort((a, b) => b.score - a.score);
+  const ranked = CORPORATION_STRATEGIES.map((strategy, index) => {
+    const random = nextRandom(state.rngState);
+    state.rngState = random.state;
+    return {
+      strategy,
+      index,
+      score: scores[strategy] + random.value * 2,
+    };
+  }).sort((a, b) => b.score - a.score || a.index - b.index);
   state.corporation.strategy = ranked[0]?.strategy ?? "expanding";
 }
 
@@ -630,6 +696,14 @@ function applyPressure(state: GameState): void {
   if (state.corporation.progress >= 60) state.pressures.panic = clamp(state.pressures.panic + 3);
   if (state.institutions <= 30) state.pressures.panic = clamp(state.pressures.panic + 4);
   if (state.pressures.stress >= 80) state.resources.trust = clamp(state.resources.trust - 4);
+  if (modifierAppliesThisTurn(state, "capacity_drift")) {
+    state.tracks.engineering = clamp(state.tracks.engineering - 1);
+    surfaceSystemModifier(
+      state,
+      "capacity_drift",
+      "An earlier Capacity bottleneck reduced Engineering during monthly pressure.",
+    );
+  }
   if (state.systemModifiers.includes("emergency_rule")) state.institutions = clamp(state.institutions - 1);
 }
 
@@ -824,17 +898,46 @@ function activate(state: GameState): void {
     endRun(state, makeEnding("civic_legacy", "The project remained under durable public control."));
     return;
   }
+  const failed = civic.observations
+    .filter((observation) => !observation.passed)
+    .map((observation) => {
+      if (observation.id === "legitimacy_75") {
+        return `Legitimacy was ${observation.actual} (needs 75)`;
+      }
+      if (observation.id === "stability_75") {
+        return `Stability was ${observation.actual} (needs 75)`;
+      }
+      if (observation.id === "institutions_55") {
+        return `Institutions were ${observation.actual} (needs 55)`;
+      }
+      if (observation.id === "panic_below_60") {
+        return `Panic was ${observation.actual} (must stay below 60)`;
+      }
+      if (observation.id === "leverage_below_65") {
+        return `highest advisor Leverage was ${observation.actual} (must stay below 65)`;
+      }
+      if (observation.id === "no_emergency_rule") return "emergency rule remained active";
+      if (observation.id === "civic_history") {
+        return "no civic route or public testimony survived";
+      }
+      return `${observation.label} failed (${String(observation.actual)}; ${observation.target})`;
+    });
   endRun(
     state,
-    makeEnding("compromised_activation", "The BRB worked, but emergency arrangements became permanent."),
+    makeEnding(
+      "compromised_activation",
+      `The BRB activated, but Civic Legacy remained out of reach: ${failed.join("; ")}.`,
+    ),
   );
 }
 
 function evaluateTerminalState(state: GameState): void {
   if (state.corporation.progress >= 100) {
     endRun(state, makeEnding("corporate_capture", "The Corporation completed its objective first."));
-  } else if (state.pressures.panic >= 100 || state.institutions <= 0) {
-    endRun(state, makeEnding("state_collapse", "The regime could no longer contain the political crisis."));
+  } else if (state.pressures.panic >= 100) {
+    endRun(state, makeEnding("state_collapse", "Public Panic reached the breaking point."));
+  } else if (state.institutions <= 0) {
+    endRun(state, makeEnding("state_collapse", "Institutions could no longer sustain the state."));
   } else if (Object.values(state.advisors).every((advisor) => !advisor.active)) {
     endRun(state, makeEnding("state_collapse", "No advisor remained willing to operate the government."));
   }
@@ -979,7 +1082,12 @@ export function getValidActions(state: GameState): MajorAction[] {
   const actions: MajorAction[] = [];
   const card = getActiveCard(state);
   if (card) {
-    actions.push(...card.choices.map((choice) => ({ type: "resolve_card" as const, choiceId: choice.id })));
+    for (const choice of card.choices) {
+      const candidate: MajorAction = { type: "resolve_card", choiceId: choice.id };
+      if (!getActionError(state, candidate, { confirmCardAbandonment: true })) {
+        actions.push(candidate);
+      }
+    }
   }
   for (const track of TRACK_KEYS) {
     for (const size of ["standard", "large"] as const) {
@@ -1067,15 +1175,28 @@ export function deserializeGame(serialized: string): GameState {
   ) {
     throw new Error("Unsupported or invalid BRB save.");
   }
-  const migrated = parsed as Record<string, unknown>;
-  if (migrated.version === 3) migrated.version = 4;
-  if (typeof migrated.lastTurnResolution === "undefined") migrated.lastTurnResolution = null;
-  const state = migrated as unknown as GameState;
-  if (!Number.isInteger(state.corporation.lastResponseMonth)) {
-    state.corporation.lastResponseMonth = Math.max(0, state.turn - 1);
+  const migrated = structuredClone(parsed) as Record<string, unknown>;
+  if (migrated.version === 3) {
+    migrated.version = 4;
+    if (typeof migrated.lastTurnResolution === "undefined") migrated.lastTurnResolution = null;
+    if (typeof migrated.lastMonthAudit === "undefined") migrated.lastMonthAudit = null;
+    if (
+      migrated.corporation
+      && typeof migrated.corporation === "object"
+      && Number.isInteger(migrated.turn)
+      && !Number.isInteger((migrated.corporation as Record<string, unknown>).lastResponseMonth)
+    ) {
+      (migrated.corporation as Record<string, unknown>).lastResponseMonth =
+        Math.max(0, Number(migrated.turn) - 1);
+    }
+    if (migrated.report && typeof migrated.report === "object") {
+      const report = migrated.report as Record<string, unknown>;
+      if (!Number.isInteger(report.rulesVersion)) report.rulesVersion = 0;
+      if (typeof report.finalSnapshot === "undefined") report.finalSnapshot = null;
+    }
   }
-  if (typeof state.lastMonthAudit === "undefined") state.lastMonthAudit = null;
-  return state;
+  assertGameState(migrated);
+  return migrated;
 }
 
 export const SITUATION_DECK_CARD_TYPES = CARD_TYPES;

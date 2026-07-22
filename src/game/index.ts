@@ -1,6 +1,7 @@
 export * from "./bots";
 export * from "./content";
 export * from "./engine";
+export * from "./echoes";
 export * from "./guidance";
 export * from "./progression";
 export * from "./replay";
