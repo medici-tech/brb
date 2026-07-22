@@ -6,10 +6,12 @@ import {
   createGame,
   getActionCost,
   getActionPreview,
+  getAdvisorForecastAccuracy,
   getAdvisorRecommendation,
   getConsultationCost,
   getConsultationError,
   getCorporationPressure,
+  getTurnEchoTypes,
   getValidActions,
 } from "../../src/game/index.js";
 
@@ -20,12 +22,27 @@ describe("cause-and-effect guidance", () => {
 
     const preview = getActionPreview(state, { type: "resolve_card", choiceId: "close" });
 
-    expect(preview.costs).toEqual(["8 Trust"]);
+    expect(preview.costs).toEqual(["3 Trust"]);
     expect(preview.result).toMatch(/secures money/i);
     expect(preview.result).not.toContain("+7");
+    expect(preview.risk).toMatch(/loses 5 Trust/i);
     expect(preview.risk).toMatch(/advisor leverage/i);
     expect(preview.delayedConsequence).toMatch(/situation deck/i);
     expect(JSON.stringify(preview)).not.toMatch(/silent_partner|corporate_exposure|audit_closed/i);
+  });
+
+  it("stacks authored and doctrine card costs without treating damage as payment", () => {
+    const state = createGame(141, "technocrat");
+    state.activeCardId = "whistleblower";
+    state.systemModifiers.push("closed_oversight");
+
+    const preview = getActionPreview(state, {
+      type: "resolve_card",
+      choiceId: "contain",
+    });
+
+    expect(preview.costs).toEqual(["5 Influence", "5 Trust"]);
+    expect(preview.risk).toMatch(/institutions/i);
   });
 
   it("distinguishes Standard and Large Deposits and reports affordability", () => {
@@ -46,6 +63,13 @@ describe("cause-and-effect guidance", () => {
     expect(large.costs).toEqual(["18 Money", "6 Intel", "13 Capacity"]);
     expect(standard.result).toMatch(/moderately/i);
     expect(large.result).toMatch(/substantially/i);
+    expect(standard.knownChanges).toEqual([
+      "Money −10",
+      "Intel −3",
+      "Capacity −7",
+      "Engineering +25",
+      "Corporation Threat +3",
+    ]);
 
     state.resources.money = 0;
     expect(getActionPreview(state, {
@@ -53,6 +77,29 @@ describe("cause-and-effect guidance", () => {
       track: "engineering",
       size: "standard",
     }).disabledReason).toMatch(/costs more resources/i);
+  });
+
+  it("keeps Situation outcomes qualitative while routine commitments expose exact known changes", () => {
+    const state = createGame(151);
+    state.activeCardId = "whistleblower";
+
+    const card = getActionPreview(state, {
+      type: "resolve_card",
+      choiceId: "protect",
+    });
+    const routine = getActionPreview(
+      { ...state, activeCardId: null },
+      { type: "recover_resource", resource: "money" },
+    );
+
+    expect(card.costs).toEqual(["5 Intel"]);
+    expect(card.knownChanges).toBeNull();
+    expect(card.result).toMatch(/trust|institutions/i);
+    expect(routine.knownChanges).toEqual([
+      "Money +30",
+      "Stress +7",
+      "Corporation Progress +3",
+    ]);
   });
 
   it("uses the same engine selectors for displayed costs and consultation eligibility", () => {
@@ -98,6 +145,25 @@ describe("cause-and-effect guidance", () => {
     expect(steward?.action.type).toBe("protect_institutions");
   });
 
+  it("uses Loyalty, memories, and false-plan doctrine in forecast quality", () => {
+    const state = createGame(161, "operator");
+    state.advisors.steward.loyalty = 50;
+    const baseline = getAdvisorForecastAccuracy(state, "steward");
+
+    state.advisors.steward.loyalty = 60;
+    expect(getAdvisorForecastAccuracy(state, "steward")).toBeCloseTo(baseline + 4);
+
+    state.advisorMemories.steward.push(
+      "protected_whistleblower",
+      "shared_activation_authority",
+      "contained_budget_shortfall",
+    );
+    expect(getAdvisorForecastAccuracy(state, "steward")).toBeCloseTo(baseline + 16);
+
+    state.systemModifiers.push("false_plan_in_circulation");
+    expect(getAdvisorForecastAccuracy(state, "steward")).toBeCloseTo(baseline + 6);
+  });
+
   it("records exact effects separately by source without revealing future IDs", () => {
     const state = createGame(17, "technocrat");
     state.activeCardId = "audit_discrepancy";
@@ -119,6 +185,27 @@ describe("cause-and-effect guidance", () => {
     expect(result?.commitment.delta.advisors.fixer).toMatchObject({ leverage: 3 });
     expect(result?.advisorReactions?.delta.advisors).toBeDefined();
     expect(JSON.stringify(result)).not.toMatch(/silent_partner|corporate_exposure|audit_closed/i);
+  });
+
+  it("combines ignored-Situation and commitment echoes from the resolved month", () => {
+    const state = createGame(171);
+    state.activeCardId = "budget_shortfall";
+    state.cardHistory.push({
+      cardId: "budget_shortfall",
+      turn: state.turn,
+      choiceId: null,
+      outcomeId: null,
+      causedByDecisionId: null,
+      status: "presented",
+    });
+
+    const result = commitAction(
+      state,
+      { type: "recover_resource", resource: "money" },
+      { confirmCardAbandonment: true },
+    ).state;
+
+    expect(getTurnEchoTypes(result, 1)).toContain("ending");
   });
 });
 

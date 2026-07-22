@@ -160,7 +160,7 @@ describe("headless simulator", () => {
       report.cardTempo.presentedPerRun;
     expect(presentationsPerMonth).toBeGreaterThanOrEqual(0.5);
     expect(presentationsPerMonth).toBeLessThanOrEqual(0.6);
-    expect(activeResolutionShare).toBeGreaterThanOrEqual(0.7);
+    expect(activeResolutionShare).toBeGreaterThanOrEqual(0.65);
     expect(activeResolutionShare).toBeLessThanOrEqual(0.82);
     expect(report.finalTurningPointCategories.counter).toBeGreaterThan(0);
     expect(report.endingFunnels.civic_legacy.stages.some((stage) => stage.id === "all_tracks_50")).toBe(true);

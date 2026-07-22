@@ -28,6 +28,7 @@ Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards remain futur
 - Cooldown and maximum draws per run
 - Follow-up card IDs
 - Player choices and ignored outcome
+- Mandatory resource costs, separate from floor-clamped damage
 - Immediate effects
 - At least one delayed echo
 
@@ -57,11 +58,13 @@ Every choice, including ignoring a card, has an immediate effect and one or more
 | Echo | Run effect |
 | --- | --- |
 | `card` | Add or remove a future Situation Card |
-| `relationship` | Create an advisor memory or leverage-relevant history |
-| `system` | Change a rule for the rest of the run |
+| `relationship` | Create an advisor memory that later changes forecast accuracy |
+| `system` | Change the related recovery, deposit, card-cost, forecast, monthly-pressure, or emergency rule |
 | `ending` | Add evidence used to interpret the ending |
 
 Each major commitment receives a deterministic decision ID. Card additions remember that ID. If a later card entered through that decision, its encounter and downstream history link back to the source decision. Corporation responses also link to the major commitment they answered. This provenance lets a changed replay diverge visibly at one choice rather than becoming unexplained randomness.
+
+Relationship memories add or subtract 6 forecast points each, capped at ±12 per consultation. `accepted_delay` adds 2 Corporation Progress to recovery; `replacement_contractors` adds 3 Capacity to Engineering deposits; `closed_oversight` adds 2 Trust to opaque choices; `false_plan_in_circulation` removes 10 forecast points; `parallel_contractors` adds 8 Capacity to Capacity recovery; and `capacity_drift` removes 1 Engineering during monthly pressure beginning the following month. When one of these rules surfaces, history links it back to the decision that created it.
 
 ## Prototype routes
 
@@ -118,7 +121,7 @@ Illegal transitions throw during resolution. A completed route is classified as 
 
 ## Pivotal-decision report
 
-Every ending produces one deterministic `DeclassifiedReport` with:
+Every ending produces one deterministic `DeclassifiedReport`. The player-facing report first states whether the run was a victory or loss, why the ending rule fired, and one specific next-run experiment. It then explains the following replay evidence in plain language:
 
 - Ending and optional archetype variation
 - One narrative pivot
@@ -128,6 +131,8 @@ Every ending produces one deterministic `DeclassifiedReport` with:
 - One completed route, if any
 - One unseen-route hint
 - One concrete next-run experiment
+- The rules version that produced the report
+- A final-state snapshot of resources, tracks, pressure, Institutions, Corporation meters, and advisor positions
 
 The narrative score is additive:
 
@@ -142,7 +147,7 @@ The narrative score is additive:
 | Later linked consequence | +5 each |
 | Immediate state change | Up to +15 |
 
-The strategic score caps immediate and persistent impact at 20 each; scores route changes at 20, ending contributors at 15, and deck changes at 10; caps Corporation impact at 20; adds at most 12 for irreversibility; and scores advisor memories at 8 and system modifiers at 15. Deposit cost and progress are therefore represented without being counted repeatedly. The final-turn score uses the same evidence but only considers the final five months. Narrative and strategic ties favor the earlier month; final-turn ties favor the later month. The report is derived entirely from final `GameState`, so regenerating it is stable.
+The strategic score caps immediate and persistent impact at 20 each; scores route changes at 20, ending contributors at 15, and deck changes at 10; caps Corporation impact at 20; adds at most 12 for irreversibility; and scores advisor memories at 8 and system modifiers at 15. Deposit cost and progress are therefore represented without being counted repeatedly. The final-turn score uses the same evidence but only considers the final five months. Narrative and strategic ties favor the earlier month; final-turn ties favor the later month. The report is derived entirely from final `GameState`; scoring uses local derived records and never mutates the supplied state.
 
 Hint selection first chooses a route closed by the pivotal choice, then an incomplete route. When neither route was touched, it shows a classified silhouette without exposing requirements. The suggested experiment converts the hint into a direct, non-mechanical objective.
 
@@ -158,12 +163,12 @@ The objective has no effect on starting resources, draw weights, or valid action
 Archive v0 stores only discovered knowledge:
 
 - Aggregate card encounters
-- Choices witnessed and outcomes seen
+- Witnessed choice labels, including an ignored or contained response when observed
 - Ending counts
 - Partial or completed progress for the two routes
 - Processed run IDs for idempotent merging
 
-Only the latest Declassified Report is stored. Undiscovered cards, endings, and routes render as classified silhouettes. Merging the same run ID twice does nothing. The Archive never changes game creation or starting power.
+Only the latest Declassified Report is stored. Undiscovered cards, endings, routes, future requirements, and delayed-echo details render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing. The Archive never changes game creation or starting power.
 
 ## Browser persistence
 
@@ -174,10 +179,11 @@ The browser adapter uses versioned local-storage keys:
 | `brb.active-run.v4` | Current deterministic `GameState` |
 | `brb.active-run.v3` | Legacy active run accepted for migration and removed after the next save |
 | `brb.archive.v0` | Knowledge archive |
-| `brb.latest-report.v2` | Latest Declassified Report only |
+| `brb.latest-report.v3` | Latest report with rules version and final-state snapshot |
+| `brb.latest-report.v2` | Read-only fallback for an older report; retained in place and marked as an older rules build |
 | `brb.replay-intent.v1` | Seed, archetype, and suggested experiment |
 
-Invalid or old values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. There are no accounts, cloud saves, analytics, or backend APIs.
+Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 active runs receive only their documented migration defaults; malformed version-4 runs are not repaired. Valid v2 reports are the exception: they load with rules version 0 and no final snapshot, show an older-rules warning, and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
 
 ## Architecture boundary
 
