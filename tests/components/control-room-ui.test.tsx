@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CampaignScreen } from "../../src/components/brb/CampaignScreen.js";
 import { ControlRoomPresentation } from "../../src/components/brb/control-room/ControlRoomPresentation.js";
@@ -42,8 +42,9 @@ describe("Living Control Room UI", () => {
       />,
     );
 
+    const workspace = screen.getByRole("region", { name: /situation workspace/i });
     expect(
-      screen.getByRole("heading", { name: /no active file/i }),
+      within(workspace).getByRole("heading", { name: /no active file/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/living control room/i),
@@ -68,13 +69,16 @@ describe("Living Control Room UI", () => {
       />,
     );
 
+    const workspace = screen.getByRole("region", { name: /situation workspace/i });
     expect(
-      screen.getByRole("heading", { name: /the missing appropriation/i }),
+      within(workspace).getByRole("heading", { name: /the missing appropriation/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/living control room/i),
     ).toHaveAttribute("data-active-situation", "true");
     fireEvent.click(screen.getByRole("button", { name: /cut public programs/i }));
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /authorize and end month 1/i }));
     expect(onCommit).toHaveBeenCalledWith({
       type: "resolve_card",
       choiceId: "cut",
