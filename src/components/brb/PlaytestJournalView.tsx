@@ -39,6 +39,16 @@ export function PlaytestJournalView({
 }: Props) {
   const summary = summarizePlaytestJournal(journal);
   const firstIncompleteIndex = journal.matrix.findIndex((slot) => slot.status !== "completed");
+  const nextSlot = firstIncompleteIndex >= 0 ? journal.matrix[firstIncompleteIndex] : null;
+  const nextStep = !nextSlot
+    ? "All six guided runs are complete. Export the journal for review."
+    : nextSlot.status === "pending"
+      ? `Start ${ARCHETYPES[nextSlot.archetypeId].name}: ${nextSlot.label}.`
+      : nextSlot.status === "active" || nextSlot.status === "replay_active"
+        ? `Resume ${ARCHETYPES[nextSlot.archetypeId].name}: ${nextSlot.label}.`
+        : nextSlot.status === "awaiting_recap"
+          ? "Open the latest report and save its recap."
+          : "Open the latest report and begin the required five-commitment same-seed replay.";
 
   function download(): void {
     const blob = new Blob([serializePlaytestJournal(journal)], { type: "application/json" });
@@ -66,6 +76,10 @@ export function PlaytestJournalView({
         <p>Finish the three natural runs before tuning balance. The final three runs deliberately probe alternative strategies.</p>
         <button className="primary-button" type="button" onClick={download}>Export playtest journal</button>
       </section>
+      <aside className="journal-next-step" aria-live="polite">
+        <p className="file-label">NEXT REQUIRED STEP</p>
+        <strong>{nextStep}</strong>
+      </aside>
 
       <section className="journal-matrix" aria-labelledby="matrix-title">
         <div className="section-heading"><p className="file-label">SIX-RUN MATRIX</p><h2 id="matrix-title">Current test sequence</h2></div>

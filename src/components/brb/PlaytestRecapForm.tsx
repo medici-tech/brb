@@ -45,6 +45,7 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
     <section className="playtest-recap" aria-labelledby="playtest-recap-title">
       <p className="file-label">SOLO PLAYTEST RECAP</p>
       <h2 id="playtest-recap-title">Record the run before replaying.</h2>
+      <p className="rating-guide">For 1–5 ratings, 1 means poor or unclear and 5 means excellent or completely clear.</p>
       <form className="playtest-form" onSubmit={submit}>
         {ratingField("Fairness", fairness, setFairness)}
         {ratingField("Consequence clarity", consequenceClarity, setConsequenceClarity)}
