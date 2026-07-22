@@ -1,69 +1,86 @@
 # BRB Current-State Audit
 
-**Audit date:** 2026-07-18
-**Audited revision:** `0b00ae1` (`feat: add living control room presentation`)
+**Audit date:** 2026-07-21
+
+**Audited state:** Current working tree after the lean open-source tooling integration; unrelated in-progress changes remain uncommitted.
 
 ## Executive assessment
 
-BRB has a coherent, unusually well-documented logic and replay prototype. The pure TypeScript engine, seeded replay model, browser persistence, automated strategies, simulator, playtest journal, and static Next.js interface are all represented in code and targeted tests. The project is correctly described as **Phase 2: Balance prototype — in progress** rather than as a human-playtest-ready build.
+BRB remains correctly classified as **Phase 2: Balance prototype — in progress**. The rules, replay, storage, reporting, simulator, and browser presentation share a strong deterministic foundation. The former offline-build risk is resolved: the existing fonts are self-hosted, their licenses are recorded, and the static export succeeds with network access denied.
 
-The highest-value next step is not adding more surface area. It is closing the evidence gap around balance and human comprehension while preserving the now-green automated gates. The remaining release-engineering risk is that the production build uses Google-hosted fonts and is not yet proven reproducible without network access or a warm cache.
+The highest-value work is still evidence, not feature breadth. The current rules are reachable and mechanically testable, but the low activation rate, rare Civic Legacy outcome, strategy differences, and defensive-style discoverability have not received an explicit Phase 2 accept-or-change decision.
+
+## Verified quality gate
+
+- `npm test`: 141 passing Vitest tests across 13 files.
+- `npm run typecheck`: strict TypeScript validation passes.
+- `npm run test:browser`: 13 passing Chromium tests across desktop and 390-pixel narrow projects; one desktop skip is intentional because the assertion is narrow-only.
+- The browser suite covers Start → Campaign, consultation, commitment confirmation, attributed consequence, save/resume, Report, same-seed replay, Archive, keyboard navigation, narrow overflow, reduced motion, and axe scans of the requested surfaces.
+- `npm run build` succeeds inside a macOS sandbox that denies all network access.
+- The static output contains the 13 selected local WOFF2 files and no Google Fonts URLs.
+- Desktop and narrow screenshots were reviewed without adding committed visual baselines.
+
+This is an automated delivery gate, not a balance or external-human-playtest sign-off.
 
 ## What is solid
 
 ### Product and rules architecture
 
-- The game rules remain separated from React under `src/game`, with deterministic state transitions, seeded randomness, replay reporting, route provenance, storage adapters, bots, and simulation reporting.
-- The implemented scope matches the design documents: 15 Situation Cards, three archetypes, advisor consultation, Corporation responses, two replay routes, multiple ending families, and knowledge-only Archive persistence.
-- UI responsibilities are separated into campaign, report, Archive, playtest-journal, and control-room presentation components rather than concentrated in the route entry point.
+- `src/game` remains pure TypeScript. A source scan found no React, Next.js, DOM, browser-storage, `Math.random`, `Date.now`, or cryptographic-random imports inside the simulation layer.
+- The browser tests create deterministic saves through the real engine and versioned serializer. No production-only routes, hidden controls, or second state model were added.
+- Replay reports, route provenance, Archive merging, bots, simulation, browser play, and tests continue to use the same rules.
+- No TODO, FIXME, TypeScript suppression, or explicit `any` marker was found in the current source scan.
 
-### Validation assets
+### Lean resource adoption
 
-- The repository contains 108 passing Vitest tests across 13 files covering the engine, replay, simulator, storage, guidance, playtest journal, scripts, and interface.
-- TypeScript validation passes with `tsc --noEmit`.
-- The static Next.js production build completes and exports all application routes.
-- The documentation clearly distinguishes completed Phase 1/1.5 architecture from unresolved Phase 2 balance questions and preserves historical baselines instead of overwriting them.
-- The guided six-run playtest matrix and local journal provide a concrete bridge from automated evidence to qualitative human evidence.
+- Playwright and `@axe-core/playwright` are development-only dependencies. Chromium is the only installed browser target.
+- IBM Plex Sans, IBM Plex Mono, and Barlow Condensed are limited to the upright Latin weights already used by the interface.
+- Font provenance and OFL 1.1 licenses are recorded in [Third-Party Assets](THIRD_PARTY_ASSETS.md).
+- Kenney UI Audio remains deferred to Phase 3; no sound pack or audio library was added.
 
-## Findings and risks
+## Technical-debt findings
 
-### P0 — No ship-stopping rules defect identified
+### P0 — No ship-stopping defect identified
 
-This audit did not uncover evidence of a deterministic rules failure, corrupt persistence path, or invalid route completion. `npm test`, `npm run typecheck`, and `npm run build` all completed successfully during the final documentation review. This is a clean automated gate, not a human-playtest or release sign-off.
+The audit found no deterministic rule failure, save corruption, invalid route completion, production build failure, or browser-flow blocker.
 
-### P2 — Keep simulator-test runtime visible
+### P1 — Phase 2 evidence is not yet decision-complete
 
-An earlier audit run reported timeouts in two simulator-heavy cases. The final review did not reproduce them:
+The latest implemented-rule checkpoint records 1.47% activation and 0.10% Civic Legacy over 3,000 normal-strategy runs. These values establish reachability but do not answer whether the difficulty is intentional or whether one balance lever should change. There is also no completed guided-playtest export and synthesis stored in the repository. This is the main project risk because additional polish could hide an unresolved strategy problem.
 
-- `exercises neglected systems and preserves Corporate Exposure choice tension`
-- `keeps the long-horizon diagnostic out of normal runs and proves five-year reachability`
+### P1 — Monitor the nested Next.js/PostCSS advisory
 
-Both completed under Vitest's five-second per-test default, and the complete 108-test suite passed. These cases still perform hundreds of campaigns, so future slowdowns should be investigated rather than hidden with an arbitrary timeout increase.
+`npm audit` reports two moderate entries for one underlying PostCSS advisory: a vulnerable PostCSS version nested inside the installed Next.js package and Next.js as the affected direct dependency. The top-level PostCSS dependency is newer, so updating it alone does not remove the nested copy. npm currently proposes an inappropriate Next.js downgrade rather than a safe forward fix. Do not force that change; monitor a compatible Next.js release and re-run the full build/browser gate when one is available.
 
-### P1 — The static build is not proven offline
+### P2 — Simulation smoke checks still mutate evidence
 
-`npm run build` succeeds in the current environment, but `next/font/google` may retrieve Barlow Condensed, IBM Plex Mono, and IBM Plex Sans when they are not cached. A static export intended for itch.io should build reproducibly without a live third-party request. Vendor the font files and licenses, or deliberately adopt a checked-in/system-font stack, before calling the build release-ready.
+`npm run simulate` always appends to `docs/BRB_SIMULATION_LOG.md`. This is correct for accepted experiments but awkward for profiling, audits, and quick smoke checks. A future small improvement could add `--no-log` while keeping logging the default. It is not required before the next guided runs.
 
-### P1 — Phase 2 has automated evidence but not human validation
+### P2 — Complexity is concentrated in a few authority files
 
-The current documented baseline shows roughly equal terminal collapse/capture outcomes, a low activation rate, a very low Civic Legacy rate, and strong strategy-dependent variation. Those are useful diagnostics, not proof that the game is learnable, fair, or satisfying. The existing guided playtest plan should now produce completed journal exports and a written synthesis before further broad feature work.
+The largest current files are `src/game/engine.ts` (1,203 lines), the control-room CSS module (1,159), `src/game/content.ts` (758), `src/game/types.ts` (739), and `src/game/validation.ts` (546). Size alone is not a defect: these files own real domains and their tests are green. Avoid a broad Phase 2 refactor. Extract only when one balance or rules change repeatedly touches unrelated concerns in the same file.
 
-### P2 — Simulation logging is intentionally mutating
+### P2 — The pure-engine boundary is convention-enforced
 
-The simulation CLI always appends to `docs/BRB_SIMULATION_LOG.md`; there is no dry-run flag. That is appropriate for accepted experiments, but awkward for smoke checks and audits because merely running the documented command dirties the tree. Add an explicit `--no-log`/`--dry-run` path, or document a separate non-mutating smoke command.
+The boundary is currently clean, but there is no dedicated mechanical test rejecting React, Next.js, or browser imports under `src/game`. The existing Vitest stack could add a small boundary test if contributors begin crossing it. A new dependency such as dependency-cruiser is not justified.
 
-### P2 — Phase 3 polish should wait on comprehension evidence
+### P3 — Exported-artifact and cross-browser testing remain release work
 
-The control-room presentation is visually ambitious, and a basic first-three-month guide plus How to Play dialog already exist. Their comprehension and responsive behavior still need human validation; portraits, audio, activation presentation, and a feedback channel remain Phase 3 work. Before investing further, validate whether players can explain deposits, advisor tension, Corporation threat, consequence provenance, and their reason to replay.
+Playwright currently exercises the Next.js development server, while the production export is verified separately by the offline build. Serving and smoke-testing `out/`, adding Firefox/WebKit, or adding PWA checks should wait until the Phase 4 packaging target makes them concrete requirements.
+
+### P3 — Routine dependency drift is visible but not urgent
+
+`npm outdated` reports several patch updates plus major releases of Vitest, Testing Library, TypeScript, and Node types. None is required for the current prototype gate. Avoid a batch migration during balance work; take compatible patches in a focused maintenance change and evaluate majors only after Phase 2 or when a security fix requires them.
 
 ## Recommended order of work
 
-1. **Preserve green gates:** keep the simulator tests within their documented budget and make the static build independent of live font downloads.
-2. **Run the six guided human sessions:** preserve exports, note confusion and decision rationale, and synthesize cross-run findings.
-3. **Tune one variable at a time:** prioritize defensive-strategy discoverability, archetype parity, activation/premium-ending rates, card tempo, and late-game pressure.
-4. **Re-run the 1,000–5,000 campaign evidence set:** record the seed, revision, hypothesis, and result in the existing simulation log.
-5. **Only then enter Phase 3:** scope tutorial and feedback improvements from observed player failures rather than anticipated ones.
+1. Complete or import the first three natural guided runs and their five-commitment same-seed replay samples. Write a preliminary cross-run synthesis before tuning.
+2. Complete targeted runs 4–6 and write the final guided-playtest synthesis, including defensive-style discoverability and advisor tension.
+3. Use one documented alternate seed block to check whether archetype, strategy, activation, duration, and card-tempo findings survive beyond the fixed `20260715` prefix.
+4. Decide whether the current low activation rate is intended. If not, test one balance lever only; do not bundle a defensive-economy, card, and Corporation change.
+5. Run the proportionate 3,000- or 5,000-run comparison and record accept/reject evidence in the existing balance documents and automatic simulation log.
+6. Defer large-file refactors, dependency expansion, audio, PWA work, and exported-artifact browser testing until their owning phase.
 
 ## Exit recommendation
 
-**Remain in Phase 2.** The automated gates are green and the architecture is strong enough to support focused validation, but the project should not be labeled human-playtest-ready until the guided evidence has been collected or release-ready until the offline build risk is resolved.
+**Remain in Phase 2.** The engineering gate is stronger and the former font-delivery risk is closed. Phase 2 now needs a small amount of disciplined human and alternate-seed evidence, followed by one explicit balance decision—not more systems.
