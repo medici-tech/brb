@@ -13,6 +13,7 @@ import {
   getDepositCost,
   spendResources,
 } from "./actions";
+import { applyAdvisorReactions, getActionCategory } from "./advisor-rules";
 import {
   applyIgnoredCard,
   drawSituationCard,
@@ -59,7 +60,6 @@ import {
   RESOURCE_KEYS,
   ROUTE_IDS,
   TRACK_KEYS,
-  type ActionCategory,
   type ActionResult,
   type AdvisorId,
   type AdvisorState,
@@ -85,6 +85,7 @@ import {
 
 export { getActiveCard, getEligibleSituationCards } from "./cards";
 export { getActionCost, getActionError, getDepositCost } from "./actions";
+export { getActionCategory } from "./advisor-rules";
 export { deserializeGame, serializeGame } from "./game-persistence";
 export { getRouteCompletionKind, validateRouteIntegrity } from "./routes";
 export { applyEffects } from "./state-helpers";
@@ -435,43 +436,6 @@ export function getKnownActionDelta(
   const before = snapshotGameEffects(preview);
   applyPlayerAction(preview, action);
   return diffEffectSnapshots(before, snapshotGameEffects(preview));
-}
-
-export function getActionCategory(action: MajorAction): ActionCategory {
-  if (action.type === "resolve_card") return "card";
-  if (action.type === "counter_corporation") return "counter";
-  if (action.type === "strengthen_faction") return "faction";
-  if (action.type === "manage_advisor") return "advisor";
-  if (action.type === "recover_resource") return "recover";
-  if (action.type === "protect_institutions") return "institutions";
-  if (action.type === "activate_brb") return "activate";
-  return "deposit";
-}
-
-function applyAdvisorReactions(state: GameState, category: ActionCategory): void {
-  for (const advisorId of ADVISOR_IDS) {
-    const definition = ADVISORS[advisorId];
-    const advisor = state.advisors[advisorId];
-    if (!advisor.active) continue;
-    if (definition.agenda.includes(category)) {
-      advisor.alignment = clamp(advisor.alignment + 4);
-      advisor.loyalty = clamp(advisor.loyalty + 1, 0, definition.loyaltyCeiling);
-    } else {
-      advisor.alignment = clamp(advisor.alignment - 2);
-      advisor.loyalty = clamp(advisor.loyalty - 2);
-    }
-
-    if (advisor.loyalty < definition.loyaltyBreakingPoint || advisor.leverage >= 90) {
-      advisor.active = false;
-      addHistory(
-        state,
-        "advisor",
-        advisor.leverage >= 90
-          ? `${definition.name} used accumulated leverage to leave on their own terms.`
-          : `${definition.name} resigned after Loyalty fell below ${definition.loyaltyBreakingPoint}.`,
-      );
-    }
-  }
 }
 
 function scaleAdverseAmount(amount: number, multiplier: number, adverse: "positive" | "negative"): number {
