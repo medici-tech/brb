@@ -11,7 +11,7 @@ import {
   type RouteId,
   type UnseenRouteHint,
 } from "./types";
-import { assertArchiveV0 } from "./validation";
+import { assertArchiveV0 } from "./persisted-data-validation";
 
 export const REPORT_RULES_VERSION = 1;
 

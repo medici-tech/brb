@@ -1,18 +1,31 @@
-import { ARCHETYPES, CORPORATION_MOVES, ENDING_COPY, SITUATION_CARDS } from "./content";
+import { ARCHETYPES, CORPORATION_MOVES, SITUATION_CARDS } from "./content";
 import { validateRouteIntegrity } from "./routes";
+import { isDeclassifiedReport, isEnding } from "./persisted-data-validation";
 import {
   ADVISOR_IDS,
   ECHO_TYPES,
   RESOURCE_KEYS,
   ROUTE_IDS,
   TRACK_KEYS,
-  type ArchiveV0,
-  type DeclassifiedReport,
   type GameState,
-  type ReplayIntent,
 } from "./types";
-
-type UnknownRecord = Record<string, unknown>;
+import {
+  hasRecordKeys,
+  isAdvisorRecord,
+  isBoolean,
+  isFiniteNumber,
+  isInteger,
+  isMeter,
+  isNonEmptyString,
+  isNullableString,
+  isOneOf,
+  isPressurePool,
+  isRecord,
+  isResourcePool,
+  isString,
+  isStringArray,
+  isTrackPool,
+} from "./validation-primitives";
 
 const ACTION_CATEGORIES = [
   "deposit",
@@ -34,12 +47,6 @@ const CARD_STATUSES = [
 ] as const;
 const COMPLETION_TIERS = ["quiet", "watched", "contested", "severe", "critical"] as const;
 const CONSEQUENCE_SOURCES = ["player", "advisor", "corporation", "card", "pressure", "system"] as const;
-const ENDING_IDS = Object.keys(ENDING_COPY);
-const ENDING_VARIATIONS = [
-  "perfect_machine_empty_state",
-  "crowd_presses_button",
-  "government_by_command",
-] as const;
 const PHASES = ["briefing", "consulted", "ended"] as const;
 const ROUTE_EFFECTS = ["touch", "open", "advance", "complete", "close", "reopen"] as const;
 const ROUTE_STATUSES = ["unseen", "touched", "open", "closed", "reopened", "completed"] as const;
@@ -74,88 +81,6 @@ const STATIC_ADVISOR_MEMORIES = new Set([
   "silent_partner_channel",
   "containment_authority",
 ]);
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function isString(value: unknown): value is string {
-  return typeof value === "string";
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return isString(value) && value.length > 0;
-}
-
-function isNullableString(value: unknown): value is string | null {
-  return value === null || isString(value);
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function isInteger(value: unknown, min = Number.MIN_SAFE_INTEGER): value is number {
-  return Number.isInteger(value) && Number(value) >= min;
-}
-
-function isMeter(value: unknown): value is number {
-  return isFiniteNumber(value) && value >= 0 && value <= 100;
-}
-
-function isBoolean(value: unknown): value is boolean {
-  return typeof value === "boolean";
-}
-
-function isOneOf<T extends readonly string[]>(value: unknown, values: T): value is T[number] {
-  return isString(value) && values.includes(value);
-}
-
-function isStringArray(
-  value: unknown,
-  check: (item: string) => boolean = () => true,
-): value is string[] {
-  return Array.isArray(value) && value.every((item) => isString(item) && check(item));
-}
-
-function hasRecordKeys(
-  value: unknown,
-  keys: readonly string[],
-  check: (item: unknown) => boolean,
-): value is UnknownRecord {
-  return isRecord(value) && keys.every((key) => key in value && check(value[key]));
-}
-
-function isResourcePool(value: unknown, deposited = false): boolean {
-  return hasRecordKeys(
-    value,
-    RESOURCE_KEYS,
-    deposited
-      ? (item) => isFiniteNumber(item) && item >= 0
-      : isMeter,
-  );
-}
-
-function isPressurePool(value: unknown): boolean {
-  return hasRecordKeys(value, ["stress", "panic"], isMeter);
-}
-
-function isTrackPool(value: unknown): boolean {
-  return hasRecordKeys(value, TRACK_KEYS, isMeter);
-}
-
-function isAdvisorState(value: unknown): boolean {
-  return isRecord(value)
-    && isMeter(value.loyalty)
-    && isMeter(value.alignment)
-    && isMeter(value.leverage)
-    && isMeter(value.competence)
-    && isBoolean(value.active);
-}
-
-function isAdvisorRecord(value: unknown, check = isAdvisorState): boolean {
-  return hasRecordKeys(value, ADVISOR_IDS, check);
-}
 
 function isNumericPartialRecord(value: unknown, keys: readonly string[]): boolean {
   return isRecord(value)
@@ -317,68 +242,6 @@ function isConsultation(value: unknown): boolean {
     && isBoolean(value.archetypeAbilityApplied);
 }
 
-function isEnding(value: unknown): boolean {
-  return isRecord(value)
-    && isOneOf(value.id, ENDING_IDS)
-    && isNonEmptyString(value.title)
-    && isNonEmptyString(value.description)
-    && isBoolean(value.victory)
-    && isNonEmptyString(value.reason)
-    && (value.variationId === null || isOneOf(value.variationId, ENDING_VARIATIONS))
-    && (value.variationTitle === null || isNonEmptyString(value.variationTitle));
-}
-
-function isPivot(value: unknown): boolean {
-  return isRecord(value)
-    && isNonEmptyString(value.decisionId)
-    && isInteger(value.turn, 1)
-    && isNonEmptyString(value.summary)
-    && isFiniteNumber(value.score)
-    && value.score >= 0
-    && isStringArray(value.echoHints);
-}
-
-function isReportSnapshot(value: unknown): boolean {
-  return isRecord(value)
-    && isResourcePool(value.resources)
-    && isPressurePool(value.pressures)
-    && isTrackPool(value.tracks)
-    && isMeter(value.institutions)
-    && isRecord(value.corporation)
-    && isMeter(value.corporation.progress)
-    && isMeter(value.corporation.threat)
-    && isAdvisorRecord(value.advisors, (advisor) =>
-      isRecord(advisor)
-      && isBoolean(advisor.active)
-      && isMeter(advisor.alignment)
-      && isMeter(advisor.loyalty)
-      && isMeter(advisor.leverage),
-    );
-}
-
-export function isDeclassifiedReport(value: unknown): value is DeclassifiedReport {
-  if (!isRecord(value)
-    || !isInteger(value.rulesVersion, 0)
-    || !isNonEmptyString(value.runId)
-    || !isInteger(value.seed, 0)
-    || !isOneOf(value.archetypeId, ARCHETYPE_IDS)
-    || !isEnding(value.ending)
-    || !isPivot(value.pivotalDecision)
-    || !isPivot(value.narrativePivot)
-    || !isPivot(value.strategicPivot)
-    || !isPivot(value.finalTurningPoint)
-    || !(value.completedRoute === null || isOneOf(value.completedRoute, ROUTE_IDS))
-    || !isNonEmptyString(value.suggestedExperiment)
-    || !(value.finalSnapshot === null || isReportSnapshot(value.finalSnapshot))) {
-    return false;
-  }
-  return isRecord(value.unseenRouteHint)
-    && (value.unseenRouteHint.routeId === null || isOneOf(value.unseenRouteHint.routeId, ROUTE_IDS))
-    && isNonEmptyString(value.unseenRouteHint.label)
-    && isNonEmptyString(value.unseenRouteHint.message)
-    && isOneOf(value.unseenRouteHint.visibility, ["classified", "partial"] as const);
-}
-
 function isKnownMemory(memory: string): boolean {
   return STATIC_ADVISOR_MEMORIES.has(memory)
     || (memory.startsWith("contained_") && CARD_ID_SET.has(memory.slice("contained_".length)));
@@ -494,53 +357,6 @@ export function isGameState(value: unknown): value is GameState {
   return true;
 }
 
-export function isArchiveV0(value: unknown): value is ArchiveV0 {
-  if (!isRecord(value)
-    || value.version !== 0
-    || !isStringArray(value.processedRunIds, isNonEmptyString)
-    || new Set(value.processedRunIds).size !== value.processedRunIds.length
-    || !isRecord(value.cards)
-    || !isRecord(value.endings)
-    || !hasRecordKeys(value.routes, ROUTE_IDS, (route) =>
-      isRecord(route) && isInteger(route.highestStep, 0) && isBoolean(route.completed),
-    )) {
-    return false;
-  }
-  const cardsValid = Object.entries(value.cards).every(([cardId, record]) =>
-    CARD_ID_SET.has(cardId)
-    && isRecord(record)
-    && isInteger(record.encounters, 0)
-    && isRecord(record.choices)
-    && Object.entries(record.choices).every(([choiceId, count]) =>
-      CARD_CHOICES.get(cardId)?.has(choiceId) === true && isInteger(count, 0),
-    )
-    && isStringArray(record.outcomes),
-  );
-  return cardsValid && Object.entries(value.endings).every(
-    ([endingId, count]) => ENDING_IDS.includes(endingId) && isInteger(count, 0),
-  );
-}
-
-export function isReplayIntent(value: unknown): value is ReplayIntent {
-  return isRecord(value)
-    && isOneOf(value.mode, ["same_seed", "fresh_seed"] as const)
-    && isInteger(value.seed, 0)
-    && isOneOf(value.archetypeId, ARCHETYPE_IDS)
-    && isNonEmptyString(value.experiment);
-}
-
 export function assertGameState(value: unknown): asserts value is GameState {
   if (!isGameState(value)) throw new Error("Unsupported or invalid BRB save.");
-}
-
-export function assertArchiveV0(value: unknown): asserts value is ArchiveV0 {
-  if (!isArchiveV0(value)) throw new Error("Unsupported or invalid BRB Archive.");
-}
-
-export function assertDeclassifiedReport(value: unknown): asserts value is DeclassifiedReport {
-  if (!isDeclassifiedReport(value)) throw new Error("Invalid BRB report.");
-}
-
-export function assertReplayIntent(value: unknown): asserts value is ReplayIntent {
-  if (!isReplayIntent(value)) throw new Error("Invalid replay intent.");
 }

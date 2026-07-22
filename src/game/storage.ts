@@ -4,7 +4,7 @@ import type { ArchiveV0, DeclassifiedReport, GameState, ReplayIntent } from "./t
 import {
   assertDeclassifiedReport,
   assertReplayIntent,
-} from "./validation";
+} from "./persisted-data-validation";
 
 export const STORAGE_KEYS = {
   activeRun: "brb.active-run.v4",
