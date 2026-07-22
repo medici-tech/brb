@@ -79,7 +79,7 @@ export type AdvisorDefinition = {
   crisisSpecialty: CorporationStrategy;
   baseCompetence: number;
   loyaltyCeiling: number;
-  breakingPoint: number;
+  loyaltyBreakingPoint: number;
   bias: string;
 };
 
@@ -185,6 +185,7 @@ export type SituationOutcome = {
 export type SituationCardChoice = SituationOutcome & {
   id: string;
   label: string;
+  costs: Partial<ResourcePool>;
 };
 
 export type CardRequirements = {
@@ -260,6 +261,7 @@ export type ActionPreview = {
   actionKey: string;
   label: string;
   costs: string[];
+  knownChanges: string[] | null;
   result: string;
   risk: string | null;
   delayedConsequence: string | null;
@@ -370,6 +372,7 @@ export type UnseenRouteHint = {
 };
 
 export type DeclassifiedReport = {
+  rulesVersion: number;
   runId: string;
   seed: number;
   archetypeId: ArchetypeId;
@@ -381,6 +384,22 @@ export type DeclassifiedReport = {
   completedRoute: RouteId | null;
   unseenRouteHint: UnseenRouteHint;
   suggestedExperiment: string;
+  finalSnapshot: ReportFinalSnapshot | null;
+};
+
+export type ReportFinalSnapshot = {
+  resources: ResourcePool;
+  pressures: PressurePool;
+  tracks: TrackPool;
+  institutions: number;
+  corporation: {
+    progress: number;
+    threat: number;
+  };
+  advisors: Record<
+    AdvisorId,
+    Pick<AdvisorState, "active" | "alignment" | "loyalty" | "leverage">
+  >;
 };
 
 export type DeckState = {

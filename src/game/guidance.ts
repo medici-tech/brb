@@ -5,6 +5,7 @@ import {
   getActionCost,
   getActionError,
   getActiveCard,
+  getKnownActionDelta,
   getValidActions,
 } from "./engine";
 import { getCorporationPressure } from "./progression";
@@ -14,6 +15,7 @@ import {
   type AdvisorId,
   type AdvisorRecommendation,
   type CorporationStrategy,
+  type EchoType,
   type GameState,
   type MajorAction,
   type ResourceKey,
@@ -66,6 +68,16 @@ export const TRACK_GUIDANCE: Record<
     sideEffect: "Stability reduces Stress but gives the Corporation time to advance.",
   },
 };
+
+export function getTurnEchoTypes(state: GameState, turn: number): EchoType[] {
+  return [
+    ...new Set(
+      state.decisionHistory
+        .filter((decision) => decision.turn === turn)
+        .flatMap((decision) => decision.echoTypes),
+    ),
+  ];
+}
 
 const POSTURE_RISKS: Record<CorporationStrategy, string> = {
   expanding: "advances Corporation Progress directly",
@@ -141,6 +153,12 @@ function qualitativeCardResult(choice: SituationCardChoice): string {
 
 function qualitativeCardRisk(state: GameState, choice: SituationCardChoice): string | null {
   const risks: string[] = [];
+  for (const [resource, amount] of Object.entries(choice.effects.resources ?? {}) as [
+    ResourceKey,
+    number,
+  ][]) {
+    if (amount < 0) risks.push(`loses ${Math.abs(amount)} ${RESOURCE_LABELS[resource]}`);
+  }
   if ((choice.effects.pressures?.stress ?? 0) > 0) risks.push("raises Stress");
   if ((choice.effects.pressures?.panic ?? 0) > 0) risks.push("raises Panic");
   if ((choice.effects.institutions ?? 0) < 0) risks.push("weakens Institutions");
@@ -176,6 +194,12 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
     actionKey: actionKey(action),
     label: getActionLabel(state, action),
     costs: actionCosts(state, action),
+    knownChanges: action.type === "resolve_card"
+      ? null
+      : (() => {
+          const delta = getKnownActionDelta(state, action);
+          return delta ? formatStateDelta(delta) : null;
+        })(),
     delayedConsequence: null,
     permanent: false,
     disabledReason,
@@ -199,12 +223,16 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   }
 
   if (action.type === "deposit") {
+    const replacementSurcharge = action.track === "engineering"
+      && state.systemModifiers.includes("replacement_contractors")
+      ? " Replacement contractors add 3 Capacity to this permanent deposit."
+      : "";
     return {
       ...base,
       result: action.size === "large"
         ? `Substantially advances ${TRACK_LABELS[action.track]} toward its 50-point readiness threshold.`
         : `Moderately advances ${TRACK_LABELS[action.track]} toward its 50-point readiness threshold.`,
-      risk: TRACK_GUIDANCE[action.track].sideEffect,
+      risk: `${TRACK_GUIDANCE[action.track].sideEffect}${replacementSurcharge}`,
       permanent: true,
     };
   }
@@ -231,10 +259,17 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
     };
   }
   if (action.type === "recover_resource") {
+    const parallelBonus = action.resource === "capacity"
+      && state.systemModifiers.includes("parallel_contractors");
+    const acceptedDelay = state.systemModifiers.includes("accepted_delay");
     return {
       ...base,
-      result: `Restores a major reserve of ${RESOURCE_LABELS[action.resource]}.`,
-      risk: "Consumes the month, raises Stress, and gives the Corporation time to advance.",
+      result: parallelBonus
+        ? "Restores 36 Capacity because the parallel contractor network is active."
+        : `Restores a major reserve of ${RESOURCE_LABELS[action.resource]}.`,
+      risk: acceptedDelay
+        ? "Consumes the month, raises Stress, and adds 5 Corporation Progress because accepted delay became doctrine."
+        : "Consumes the month, raises Stress, and gives the Corporation 3 Progress.",
     };
   }
   if (action.type === "protect_institutions") {
@@ -251,11 +286,17 @@ export function getActionPreview(state: GameState, action: MajorAction): ActionP
   };
 }
 
-function choiceValue(choice: SituationCardChoice, advisorId: AdvisorId): number {
-  const trust = choice.effects.resources?.trust ?? 0;
-  const influence = choice.effects.resources?.influence ?? 0;
-  const intelligence = choice.effects.resources?.intelligence ?? 0;
-  const capacity = choice.effects.resources?.capacity ?? 0;
+function choiceValue(
+  state: GameState,
+  choice: SituationCardChoice,
+  advisorId: AdvisorId,
+): number {
+  const action: MajorAction = { type: "resolve_card", choiceId: choice.id };
+  const cost = getActionCost(state, action);
+  const trust = (choice.effects.resources?.trust ?? 0) - (cost.trust ?? 0);
+  const influence = (choice.effects.resources?.influence ?? 0) - (cost.influence ?? 0);
+  const intelligence = (choice.effects.resources?.intelligence ?? 0) - (cost.intelligence ?? 0);
+  const capacity = (choice.effects.resources?.capacity ?? 0) - (cost.capacity ?? 0);
   const institutions = choice.effects.institutions ?? 0;
   const panic = choice.effects.pressures?.panic ?? 0;
   const stress = choice.effects.pressures?.stress ?? 0;
@@ -281,7 +322,7 @@ function recommendationScore(
   let score = ADVISORS[advisorId].agenda.includes(category) ? 45 : 10;
   if (action.type === "resolve_card") {
     const choice = getActiveCard(state)?.choices.find((candidate) => candidate.id === action.choiceId);
-    if (choice) score += 50 + choiceValue(choice, advisorId);
+    if (choice) score += 50 + choiceValue(state, choice, advisorId);
   }
   if (action.type === "counter_corporation") {
     score += action.predictedStrategy === predictedStrategy ? 75 : -100;

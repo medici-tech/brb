@@ -1,5 +1,19 @@
 import { ROUTE_DEFINITIONS, SITUATION_CARDS } from "./content";
-import { ROUTE_IDS, type ArchiveV0, type DeclassifiedReport, type DecisionRecord, type GameState, type ReplayIntent, type RouteId, type UnseenRouteHint } from "./types";
+import {
+  ADVISOR_IDS,
+  ROUTE_IDS,
+  type ArchiveV0,
+  type DeclassifiedReport,
+  type DecisionRecord,
+  type GameState,
+  type ReplayIntent,
+  type ReportFinalSnapshot,
+  type RouteId,
+  type UnseenRouteHint,
+} from "./types";
+import { assertArchiveV0 } from "./validation";
+
+export const REPORT_RULES_VERSION = 1;
 
 function routeCompletionIsValid(state: GameState, routeId: RouteId): boolean {
   const route = state.routes[routeId];
@@ -85,29 +99,31 @@ function fallbackDecision(state: GameState): DecisionRecord {
   };
 }
 
+type ScoredDecision = {
+  decision: DecisionRecord;
+  score: number;
+};
+
 function selectPivotalDecisions(state: GameState): {
-  narrative: DecisionRecord;
-  strategic: DecisionRecord;
-  finalTurningPoint: DecisionRecord;
+  narrative: ScoredDecision;
+  strategic: ScoredDecision;
+  finalTurningPoint: ScoredDecision;
 } {
-  for (const decision of state.decisionHistory) {
-    decision.narrativeScore = scoreDecision(decision);
-    decision.strategicScore = scoreStrategicDecision(decision);
-    decision.finalTurningPointScore = scoreFinalTurningPoint(decision);
-    decision.pivotalScore = decision.narrativeScore;
-  }
   const fallback = fallbackDecision(state);
-  const narrative = [...state.decisionHistory].sort(
-    (a, b) => b.narrativeScore - a.narrativeScore || a.turn - b.turn,
-  )[0] ?? fallback;
-  const strategic = [...state.decisionHistory].sort(
-    (a, b) => b.strategicScore - a.strategicScore || a.turn - b.turn,
-  )[0] ?? fallback;
+  const narrative = state.decisionHistory
+    .map((decision) => ({ decision, score: scoreDecision(decision) }))
+    .sort((a, b) => b.score - a.score || a.decision.turn - b.decision.turn)[0]
+    ?? { decision: fallback, score: 0 };
+  const strategic = state.decisionHistory
+    .map((decision) => ({ decision, score: scoreStrategicDecision(decision) }))
+    .sort((a, b) => b.score - a.score || a.decision.turn - b.decision.turn)[0]
+    ?? { decision: fallback, score: 0 };
   const finalWindowStart = Math.max(1, state.turn - 5);
   const lateDecisions = state.decisionHistory.filter((decision) => decision.turn >= finalWindowStart);
-  const finalTurningPoint = [...(lateDecisions.length > 0 ? lateDecisions : state.decisionHistory)].sort(
-    (a, b) => b.finalTurningPointScore - a.finalTurningPointScore || b.turn - a.turn,
-  )[0] ?? fallback;
+  const finalTurningPoint = (lateDecisions.length > 0 ? lateDecisions : state.decisionHistory)
+    .map((decision) => ({ decision, score: scoreFinalTurningPoint(decision) }))
+    .sort((a, b) => b.score - a.score || b.decision.turn - a.decision.turn)[0]
+    ?? { decision: fallback, score: 0 };
   return { narrative, strategic, finalTurningPoint };
 }
 
@@ -182,24 +198,50 @@ function suggestedExperiment(
 export function buildDeclassifiedReport(state: GameState): DeclassifiedReport {
   if (!state.ending) throw new Error("A Declassified Report requires a completed run.");
   const pivots = selectPivotalDecisions(state);
-  const hint = chooseUnseenRouteHint(state, pivots.narrative);
+  const hint = chooseUnseenRouteHint(state, pivots.narrative.decision);
   const completedRoute = ROUTE_IDS.find((id) => routeCompletionIsValid(state, id)) ?? null;
-  const narrativePivot = asPivot(pivots.narrative, pivots.narrative.narrativeScore);
+  const narrativePivot = asPivot(pivots.narrative.decision, pivots.narrative.score);
+  const finalSnapshot: ReportFinalSnapshot = {
+    resources: structuredClone(state.resources),
+    pressures: structuredClone(state.pressures),
+    tracks: structuredClone(state.tracks),
+    institutions: state.institutions,
+    corporation: {
+      progress: state.corporation.progress,
+      threat: state.corporation.threat,
+    },
+    advisors: Object.fromEntries(
+      ADVISOR_IDS.map((advisorId) => {
+        const advisor = state.advisors[advisorId];
+        return [
+          advisorId,
+          {
+            active: advisor.active,
+            alignment: advisor.alignment,
+            loyalty: advisor.loyalty,
+            leverage: advisor.leverage,
+          },
+        ];
+      }),
+    ) as ReportFinalSnapshot["advisors"],
+  };
   return {
+    rulesVersion: REPORT_RULES_VERSION,
     runId: state.runId,
     seed: state.seed,
     archetypeId: state.archetypeId,
     ending: structuredClone(state.ending),
     pivotalDecision: narrativePivot,
     narrativePivot,
-    strategicPivot: asPivot(pivots.strategic, pivots.strategic.strategicScore),
+    strategicPivot: asPivot(pivots.strategic.decision, pivots.strategic.score),
     finalTurningPoint: asPivot(
-      pivots.finalTurningPoint,
-      pivots.finalTurningPoint.finalTurningPointScore,
+      pivots.finalTurningPoint.decision,
+      pivots.finalTurningPoint.score,
     ),
     completedRoute,
     unseenRouteHint: hint,
-    suggestedExperiment: suggestedExperiment(state, pivots.narrative, hint),
+    suggestedExperiment: suggestedExperiment(state, pivots.narrative.decision, hint),
+    finalSnapshot,
   };
 }
 
@@ -265,8 +307,6 @@ export function serializeArchive(archive: ArchiveV0): string {
 
 export function deserializeArchive(serialized: string): ArchiveV0 {
   const parsed: unknown = JSON.parse(serialized);
-  if (!parsed || typeof parsed !== "object" || !("version" in parsed) || parsed.version !== 0) {
-    throw new Error("Unsupported or invalid BRB Archive.");
-  }
-  return parsed as ArchiveV0;
+  assertArchiveV0(parsed);
+  return parsed;
 }

@@ -151,6 +151,5 @@ export function describeCompletionPressure(pressure: CompletionPressure): string
 export function formatCampaignTime(month: number): string {
   const elapsedMonth = Math.max(1, Math.floor(month));
   const year = Math.floor((elapsedMonth - 1) / 12) + 1;
-  const monthOfYear = ((elapsedMonth - 1) % 12) + 1;
-  return `Month ${elapsedMonth} · Year ${year}, Month ${monthOfYear}`;
+  return `Campaign Month ${elapsedMonth} · Year ${year}`;
 }
