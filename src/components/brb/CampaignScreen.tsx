@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   getAdvisorRecommendation,
+  getAdvisorTurnMoment,
   getTurnEchoTypes,
   RESOURCE_GUIDANCE,
   RESOURCE_LABELS,
@@ -20,7 +21,7 @@ import { CampaignAdvisors } from "./CampaignAdvisors";
 import { CampaignActionControl } from "./CampaignActionControl";
 import { CorporationWatchPanel } from "./CorporationWatchPanel";
 import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation";
-import controlRoomStyles from "./control-room/ControlRoomPresentation.module.css";
+import workspaceStyles from "./control-room/SituationWorkspace.module.css";
 import {
   derivePresentationInputs,
   resolvePresentationModel,
@@ -77,6 +78,7 @@ export function CampaignScreen({
   const resolvedEchoTypes = state.lastTurnResolution
     ? getTurnEchoTypes(state, state.lastTurnResolution.month)
     : [];
+  const advisorMoment = getAdvisorTurnMoment(state, state.lastTurnResolution);
   const situationWorkspaceRef = useRef<HTMLElement>(null);
   const previousDecisionIdRef = useRef(latestDecisionId);
   const shouldFocusWorkspaceRef = useRef(false);
@@ -216,7 +218,7 @@ export function CampaignScreen({
           ref={situationWorkspaceRef}
           aria-label="Situation workspace"
           tabIndex={-1}
-          className={`situation-panel ${controlRoomStyles.situationWorkspace}`}
+          className={`situation-panel ${workspaceStyles.situationWorkspace}`}
         >
           <ControlRoomPresentation
             model={controlRoomModel}
@@ -225,7 +227,7 @@ export function CampaignScreen({
           />
 
           {card ? (
-            <div className={`paper-panel ${controlRoomStyles.activeFile}`}>
+            <div className={`paper-panel ${workspaceStyles.activeFile}`}>
               <div className="panel-heading mobile-duplicate-situation">
                 <div>
                   <p className="file-label">SITUATION DECK</p>
@@ -255,7 +257,7 @@ export function CampaignScreen({
             </div>
           ) : (
             <>
-              <div className={`${controlRoomStyles.noActiveFile} mobile-duplicate-situation`}>
+              <div className={`${workspaceStyles.noActiveFile} mobile-duplicate-situation`}>
                 <p className="file-label">SITUATION DECK · STANDBY</p>
                 <h1>No active file</h1>
                 <p>
@@ -264,7 +266,7 @@ export function CampaignScreen({
               </div>
               {state.lastTurnResolution ? (
                 <div
-                  className={`paper-panel ${controlRoomStyles.inactiveResult}`}
+                  className={`paper-panel ${workspaceStyles.inactiveResult}`}
                 >
                   <LastTurnResult
                     resolution={state.lastTurnResolution}
@@ -298,6 +300,7 @@ export function CampaignScreen({
       </section>
 
       <TurnTransitionDialog
+        advisorMoment={advisorMoment}
         echoTypes={resolvedEchoTypes}
         nextTurn={state.turn}
         onContinue={continueToBriefing}

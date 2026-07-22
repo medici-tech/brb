@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ControlRoomPresentation } from "./ControlRoomPresentation";
 import roomStyles from "./ControlRoomPresentation.module.css";
+import workspaceStyles from "./SituationWorkspace.module.css";
 import styles from "./ControlRoomPreview.module.css";
 import {
   getBrbVisualStage,
@@ -145,7 +146,7 @@ export function ControlRoomPreview() {
             </div>
           </article>
         ) : (
-          <div className={roomStyles.noActiveFile}>
+          <div className={workspaceStyles.noActiveFile}>
             <p className="file-label">SITUATION DECK · STANDBY</p>
             <h1>No active file</h1>
             <p>
