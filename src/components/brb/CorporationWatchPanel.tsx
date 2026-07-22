@@ -23,20 +23,20 @@ export function CorporationWatchPanel({ state }: Props) {
       <div className="watch-meter">
         <span>Progress</span>
         <strong>{state.corporation.progress}<small>/ 100</small></strong>
-        <p>At 100, the Corporation completes its objective and wins.</p>
+        <p>At 100, the Corporation wins. At 80 or more, activating the BRB risks Corporate Capture.</p>
       </div>
       <div className="watch-section">
-        <span>Threat · {corporationPressure.tier}</span>
+        <span>Threat · response speed and severity · {corporationPressure.tier}</span>
         <strong>{state.corporation.threat} / 100</strong>
         <p>{describeCorporationPressure(state)}</p>
       </div>
       <div className="watch-section">
-        <span>Posture</span>
+        <span>Posture · move being prepared</span>
         <strong>{state.corporation.strategy.replaceAll("_", " ")}</strong>
         <p>{describeCorporationPosture(state.corporation.strategy)}</p>
       </div>
       <div className="watch-section">
-        <span>Response clock</span>
+        <span>Response clock · when the move happens</span>
         <strong>
           {corporationPressure.monthsUntilResponse === 0
             ? "Response due now"

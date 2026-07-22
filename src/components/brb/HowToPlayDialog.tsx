@@ -20,25 +20,30 @@ export function HowToPlayDialog() {
           <p className="file-label text-signal">OPERATING BRIEF</p>
           <DialogTitle className="brb-display text-4xl leading-none font-semibold">Build the BRB without losing the state.</DialogTitle>
           <DialogDescription className="pt-2 text-sm leading-6 text-muted-foreground">
-            Each month gives you one optional consultation and one commitment. The commitment advances time.
+            Raise all four BRB tracks to 50, then activate before the Corporation or
+            political collapse ends the campaign.
           </DialogDescription>
         </DialogHeader>
         <div className="guide-grid">
           <section>
-            <strong>1 · Read the pressure</strong>
-            <p>Watch Panic, Institutions, advisor leverage, and Corporation progress. Any one of them can reshape or end the campaign.</p>
+            <strong>1 · Assess</strong>
+            <p>Read the active Situation, resources, Panic, Institutions, and Corporation Progress.</p>
           </section>
           <section>
-            <strong>2 · Consult if useful</strong>
-            <p>An advisor can forecast the Corporation, but reliance builds leverage and each advisor has an agenda.</p>
+            <strong>2 · Consult optionally</strong>
+            <p>One advisor can help before you commit. Consultation costs Intel and gives that advisor Leverage.</p>
           </section>
           <section>
-            <strong>3 · Make one commitment</strong>
-            <p>Resolve the active Situation Card or choose another action. Ignoring a card applies its shown consequence first.</p>
+            <strong>3 · Commit</strong>
+            <p>Choose exactly one commitment and confirm the month. Another action ignores the active Situation and applies its consequence first.</p>
           </section>
           <section>
-            <strong>4 · Build, then activate</strong>
-            <p>Standard and Large Deposits permanently advance the four BRB tracks and permanently spend resources. Every track must reach 50 before activation.</p>
+            <strong>4 · Review and adapt</strong>
+            <p>Read the attributed aftermath, then adjust. Deposited resources stay spent even if a later event damages a BRB track.</p>
+          </section>
+          <section>
+            <strong>5 · Activate</strong>
+            <p>Every track must reach 50. Activation ends the run; Corporation control and political safeguards determine the outcome.</p>
           </section>
         </div>
         <div className="glossary-grid" aria-label="BRB field glossary">
@@ -48,11 +53,11 @@ export function HowToPlayDialog() {
           </section>
           <section>
             <strong>State pressure</strong>
-            <p><b>Stress</b> drains Trust at 80. <b>Panic</b> ends the campaign at 100. <b>Institutions</b> end the campaign at 0.</p>
+            <p><b>Stress</b> drains Trust at 80 but does not directly end the campaign. <b>Panic</b> ends the campaign at 100. <b>Institutions</b> end the campaign at 0.</p>
           </section>
           <section>
             <strong>Advisor file</strong>
-            <p><b>Alignment</b> is agreement with your policy. <b>Loyalty</b> is willingness to remain. <b>Leverage</b> is power accumulated over you.</p>
+            <p><b>Alignment</b> affects advice quality. <b>Loyalty</b> is willingness to remain and has an advisor-specific breaking point. <b>Leverage</b> forces departure at 90.</p>
           </section>
           <section>
             <strong>Delayed Echo</strong>
@@ -67,7 +72,7 @@ export function HowToPlayDialog() {
             <p>Costs 175% of the Standard Deposit, rounded up. It makes substantially more permanent progress and doubles the track’s exposure.</p>
           </section>
         </div>
-        <p className="guide-note">The dossier language is part of the game. Every term above maps to a rule you can inspect and plan around.</p>
+        <p className="guide-note">Loss conditions: Corporation Progress 100, Panic 100, Institutions 0, or every advisor departed. Stress is not a direct loss condition.</p>
       </DialogContent>
     </Dialog>
   );

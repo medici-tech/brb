@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getAdvisorRecommendation,
+  getTurnEchoTypes,
   RESOURCE_GUIDANCE,
   RESOURCE_LABELS,
 } from "../../game/guidance";
@@ -28,6 +29,7 @@ import { HowToPlayDialog } from "./HowToPlayDialog";
 import { LastTurnResult } from "./LastTurnResult";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
+import { TurnTransitionDialog } from "./TurnTransitionDialog";
 
 type Props = {
   state: GameState;
@@ -43,18 +45,18 @@ type Props = {
 const ONBOARDING_STEPS = [
   {
     label: "ASSESS THE FILE",
-    title: "Read the stakes before you commit.",
-    copy: "Resources fund your options. Panic, Institutions, Corporation Progress, and advisor Leverage can end or compromise the campaign.",
+    title: "Assess → Consult optionally → Commit.",
+    copy: "Read the Situation and danger meters, ask one interested advisor if useful, then authorize exactly one commitment.",
   },
   {
     label: "READ THE AFTERMATH",
-    title: "Every change has a source.",
-    copy: "The last-month record separates your commitment, advisor reactions, the Corporation response, and automatic pressure.",
+    title: "Review → Adapt → Commit again.",
+    copy: "The last-month record attributes every change. Use it to choose what this month must protect or advance.",
   },
   {
     label: "USE THE ROOM",
-    title: "Advice is useful—and interested.",
-    copy: "Consultation costs Intel and creates Leverage. Advisors recommend a real action, but each recommendation reflects an agenda.",
+    title: "Advice has a price and an agenda.",
+    copy: "Consultation costs Intel and creates Leverage. Loyalty and Leverage determine whether an advisor remains.",
   },
 ] as const;
 
@@ -72,8 +74,13 @@ export function CampaignScreen({
   const valid = getValidActions(state);
   const latestDecision = state.decisionHistory.at(-1);
   const latestDecisionId = latestDecision?.id;
+  const resolvedEchoTypes = state.lastTurnResolution
+    ? getTurnEchoTypes(state, state.lastTurnResolution.month)
+    : [];
   const situationWorkspaceRef = useRef<HTMLElement>(null);
   const previousDecisionIdRef = useRef(latestDecisionId);
+  const shouldFocusWorkspaceRef = useRef(false);
+  const [transitionDecisionId, setTransitionDecisionId] = useState<string | null>(null);
   const canActivate = valid.some((action) => action.type === "activate_brb");
   const recommendation = state.consultation
     ? getAdvisorRecommendation(
@@ -90,11 +97,22 @@ export function CampaignScreen({
   useEffect(() => {
     if (!latestDecisionId || previousDecisionIdRef.current === latestDecisionId) return;
     previousDecisionIdRef.current = latestDecisionId;
+    setTransitionDecisionId(latestDecisionId);
+  }, [latestDecisionId]);
+
+  useEffect(() => {
+    if (transitionDecisionId || !shouldFocusWorkspaceRef.current) return;
+    shouldFocusWorkspaceRef.current = false;
     const workspace = situationWorkspaceRef.current;
     if (!workspace) return;
     workspace.focus({ preventScroll: true });
     workspace.scrollIntoView({ behavior: "auto", block: "start" });
-  }, [latestDecisionId]);
+  }, [transitionDecisionId]);
+
+  function continueToBriefing(): void {
+    shouldFocusWorkspaceRef.current = true;
+    setTransitionDecisionId(null);
+  }
 
   return (
     <main className="shell campaign-shell">
@@ -107,8 +125,8 @@ export function CampaignScreen({
           <HowToPlayDialog />
           {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
           {onOpenPlaytest ? (
-            <button className="text-button" type="button" onClick={onOpenPlaytest}>
-              Playtest Journal
+            <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>
+              Internal Playtest
             </button>
           ) : null}
           <button className="text-button" type="button" onClick={onOpenArchive}>Archive</button>
@@ -132,31 +150,16 @@ export function CampaignScreen({
 
       {onboarding ? (
         <section className="first-turn-guide" aria-labelledby="first-turn-title">
+          <p className="file-label">{onboarding.label} · BRIEF {state.turn} OF 3</p>
           <div>
-            <p className="file-label">{onboarding.label} · BRIEF {state.turn} OF 3</p>
             <h2 id="first-turn-title">{onboarding.title}</h2>
             <p>{onboarding.copy}</p>
           </div>
-          <ol>
-            <li><strong>Assess</strong><span>Read the Situation, state pressure, and Corporation Watch.</span></li>
-            <li><strong>Investigate</strong><span>Consult one advisor if their biased advice is worth the cost.</span></li>
-            <li><strong>Commit</strong><span>Choose one action; the exact aftermath appears next month.</span></li>
-          </ol>
         </section>
       ) : null}
 
-      <section className="metric-strip" aria-label="Active resources">
-        {RESOURCE_KEYS.map((key) => (
-          <div className="metric" key={key} title={RESOURCE_GUIDANCE[key]}>
-            <span>{RESOURCE_LABELS[key]}</span><strong>{state.resources[key]}</strong>
-            <small>{RESOURCE_GUIDANCE[key]}</small>
-            <i style={{ width: `${state.resources[key]}%` }} />
-          </div>
-        ))}
-      </section>
-
-      <section className="state-pressure-strip" aria-label="State pressure">
-        <article>
+      <section className="state-pressure-strip" aria-label="State pressure" tabIndex={0}>
+        <article className={state.pressures.stress >= 75 ? "danger-metric" : ""}>
           <span>Stress</span><strong>{state.pressures.stress} / 100</strong>
           <p>At 80+, administrative overload drains 4 Trust every month.</p>
         </article>
@@ -168,9 +171,47 @@ export function CampaignScreen({
           <span>Institutions</span><strong>{state.institutions} / 100</strong>
           <p>At 0, the state collapses. Protection can restore this meter.</p>
         </article>
+        <article className={state.corporation.progress >= 75 ? "danger-metric" : ""}>
+          <span>Corporation Progress</span><strong>{state.corporation.progress} / 100</strong>
+          <p>At 100, the Corporation wins. At 80+, activation risks capture.</p>
+        </article>
       </section>
 
-      <div className="campaign-grid">
+      <section className="mobile-situation-brief" aria-label="Current Situation">
+        <p className="file-label">
+          {card ? "CURRENT SITUATION" : "SITUATION DECK · STANDBY"}
+        </p>
+        <h1>{card?.title ?? "No active file"}</h1>
+        <p>
+          {card?.description
+            ?? "The desk is quiet. Choose where to commit the administration."}
+        </p>
+      </section>
+
+      <section className="metric-strip" aria-label="Active resources" tabIndex={0}>
+        {RESOURCE_KEYS.map((key) => (
+          <div className="metric" key={key} title={RESOURCE_GUIDANCE[key]}>
+            <span>{RESOURCE_LABELS[key]}</span><strong>{state.resources[key]}</strong>
+            <i style={{ width: `${state.resources[key]}%` }} />
+          </div>
+        ))}
+      </section>
+      <details className="meter-guide">
+        <summary>What do these resources fund?</summary>
+        <dl>
+          {RESOURCE_KEYS.map((key) => (
+            <div key={key}><dt>{RESOURCE_LABELS[key]}</dt><dd>{RESOURCE_GUIDANCE[key]}</dd></div>
+          ))}
+        </dl>
+      </details>
+
+      <CampaignAdvisors
+        state={state}
+        recommendation={recommendation}
+        onConsult={onConsult}
+      />
+
+      <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
         <section
           ref={situationWorkspaceRef}
           aria-label="Situation workspace"
@@ -185,7 +226,7 @@ export function CampaignScreen({
 
           {card ? (
             <div className={`paper-panel ${controlRoomStyles.activeFile}`}>
-              <div className="panel-heading">
+              <div className="panel-heading mobile-duplicate-situation">
                 <div>
                   <p className="file-label">SITUATION DECK</p>
                   <h1>{card.title}</h1>
@@ -194,7 +235,7 @@ export function CampaignScreen({
                   {card.type} · {card.rarity}
                 </span>
               </div>
-              <p className="situation-copy">{card.description}</p>
+              <p className="situation-copy mobile-duplicate-situation">{card.description}</p>
               <div className="choice-list">
                 {card.choices.map((choice) => (
                   <CampaignActionControl
@@ -209,12 +250,12 @@ export function CampaignScreen({
               </div>
               <LastTurnResult
                 resolution={state.lastTurnResolution}
-                echoTypes={latestDecision?.echoTypes ?? []}
+                echoTypes={resolvedEchoTypes}
               />
             </div>
           ) : (
             <>
-              <div className={controlRoomStyles.noActiveFile}>
+              <div className={`${controlRoomStyles.noActiveFile} mobile-duplicate-situation`}>
                 <p className="file-label">SITUATION DECK · STANDBY</p>
                 <h1>No active file</h1>
                 <p>
@@ -227,7 +268,7 @@ export function CampaignScreen({
                 >
                   <LastTurnResult
                     resolution={state.lastTurnResolution}
-                    echoTypes={latestDecision?.echoTypes ?? []}
+                    echoTypes={resolvedEchoTypes}
                   />
                 </div>
               ) : null}
@@ -247,11 +288,6 @@ export function CampaignScreen({
       </div>
 
       <section className="lower-grid">
-        <CampaignAdvisors
-          state={state}
-          recommendation={recommendation}
-          onConsult={onConsult}
-        />
         <OtherCommitmentsPanel
           state={state}
           recommendation={recommendation}
@@ -260,6 +296,14 @@ export function CampaignScreen({
         />
         <CorporationWatchPanel state={state} />
       </section>
+
+      <TurnTransitionDialog
+        echoTypes={resolvedEchoTypes}
+        nextTurn={state.turn}
+        onContinue={continueToBriefing}
+        open={transitionDecisionId === latestDecisionId}
+        resolution={state.lastTurnResolution}
+      />
     </main>
   );
 }

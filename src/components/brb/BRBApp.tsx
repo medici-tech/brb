@@ -220,10 +220,18 @@ export function BRBApp() {
   const reportSlot = reportRun ? journal.matrix.find((slot) => slot.id === reportRun.slotId) ?? null : null;
 
   if (view === "archive") {
+    const returnView = state && state.phase !== "ended" ? "campaign" : report ? "report" : "start";
     return (
       <ArchiveView
         archive={archive}
-        onBack={() => setView(state && state.phase !== "ended" ? "campaign" : report ? "report" : "start")}
+        backLabel={
+          returnView === "campaign"
+            ? "Return to campaign"
+            : returnView === "report"
+              ? "Return to report"
+              : "Return to opening file"
+        }
+        onBack={() => setView(returnView)}
       />
     );
   }
