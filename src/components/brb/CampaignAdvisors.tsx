@@ -21,59 +21,27 @@ export function CampaignAdvisors({ state, recommendation, onConsult }: Props) {
   const consultationCost = getConsultationCost(state);
 
   return (
-    <article className="dark-panel advisors-panel">
-      <div className="panel-heading">
-        <div><p className="file-label">ADVISORS</p><h2>Consult before committing</h2></div>
-      </div>
+    <details className="dark-panel campaign-consultation" open={Boolean(state.consultation)}>
+      <summary>
+        <span>
+          <span className="file-label">OPTIONAL CONSULTATION</span>
+          <strong>
+            {state.consultation
+              ? `${ADVISORS[state.consultation.advisorId].name} briefed you`
+              : "Consult one advisor before committing"}
+          </strong>
+        </span>
+        <small>
+          Cost {consultationCost.intelligence} Intel · +{consultationCost.leverage} Leverage
+        </small>
+      </summary>
       <p className="panel-explainer">
-        Consultation costs {consultationCost.intelligence} Intel and gives the advisor
-        +{consultationCost.leverage} Leverage. Leverage is the power they accumulate over
-        your administration.
+        Alignment affects advice quality. An advisor leaves if Loyalty falls below their
+        listed threshold or Leverage reaches 90.
       </p>
-      <div className="advisor-list">
-        {ADVISOR_IDS.map((id) => {
-          const advisor = state.advisors[id];
-          const ability = getArchetypeAbilityPreview(state, id);
-          const consultationError = getConsultationError(state, id);
-          return (
-            <section className={!advisor.active ? "advisor inactive" : "advisor"} key={id}>
-              <div className="advisor-identity">
-                <strong>{ADVISORS[id].name}</strong>
-                <small>{ADVISORS[id].specialty}</small>
-                <small>
-                  Leverage {advisor.leverage} · Alignment {advisor.alignment} · Loyalty{" "}
-                  {advisor.loyalty}
-                </small>
-                <p>{ADVISORS[id].bias}</p>
-              </div>
-              <div className="advisor-actions">
-                <button
-                  type="button"
-                  disabled={Boolean(consultationError)}
-                  onClick={() => onConsult(id, false)}
-                  title={consultationError ?? undefined}
-                >
-                  Consult
-                </button>
-                {ability ? (
-                  <button
-                    type="button"
-                    disabled={Boolean(consultationError)}
-                    onClick={() => onConsult(id, true)}
-                    title={consultationError ?? `${ability.cost}. ${ability.result}`}
-                  >
-                    {ability.name}
-                    <small>{ability.cost}</small>
-                  </button>
-                ) : null}
-              </div>
-            </section>
-          );
-        })}
-      </div>
       {state.consultation ? (
-        <aside className="advisor-brief">
-          <p className="file-label">ADVISORY OPINION · NOT AN OPTIMALITY CLAIM</p>
+        <aside className="advisor-brief" aria-live="polite">
+          <p className="file-label">ADVISORY OPINION · INTERESTED ADVICE</p>
           <h3>{state.consultation.message}</h3>
           <p>Forecast confidence: <strong>{state.consultation.confidence}</strong>.</p>
           {recommendation ? (
@@ -85,6 +53,55 @@ export function CampaignAdvisors({ state, recommendation, onConsult }: Props) {
           ) : null}
         </aside>
       ) : null}
-    </article>
+      <div className="advisor-list">
+        {ADVISOR_IDS.map((id) => {
+          const advisor = state.advisors[id];
+          const definition = ADVISORS[id];
+          const ability = getArchetypeAbilityPreview(state, id);
+          const consultationError = getConsultationError(state, id);
+          return (
+            <section className={!advisor.active ? "advisor inactive" : "advisor"} key={id}>
+              <div className="advisor-identity">
+                <strong>{definition.name}</strong>
+                <small>{definition.specialty}</small>
+                <div className="advisor-meters">
+                  <span>Alignment <b>{advisor.alignment}</b> · advice quality</span>
+                  <span>
+                    Loyalty <b>{advisor.loyalty}</b> · leaves below{" "}
+                    {definition.loyaltyBreakingPoint}
+                  </span>
+                  <span>Leverage <b>{advisor.leverage}</b> · leaves at 90</span>
+                </div>
+                <p>{definition.bias}</p>
+              </div>
+              <div className="advisor-actions">
+                <button
+                  type="button"
+                  aria-label={`Consult ${definition.name}`}
+                  disabled={Boolean(consultationError)}
+                  onClick={() => onConsult(id, false)}
+                  title={consultationError ?? undefined}
+                >
+                  Consult
+                </button>
+                {ability ? (
+                  <button
+                    type="button"
+                    aria-label={`${ability.name} with ${definition.name}`}
+                    disabled={Boolean(consultationError)}
+                    onClick={() => onConsult(id, true)}
+                    title={consultationError ?? `${ability.cost}. ${ability.result}`}
+                  >
+                    {ability.name}
+                    <small>{ability.cost}</small>
+                  </button>
+                ) : null}
+                {consultationError ? <small className="advisor-disabled-reason">{consultationError}</small> : null}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </details>
   );
 }

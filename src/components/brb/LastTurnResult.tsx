@@ -25,9 +25,14 @@ function ResultGroup({ effect }: { effect: ResolvedEffect }) {
 type Props = {
   resolution: TurnResolution | null;
   echoTypes: EchoType[];
+  heading?: string;
 };
 
-export function LastTurnResult({ resolution, echoTypes }: Props) {
+export function LastTurnResult({
+  resolution,
+  echoTypes,
+  heading = "LAST MONTH’S RESULT · EXACT CHANGES",
+}: Props) {
   if (!resolution) return null;
   const groups = [
     resolution.ignoredSituation,
@@ -40,7 +45,7 @@ export function LastTurnResult({ resolution, echoTypes }: Props) {
 
   return (
     <aside className="consequence-box" aria-label="Last month’s result">
-      <span>LAST MONTH’S RESULT · EXACT CHANGES</span>
+      <span>{heading}</span>
       <div className="result-groups">
         {groups.map((effect) => <ResultGroup effect={effect} key={effect.label} />)}
       </div>
