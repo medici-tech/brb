@@ -1,26 +1,39 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const displayFont = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const displayFont = localFont({
+  src: [
+    { path: "./fonts/barlow-condensed-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/barlow-condensed-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/barlow-condensed-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/barlow-condensed-latin-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/barlow-condensed-latin-800-normal.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-brb-display",
   preload: false,
 });
 
-const bodyFont = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const bodyFont = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-brb-body",
   preload: false,
 });
 
-const monoFont = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const monoFont = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-brb-mono",
   preload: false,
 });
