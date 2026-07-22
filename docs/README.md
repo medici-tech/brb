@@ -1,5 +1,8 @@
 # BRB Documentation
 
+Repository-wide player-visible and compatibility changes are summarized in the
+[project changelog](../CHANGELOG.md). Detailed balance experiments remain in the simulation log.
+
 BRB is in **Phase 2: Balance prototype — In progress**.
 
 Use these sources in this order:
