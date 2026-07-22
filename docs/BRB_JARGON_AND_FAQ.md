@@ -84,7 +84,7 @@ All meters below range from 0 to 100 unless noted otherwise.
 
 | Term | Code field | Meaning | Important threshold |
 | --- | --- | --- | --- |
-| Stress | `pressures.stress` | Administrative strain caused by shortages and hard choices | At 80 or more, monthly pressure removes 4 Trust |
+| Stress | `pressures.stress` | Administrative strain caused by shortages and hard choices | At 80 or more, monthly pressure removes 4 Trust; reaching 100 does not directly end the run |
 | Panic | `pressures.panic` | Public crisis and loss of political control | At 100, the run ends in State Collapse |
 | Institutions | `institutions` | Remaining strength of lawful government and public systems | At 0, the run ends in State Collapse |
 | Corporation Progress | `corporation.progress` | How close the rival is to completing or capturing its objective | At 100, the run ends in Corporate Capture; at 80 or more, activation is unsafe |
@@ -148,7 +148,7 @@ A **deposit** permanently spends resources and advances one BRB track.
 | Legitimacy | 6 Influence, 10 Trust, 2 Capacity |
 | Stability | 6 Money, 6 Trust, 6 Capacity |
 
-Deposits cannot be refunded. Track points can exceed the 50 needed for ordinary activation and may reach 100. Extra Legitimacy and Stability matter for the Civic Legacy ending. Some card outcomes can later reduce a track even though the deposited resources remain unavailable.
+Deposits cannot be refunded. Track points can exceed the 50 needed for ordinary activation and may reach 100. A track already at 100 rejects another deposit, while a deposit below 100 still pays its full cost even when some progress is capped. Extra Legitimacy and Stability matter for the Civic Legacy ending. Some card outcomes can later reduce a track even though the deposited resources remain unavailable.
 
 ## Advisors and relationship stats
 
@@ -165,12 +165,12 @@ Deposits cannot be refunded. Track points can exceed the 50 needed for ordinary 
 | Leverage | Power the advisor has accumulated over the player |
 | Competence | Accuracy and effectiveness, including forecast quality |
 | Loyalty ceiling | Maximum sustainable Loyalty for that advisor |
-| Breaking point | Hidden Alignment threshold below which the advisor resigns |
+| Loyalty breaking point | Visible Loyalty threshold below which the advisor resigns: Analyst 24, Fixer 20, Steward 30 |
 | Active | Whether the advisor is still available |
-| Agenda | Commitment categories that improve Alignment instead of reducing it |
+| Agenda | Commitment categories the advisor approves: +4 Alignment and +1 Loyalty; disapproved commitments apply -2 Alignment and -2 Loyalty |
 | Advisor memory | A persistent record that a card choice created in the current run |
 
-An advisor leaves when Alignment falls below their breaking point or Leverage reaches 90. The run collapses if every advisor becomes inactive.
+An advisor leaves when Loyalty falls below their breaking point or Leverage reaches 90. Alignment still changes consultation quality but does not directly cause departure. The run collapses if every advisor becomes inactive.
 
 ### Consultation
 
@@ -179,6 +179,7 @@ A consultation is the optional information action before the month's commitment.
 - It costs 2 Intelligence.
 - Only one consultation is allowed per month.
 - It predicts the Corporation's current strategy with low, medium, or high confidence.
+- Forecast accuracy combines Competence, Alignment, Loyalty, Leverage, advisor memories, and false-plan doctrine. Ten Loyalty points change ordinary accuracy by four percentage points.
 - It normally adds 2 Leverage. Operator consultations add 4.
 - The Technocrat consulting the Analyst receives a precise forecast.
 - A consultation does not advance the month.
@@ -253,6 +254,8 @@ The current campaign UI exposes **Manage Advisor** for each active advisor.
 | Chain | Two connected Situation Cards |
 | Route | The tracked political path created by decisions in a chain |
 | Immediate consequence | State change applied as soon as the choice resolves |
+| Mandatory card cost | Resource payment the player must be able to afford before a choice can resolve |
+| Card damage | Negative effect that applies after resolution and floors at zero instead of blocking the choice |
 | Delayed echo | A hinted persistent consequence whose full importance may appear later |
 | Ignored outcome | Consequence applied when the player confirms another commitment instead |
 | Expired | Unresolved active card removed because activation ended the run |
@@ -261,8 +264,23 @@ The current campaign UI exposes **Manage Advisor** for each active advisor.
 | Flag | Internal state marker used to unlock, exclude, or remember content |
 | System modifier | Persistent rule change created during the run, such as `emergency_rule` |
 | Ending contributor | Persistent narrative evidence used by reports or ending evaluation |
+| Story-defining choice | Player-facing report label for the highest-scoring narrative pivot |
+| Most consequential commitment | Player-facing report label for the highest-scoring strategic pivot |
+| Final-stretch turning point | Player-facing report label for the strongest decision in the final five months |
 
 Each month has a seeded 55% card-appearance check. Passing the check does not guarantee a specific card; the engine then filters for eligibility and makes a weighted seeded draw.
+
+### Active system modifiers
+
+| Modifier | Downstream rule |
+| --- | --- |
+| `accepted_delay` | Recovery adds 2 extra Corporation Progress |
+| `replacement_contractors` | Engineering deposits permanently require 3 extra Capacity |
+| `closed_oversight` | Future opaque choices require 2 extra Trust |
+| `false_plan_in_circulation` | Ordinary advisor forecasts lose 10 percentage points of accuracy |
+| `parallel_contractors` | Capacity recovery gains 8 extra Capacity |
+| `capacity_drift` | Beginning the next month, monthly pressure removes 1 Engineering |
+| `emergency_rule` | Existing emergency costs, monthly Institutions loss, Civic failure, and ending effects remain active |
 
 ### Card encounter statuses
 
@@ -360,6 +378,8 @@ An **ending variation** changes the title and interpretation of a victory. It is
 | Term | Meaning |
 | --- | --- |
 | Declassified Report | End-of-run explanation generated entirely from final `GameState` |
+| Report rules version | Identifies the rules build that created a report; older reports remain readable but replay under current rules |
+| Final-state snapshot | Report copy of final resources, tracks, pressure, Institutions, Corporation meters, and advisor positions |
 | Narrative Pivot | Decision with the strongest story-route, echo, memory, and consequence evidence |
 | Strategic Pivot | Decision with the strongest immediate, persistent, Corporation, route, and irreversible impact |
 | Final Turning Point | Highest-scoring decision from the final five months, favoring the later decision on ties |
@@ -367,7 +387,7 @@ An **ending variation** changes the title and interpretation of a victory. It is
 | Narrative / Strategic / Final weight | Internal comparison score used to select report pivots; not a player score or currency |
 | Unseen Route | Classified or partial clue about a route the player did not complete |
 | Suggested experiment | Concrete next-run choice proposed by the report |
-| Intelligence Archive | Local knowledge record of encountered cards, endings, and route progress |
+| Intelligence Archive | Local knowledge record of encountered cards, witnessed choice labels, encounter counts, endings, and route progress |
 | Knowledge-only persistence | Archive knowledge carries between runs, but starting power does not |
 | Encounter | One appearance of a card in a run |
 | Choice witnessed | A card choice recorded in the Archive |
@@ -439,7 +459,7 @@ Both Completion Pressure and Corporation Threat have a `critical` tier. Completi
 
 ### Can an advisor leave?
 
-Yes. An advisor becomes inactive when Alignment falls below their hidden breaking point or Leverage reaches 90. If every advisor leaves, the state collapses.
+Yes. An advisor becomes inactive when Loyalty falls below their visible breaking point or Leverage reaches 90. Alignment affects advice quality but cannot cause departure by itself. If every advisor leaves, the state collapses.
 
 ### Does the Intelligence Archive make later runs easier?
 

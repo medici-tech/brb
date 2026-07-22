@@ -214,6 +214,16 @@ describe("counterfactual replay", () => {
     expect(createGame(91).resources).toEqual(createGame(91).resources);
   });
 
+  it("derives a report without mutating the supplied final state", () => {
+    const completed = finishRun(createGame({ seed: 93, runId: "pure-report" }));
+    const before = structuredClone(completed);
+
+    const report = buildDeclassifiedReport(completed);
+
+    expect(report).toEqual(completed.report);
+    expect(completed).toEqual(before);
+  });
+
   it("separates a narrative card pivot from an irreversible strategic deposit", () => {
     let state = commitAction(exposeCard(createGame({ seed: 92, runId: "pivot-run" }), "audit_discrepancy"), {
       type: "resolve_card",

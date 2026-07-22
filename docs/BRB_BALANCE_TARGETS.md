@@ -14,10 +14,33 @@ Phase 2 balance validation is in progress. The implemented rules currently use:
 - Base Corporation responses every 4 months while Quiet, 3 while Watched, 2 while Contested, and monthly while Severe or Critical
 - Corporation Threat modifies that schedule and move severity: 0–24 at 100%, 25–49 at 110%, 50–74 at 125% and one month faster, and 75–100 at 150% and two months faster
 - Separate completion-pressure surcharges shown under Difficulty curve
+- Stress at 80 or more drains Trust but remains nonterminal; Panic causes State Collapse at 100 and Institutions causes it at 0
+- Approved commitments apply +4 Alignment and +1 Loyalty; disapproved commitments apply -2 Alignment and -2 Loyalty. Loyalty below the advisor's threshold or Leverage at 90 causes departure
+- Ordinary forecast accuracy uses Competence, Alignment, centered Loyalty at 0.4 per point, Leverage, relationship memories capped at ±12, and a possible -10 false-plan modifier
+- Situation choices declare mandatory costs separately from floor-clamped resource damage; unaffordable choices cannot resolve
+- Accepted delay, replacement contractors, closed oversight, false plans, parallel contractors, Capacity drift, and emergency rule have deterministic downstream mechanics
 
-The latest accepted 10,000-run cadence experiment produced 8.43% activations, 0.62% Civic Legacy endings, 45.97% state collapse, 45.60% Corporation capture, and a 24-month median. It presented 13.37 cards and actively resolved 9.85 per run, or about 73.7%. A separate 300-run long-horizon diagnostic proved that deliberate play can cross five and ten years without a hidden calendar limit.
+The latest normal-strategy 3,000-run Loyalty checkpoint produced 1.47% activations, 0.10% Civic Legacy endings, 47.50% State Collapse, 51.03% Corporation capture, and a 20-month median. A separate experiment making Stress terminal at 100 produced 99.73% State Collapse and was rejected; the implemented Stress rule remains unchanged.
 
 These results establish reachability, not final balance approval. Activation remains uncommon, Civic Legacy remains rare, and results vary sharply by strategy. The sections below preserve the experiment history in chronological order. Statements inside explicitly historical checkpoints describe what was true at that checkpoint, not the current project status.
+
+### Logic trustworthiness remediation checkpoint — 2026-07-19
+
+The accepted rules now enforce card affordability, independent seeded Corporation posture jitter, Loyalty- and memory-sensitive forecasts, and downstream doctrine effects. The fixed-seed `20260715` integrated 5,000-run checkpoint produced 70 activations (1.40%), including 6 Civic Legacy endings, 2,379 State Collapses (47.58%), 2,551 Corporate Captures (51.02%), and a 20-month median. This confirms reachability; it does not approve the low activation rate.
+
+One-rule 3,000-run ablations used the same seed and the integrated build as the comparison point (44 activations, 1.47%, 20-month median):
+
+| Disabled rule | Activations | Median | Interpretation |
+| --- | ---: | ---: | --- |
+| Loyalty contribution to forecasts | 50 (1.67%) | 20 | Largest observed shift; retain as accepted advisor consequence, not tuned balance |
+| Relationship-memory forecast modifiers | 49 (1.63%) | 20 | Memories now matter mechanically; aggregate change remains modest |
+| False-plan forecast penalty | 45 (1.50%) | 20 | Rare doctrine has little aggregate movement |
+| Accepted-delay recovery penalty | 45 (1.50%) | 21 | Small outcome shift with a readable tempo consequence |
+| Replacement-contractor Capacity surcharge | 44 (1.47%) | 20 | No activation movement at this sample size |
+| Parallel-contractor Capacity bonus | 45 (1.50%) | 20 | Small aggregate movement |
+| Capacity drift | 44 (1.47%) | 20 | No activation movement; capture/collapse mix shifted slightly |
+
+Each ablation changed only the named rule. No compensating value was tuned. Card affordability and independent Corporation jitter remain correctness fixes rather than optional tuning variants; the integrated checkpoint records their accepted combined baseline.
 
 ## Run length
 
@@ -35,7 +58,7 @@ The active resource set is Money, Influence, Intelligence, Trust, and Capacity. 
 | ---: | ---: | ---: | ---: | ---: |
 | 48 | 42 | 38 | 46 | 44 |
 
-All resources are capped from 0 to 100. Recovering a resource restores 30 points (28 for Capacity), raises Stress by 7, advances the Corporation by 3, and consumes the turn's major commitment.
+All resources are capped from 0 to 100. Recovering a resource restores 30 points (28 for Capacity), raises Stress by 7, advances the Corporation by 3, and consumes the turn's major commitment. Active echoes can change this openly: accepted delay adds 2 more Corporation Progress, while parallel contractors add 8 more Capacity to Capacity recovery.
 
 ### Deposit targets
 
@@ -46,7 +69,7 @@ All resources are capped from 0 to 100. Recovering a resource restores 30 points
 | Legitimacy | 0 | 6 | 0 | 10 | 2 |
 | Stability | 6 | 0 | 0 | 6 | 6 |
 
-A standard deposit adds 25 track points. A large deposit costs 175% of the listed values, rounded up, and adds 40. Only progress changed in the controlled balance pass: costs, resource sacrifices, and side effects remain unchanged. Deposits are permanent and every track must reach 50 before activation.
+A standard deposit adds 25 track points. A large deposit costs 175% of the listed values, rounded up, and adds 40. Replacement contractors add 3 Capacity to either Engineering deposit size. Deposits are permanent, a track at 100 rejects further deposits, and every track must reach 50 before activation.
 
 Phase 2 must validate:
 
@@ -320,3 +343,41 @@ Rare outcomes have not reached the same precision. Activation's 95% Wilson inter
 Campaign shape also settles by 3,000 runs: the median remains 21 months at every checkpoint, while P75/P90/P95 move from 23/26/28 at 1,000 to 24/27/29 at 3,000 and remain there at 5,000. The observed maximum rises from 40 to 59 months by 3,000 and then stays at 59, and no normal-strategy run exceeds five years. This reinforces the existing finding that long campaigns are reachable only through the separate diagnostic strategy, not present in the normal bot rotation.
 
 The practical cutoff is therefore **3,000 runs for routine comparisons of common outcomes, duration, and card tempo**. Moving to 5,000 makes the uncertainty bounds narrower but does not materially change this report's central numbers. Use 5,000 when the decision depends on sub-percentage-point movement or when activation is important. Even 5,000 is too small for strong claims about Civic Legacy or individual bot performance: each normal bot receives only about 416 campaigns, and Civic Legacy has only six total observations. A different base seed or multiple seed blocks would be the appropriate next check for robustness; simply extending this same deterministic prefix has diminishing value.
+
+## Stress collapse threshold — rejected
+
+> **Rejected experiment:** This tested State Collapse at Stress 100 after human-playtest feedback. No compensating Stress gain, relief, resource, card, or bot value changed.
+
+The comparison uses the immediately preceding fixed-seed 3,000-run convergence checkpoint as its baseline. Both use seed `20260715` and the normal strategy rotation.
+
+| Metric | Before terminal Stress | Stress 100 ends campaign |
+| --- | ---: | ---: |
+| Activations | 41 (1.37%) | 2 (0.07%) |
+| Civic Legacy | 4 (0.13%) | 1 (0.03%) |
+| State Collapse | 1,402 (46.73%) | 2,992 (99.73%) |
+| Corporation capture | 1,557 (51.90%) | 6 (0.20%) |
+| Average / median months | 21.64 / 21 | 14.30 / 14 |
+| Longest campaign | 59 months | 26 months |
+| Cards presented / resolved per run | 11.91 / 8.84 | 7.90 / 6.00 |
+
+The experiment made Stress legible as a true loss meter, but the existing economy drove nearly every automated strategy into that loss before meaningful BRB completion. The maintainer clarified that the intended current rule is unchanged: Stress drains Trust at 80 or more but is not itself terminal. The 99.73% collapse result is retained as evidence for rejecting the experiment; no compensating balance value was changed.
+
+## Loyalty-based advisor departure — accepted for human validation
+
+> **Accepted isolated rule experiment:** This makes the existing Loyalty meter determine advisor departure without changing any starting value, threshold, action cost, card weight, pressure value, or Corporation value.
+
+Approved commitments still add 4 Alignment and 1 Loyalty. The experiment adds a 2-point Loyalty loss to disapproved commitments, moves the existing advisor thresholds from Alignment to Loyalty, and leaves Leverage departure at 90. Alignment remains the input to consultation quality. Manage Advisor remains a direct +10 Loyalty and -6 Leverage effect before the normal advisor reaction.
+
+The current implementation and an otherwise identical temporary control snapshot both ran 3,000 normal-strategy campaigns with seed `20260715`. The control retained the prior Alignment departure and did not remove Loyalty on disapproval.
+
+| Metric | Prior Alignment control | Loyalty departure |
+| --- | ---: | ---: |
+| Activations | 46 (1.53%) | 44 (1.47%) |
+| Civic Legacy | 3 (0.10%) | 3 (0.10%) |
+| State collapse | 1,421 (47.37%) | 1,425 (47.50%) |
+| Corporation capture | 1,533 (51.10%) | 1,531 (51.03%) |
+| Average / median months | 21.07 / 20 | 21.03 / 20 |
+| Longest campaign | 56 months | 56 months |
+| Cards presented / resolved per run | 11.59 / 7.99 | 11.59 / 7.98 |
+
+The automated distribution changes negligibly: State Collapse rises by 0.13 percentage points and activation falls by 0.06 points. This is acceptable evidence that the Loyalty rule does not mathematically destabilize the current bots, but it does not prove that players understand or value Loyalty. Keep the model for the next human playtest and evaluate whether disapproval feels attributable and whether Manage Advisor becomes a meaningful sacrifice. No compensating balance value was changed.
