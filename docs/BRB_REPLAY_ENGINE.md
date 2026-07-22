@@ -2,13 +2,13 @@
 
 ## Purpose
 
-The replay engine exists to make a player finish a run thinking: “I wonder what happens if…” It is the source of truth for Phase 1.5 and sits between the completed logic prototype and Phase 2 balance work.
+The replay engine exists to make a player finish a run thinking: “I wonder what happens if…” It is the completed Phase 1.5 replay layer and remains the design source for replay behavior during Phase 2 balance work.
 
 The prototype does not try to expose the entire narrative graph. Every run builds a unique classified political history. Players should finish feeling they uncovered one version of the truth, not the entire game.
 
 ## Prototype contract
 
-Phase 1.5 keeps the itch.io slice compact:
+The completed Phase 1.5 slice keeps the itch.io prototype compact:
 
 - 15 Situation Cards: 6 Crisis, 4 Advisor, and 5 Corporation
 - 10 Common and 5 Rare cards; rarity means story frequency, not strength
@@ -28,12 +28,15 @@ Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards remain futur
 - Cooldown and maximum draws per run
 - Follow-up card IDs
 - Player choices and ignored outcome
+- Mandatory resource costs, separate from floor-clamped damage
 - Immediate effects
 - At least one delayed echo
 
 Common cards can be drawn twice and require four months between draws. Rare cards can be drawn once. Follow-up cards begin outside the available deck and enter only through a prior echo. A card can also remove a future card, making a closed route mechanically real rather than descriptive text.
 
 Corporation cards show a scheme or fallout the player can answer. They do not replace the automatic Corporation response after the player's major commitment.
+
+The automatic response uses a deterministic completion-tier cadence: every 4 months while Quiet, every 3 while Watched, every 2 while Contested, and monthly while Severe or Critical. The saved `lastResponseMonth` clock carries across tier changes and save/load boundaries. The separate completion-pressure surcharges remain unchanged.
 
 ## Seeded draw order
 
@@ -55,11 +58,13 @@ Every choice, including ignoring a card, has an immediate effect and one or more
 | Echo | Run effect |
 | --- | --- |
 | `card` | Add or remove a future Situation Card |
-| `relationship` | Create an advisor memory or leverage-relevant history |
-| `system` | Change a rule for the rest of the run |
+| `relationship` | Create an advisor memory that later changes forecast accuracy |
+| `system` | Change the related recovery, deposit, card-cost, forecast, monthly-pressure, or emergency rule |
 | `ending` | Add evidence used to interpret the ending |
 
 Each major commitment receives a deterministic decision ID. Card additions remember that ID. If a later card entered through that decision, its encounter and downstream history link back to the source decision. Corporation responses also link to the major commitment they answered. This provenance lets a changed replay diverge visibly at one choice rather than becoming unexplained randomness.
+
+Relationship memories add or subtract 6 forecast points each, capped at ±12 per consultation. `accepted_delay` adds 2 Corporation Progress to recovery; `replacement_contractors` adds 3 Capacity to Engineering deposits; `closed_oversight` adds 2 Trust to opaque choices; `false_plan_in_circulation` removes 10 forecast points; `parallel_contractors` adds 8 Capacity to Capacity recovery; and `capacity_drift` removes 1 Engineering during monthly pressure beginning the following month. When one of these rules surfaces, history links it back to the decision that created it.
 
 ## Prototype routes
 
@@ -116,7 +121,7 @@ Illegal transitions throw during resolution. A completed route is classified as 
 
 ## Pivotal-decision report
 
-Every ending produces one deterministic `DeclassifiedReport` with:
+Every ending produces one deterministic `DeclassifiedReport`. The player-facing report first states whether the run was a victory or loss, why the ending rule fired, and one specific next-run experiment. It then explains the following replay evidence in plain language:
 
 - Ending and optional archetype variation
 - One narrative pivot
@@ -126,6 +131,8 @@ Every ending produces one deterministic `DeclassifiedReport` with:
 - One completed route, if any
 - One unseen-route hint
 - One concrete next-run experiment
+- The rules version that produced the report
+- A final-state snapshot of resources, tracks, pressure, Institutions, Corporation meters, and advisor positions
 
 The narrative score is additive:
 
@@ -140,7 +147,7 @@ The narrative score is additive:
 | Later linked consequence | +5 each |
 | Immediate state change | Up to +15 |
 
-The strategic score caps immediate and persistent impact at 20 each; scores route changes at 20, ending contributors at 15, and deck changes at 10; caps Corporation impact at 20; adds at most 12 for irreversibility; and scores advisor memories at 8 and system modifiers at 15. Deposit cost and progress are therefore represented without being counted repeatedly. The final-turn score uses the same evidence but only considers the final five months. Narrative and strategic ties favor the earlier month; final-turn ties favor the later month. The report is derived entirely from final `GameState`, so regenerating it is stable.
+The strategic score caps immediate and persistent impact at 20 each; scores route changes at 20, ending contributors at 15, and deck changes at 10; caps Corporation impact at 20; adds at most 12 for irreversibility; and scores advisor memories at 8 and system modifiers at 15. Deposit cost and progress are therefore represented without being counted repeatedly. The final-turn score uses the same evidence but only considers the final five months. Narrative and strategic ties favor the earlier month; final-turn ties favor the later month. The report is derived entirely from final `GameState`; scoring uses local derived records and never mutates the supplied state.
 
 Hint selection first chooses a route closed by the pivotal choice, then an incomplete route. When neither route was touched, it shows a classified silhouette without exposing requirements. The suggested experiment converts the hint into a direct, non-mechanical objective.
 
@@ -156,12 +163,12 @@ The objective has no effect on starting resources, draw weights, or valid action
 Archive v0 stores only discovered knowledge:
 
 - Aggregate card encounters
-- Choices witnessed and outcomes seen
+- Witnessed choice labels, including an ignored or contained response when observed
 - Ending counts
 - Partial or completed progress for the two routes
 - Processed run IDs for idempotent merging
 
-Only the latest Declassified Report is stored. Undiscovered cards, endings, and routes render as classified silhouettes. Merging the same run ID twice does nothing. The Archive never changes game creation or starting power.
+Only the latest Declassified Report is stored. Undiscovered cards, endings, routes, future requirements, and delayed-echo details render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing. The Archive never changes game creation or starting power.
 
 ## Browser persistence
 
@@ -169,12 +176,14 @@ The browser adapter uses versioned local-storage keys:
 
 | Key | Content |
 | --- | --- |
-| `brb.active-run.v2` | Current deterministic `GameState` |
+| `brb.active-run.v4` | Current deterministic `GameState` |
+| `brb.active-run.v3` | Legacy active run accepted for migration and removed after the next save |
 | `brb.archive.v0` | Knowledge archive |
-| `brb.latest-report.v1` | Latest Declassified Report only |
+| `brb.latest-report.v3` | Latest report with rules version and final-state snapshot |
+| `brb.latest-report.v2` | Read-only fallback for an older report; retained in place and marked as an older rules build |
 | `brb.replay-intent.v1` | Seed, archetype, and suggested experiment |
 
-Invalid or old values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. There are no accounts, cloud saves, analytics, or backend APIs.
+Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 active runs receive only their documented migration defaults; malformed version-4 runs are not repaired. Valid v2 reports are the exception: they load with rules version 0 and no final snapshot, show an older-rules warning, and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
 
 ## Architecture boundary
 
@@ -198,10 +207,19 @@ Post-replay reports add:
 - Results by basic, political, command, Fixer, institutional, and deposit-specialist bots
 - Ending-contributor counts
 - Archetype ending variations
+- Campaign-length percentiles, five/ten-year counts, and ending buckets by duration
+- Outcomes by bot strategy and activation failure reason
+- Months, Corporation responses, Corporation/Panic gain, and net gain per month by pressure tier
+- Panic gains and reductions attributed to actions/cards, Corporation responses, base pressure, or completion pressure
+- A deterministic longest-campaign trace with its seed, strategy, ending, final pressure state, and every monthly decision
 
-The prior 10,000-run report remains labeled **pre-replay architecture**. The new 10,000-run report must be recorded separately before Phase 2 changes any balance values.
+The `long_horizon` bot is diagnostic-only and is not part of the default simulation rotation. It exists to test whether deliberate survival and slow deposits can cross five- and ten-year thresholds without changing game rules or contaminating the normal outcome distribution.
 
-## Acceptance checklist
+The pre-replay and post-replay 10,000-run baselines remain preserved as historical checkpoints. Phase 2 cadence and long-horizon results are recorded separately in [BRB Balance Targets](BRB_BALANCE_TARGETS.md), so their rule changes and strategy-only diagnostics remain attributable.
+
+## Phase 1.5 acceptance record
+
+All replay-layer acceptance checks pass:
 
 - Exactly 15 cards, three types, two rarities, and two chains
 - Seeded weighted draws, requirements, cooldowns, limits, additions, and removals
@@ -214,6 +232,6 @@ The prior 10,000-run report remains labeled **pre-replay architecture**. The new
 - Every ending creates a stable pivotal decision, hint, and experiment
 - Archive merging is idempotent, reveals only knowledge, and grants no power
 - Browser tests cover card choices, immediate consequences, hidden echo details, silhouettes, report rendering, and both replay buttons
-- TypeScript, unit/component tests, static build, and the 10,000-run simulator pass before Phase 2 tuning
+- TypeScript, unit/component tests, the static build, and the 10,000-run simulator passed before Phase 2 tuning
 
-The corrected 10,000-run architecture report passes provenance and coverage checks. Phase 1.5 is still not approved for balance: Civic Legacy remains absent, only 36.1% of presented cards are actively resolved, and the victory rate remains below the prototype target.
+The corrected architecture report passes provenance and coverage checks, and the full test, TypeScript, and static-build gates pass. Phase 1.5 is complete. Its historical zero-Civic-Legacy and 36.1% card-resolution findings became Phase 2 inputs; the accepted cadence now reaches Civic Legacy in 0.62% of normal automated runs and actively resolves about 73.7% of presented cards. Those values still require balance and human-playtest validation.

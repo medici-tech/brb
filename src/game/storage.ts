@@ -1,11 +1,17 @@
 import { deserializeGame, serializeGame } from "./engine";
 import { deserializeArchive, serializeArchive } from "./replay";
 import type { ArchiveV0, DeclassifiedReport, GameState, ReplayIntent } from "./types";
+import {
+  assertDeclassifiedReport,
+  assertReplayIntent,
+} from "./persisted-data-validation";
 
 export const STORAGE_KEYS = {
-  activeRun: "brb.active-run.v3",
+  activeRun: "brb.active-run.v4",
+  legacyActiveRun: "brb.active-run.v3",
   archive: "brb.archive.v0",
-  latestReport: "brb.latest-report.v2",
+  latestReport: "brb.latest-report.v3",
+  legacyLatestReport: "brb.latest-report.v2",
   replayIntent: "brb.replay-intent.v1",
 } as const;
 
@@ -18,16 +24,19 @@ function safely<T>(read: () => T): T | null {
 }
 
 export function loadActiveRun(storage: Storage): GameState | null {
-  const raw = storage.getItem(STORAGE_KEYS.activeRun);
+  const raw = storage.getItem(STORAGE_KEYS.activeRun)
+    ?? storage.getItem(STORAGE_KEYS.legacyActiveRun);
   return raw ? safely(() => deserializeGame(raw)) : null;
 }
 
 export function saveActiveRun(storage: Storage, state: GameState): void {
   storage.setItem(STORAGE_KEYS.activeRun, serializeGame(state));
+  storage.removeItem(STORAGE_KEYS.legacyActiveRun);
 }
 
 export function clearActiveRun(storage: Storage): void {
   storage.removeItem(STORAGE_KEYS.activeRun);
+  storage.removeItem(STORAGE_KEYS.legacyActiveRun);
 }
 
 export function loadArchive(storage: Storage): ArchiveV0 | null {
@@ -40,18 +49,22 @@ export function saveArchive(storage: Storage, archive: ArchiveV0): void {
 }
 
 export function loadLatestReport(storage: Storage): DeclassifiedReport | null {
-  const raw = storage.getItem(STORAGE_KEYS.latestReport);
+  const raw = storage.getItem(STORAGE_KEYS.latestReport)
+    ?? storage.getItem(STORAGE_KEYS.legacyLatestReport);
   return raw
     ? safely(() => {
-        const value = JSON.parse(raw) as DeclassifiedReport;
-        if (
-          !value.runId ||
-          !value.ending ||
-          !value.pivotalDecision ||
-          !value.narrativePivot ||
-          !value.strategicPivot ||
-          !value.finalTurningPoint
-        ) throw new Error("Invalid report");
+        const parsed: unknown = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Invalid report");
+        }
+        const value = {
+          ...parsed,
+          rulesVersion: Number.isInteger((parsed as Partial<DeclassifiedReport>).rulesVersion)
+            ? (parsed as Partial<DeclassifiedReport>).rulesVersion
+            : 0,
+          finalSnapshot: (parsed as Partial<DeclassifiedReport>).finalSnapshot ?? null,
+        };
+        assertDeclassifiedReport(value);
         return value;
       })
     : null;
@@ -65,10 +78,8 @@ export function loadReplayIntent(storage: Storage): ReplayIntent | null {
   const raw = storage.getItem(STORAGE_KEYS.replayIntent);
   return raw
     ? safely(() => {
-        const value = JSON.parse(raw) as ReplayIntent;
-        if (!value.mode || !Number.isInteger(value.seed) || !value.experiment) {
-          throw new Error("Invalid replay intent");
-        }
+        const value: unknown = JSON.parse(raw);
+        assertReplayIntent(value);
         return value;
       })
     : null;

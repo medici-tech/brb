@@ -99,23 +99,25 @@ type ConfirmActionDialogProps = {
   trigger: ReactNode;
   title: string;
   description: string;
+  summary?: ReactNode;
   confirmAction: BrbAction;
   cancelLabel?: string;
   tone?: "warning" | "critical";
 };
 
-export function ConfirmActionDialog({ trigger, title, description, confirmAction, cancelLabel = "Return to briefing", tone = "warning" }: ConfirmActionDialogProps) {
+export function ConfirmActionDialog({ trigger, title, description, summary, confirmAction, cancelLabel = "Return to briefing", tone = "warning" }: ConfirmActionDialogProps) {
   const Icon = confirmAction.icon;
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="brb-design-system brb-console-grid rounded-sm border-border bg-console shadow-[8px_8px_0_rgba(0,0,0,0.45)]">
-        <DialogHeader>
+      <DialogContent className="brb-design-system brb-console-grid max-h-[calc(100dvh-2rem)] min-w-0 overflow-x-hidden overflow-y-auto rounded-sm border-border bg-console shadow-[8px_8px_0_rgba(0,0,0,0.45)]">
+        <DialogHeader className="min-w-0">
           <StatusBadge tone={tone} className="mb-3">Confirmation required</StatusBadge>
           <DialogTitle className="brb-display text-4xl leading-none font-semibold">{title}</DialogTitle>
           <DialogDescription className="pt-2 text-sm leading-6 text-muted-foreground">{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-3">
+        {summary ? <div className="confirmation-summary">{summary}</div> : null}
+        <DialogFooter className="mt-3 min-w-0">
           <DialogClose asChild><Button variant="quiet">{cancelLabel}</Button></DialogClose>
           <DialogClose asChild><Button variant={tone === "critical" ? "critical" : "command"} disabled={confirmAction.disabled} onClick={confirmAction.onSelect}>{Icon ? <Icon aria-hidden="true" /> : null}{confirmAction.label}</Button></DialogClose>
         </DialogFooter>

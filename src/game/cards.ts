@@ -6,6 +6,7 @@ import {
 } from "./content";
 import { nextRandom } from "./rng";
 import { applyRouteChange } from "./routes";
+import { surfaceSystemModifier } from "./echoes";
 import {
   addHistory,
   applyEffects,
@@ -20,11 +21,40 @@ import type {
   CardEncounterStatus,
   CardRequirements,
   GameState,
+  ResourcePool,
   ResourceKey,
   SituationCard,
+  SituationCardChoice,
   SituationOutcome,
   TrackKey,
 } from "./types";
+import { RESOURCE_KEYS } from "./types";
+
+export function getCardChoiceCost(
+  state: GameState,
+  choice: SituationCardChoice,
+): Partial<ResourcePool> {
+  const cost: Partial<ResourcePool> = { ...choice.costs };
+  if (choice.tags?.includes("opaque")) {
+    if (state.archetypeId === "technocrat") cost.trust = (cost.trust ?? 0) + 3;
+    if (state.systemModifiers.includes("closed_oversight")) {
+      cost.trust = (cost.trust ?? 0) + 2;
+    }
+  }
+  return cost;
+}
+
+function canAffordCardChoice(state: GameState, choice: SituationCardChoice): boolean {
+  const cost = getCardChoiceCost(state, choice);
+  return RESOURCE_KEYS.every((resource) => state.resources[resource] >= (cost[resource] ?? 0));
+}
+
+function spendCardChoiceCost(
+  state: GameState,
+  cost: Partial<ResourcePool>,
+): void {
+  for (const resource of RESOURCE_KEYS) state.resources[resource] -= cost[resource] ?? 0;
+}
 
 function meetsCardRequirements(
   state: GameState,
@@ -137,13 +167,24 @@ function applySituationOutcome(
   label: string,
   outcome: SituationOutcome,
   encounterStatus: CardEncounterStatus,
+  cost: Partial<ResourcePool> = {},
 ): string {
   const before = cloneState(state);
   const decision = emptyDecision(state, "card", `${card.title}: ${label}`, card.id, choiceId);
+  spendCardChoiceCost(state, cost);
+  if (
+    outcome.tags?.includes("opaque")
+    && state.systemModifiers.includes("closed_oversight")
+  ) {
+    surfaceSystemModifier(
+      state,
+      "closed_oversight",
+      "Closed oversight increased the Trust cost of a later opaque choice.",
+    );
+  }
   applyEffects(state, outcome.effects);
 
   if (state.archetypeId === "technocrat" && outcome.tags?.includes("opaque")) {
-    state.resources.trust = clamp(state.resources.trust - 3);
     pushUnique(decision.endingContributors, "technocratic_opacity");
     pushUnique(state.endingContributors, "technocratic_opacity");
   }
@@ -212,7 +253,16 @@ export function resolveCard(state: GameState, choiceId: string): string | null {
   if (!card) return null;
   const choice = card.choices.find((item) => item.id === choiceId);
   if (!choice) return null;
-  return applySituationOutcome(state, card, choice.id, choice.label, choice, "resolved");
+  if (!canAffordCardChoice(state, choice)) return null;
+  return applySituationOutcome(
+    state,
+    card,
+    choice.id,
+    choice.label,
+    choice,
+    "resolved",
+    getCardChoiceCost(state, choice),
+  );
 }
 
 export function applyIgnoredCard(state: GameState): string | null {

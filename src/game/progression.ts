@@ -1,7 +1,11 @@
-import { TRACK_KEYS, type GameState } from "./types";
+import {
+  TRACK_KEYS,
+  type CompletionPressureTier,
+  type CorporationPressure,
+  type CorporationThreatTier,
+  type GameState,
+} from "./types";
 import { clamp } from "./state-helpers";
-
-export type CompletionPressureTier = "quiet" | "watched" | "contested" | "severe" | "critical";
 
 export type CompletionPressure = {
   completionPercent: number;
@@ -9,6 +13,64 @@ export type CompletionPressure = {
   corporationProgressEveryMonths: number | null;
   panicEveryMonths: number | null;
 };
+
+const CORPORATION_RESPONSE_INTERVALS: Record<CompletionPressureTier, number> = {
+  quiet: 4,
+  watched: 3,
+  contested: 2,
+  severe: 1,
+  critical: 1,
+};
+
+export function getCorporationResponseInterval(tier: CompletionPressureTier): number {
+  return CORPORATION_RESPONSE_INTERVALS[tier];
+}
+
+const THREAT_RULES: Record<
+  CorporationThreatTier,
+  { minimum: number; intervalModifierMonths: number; severityMultiplier: number }
+> = {
+  monitored: { minimum: 0, intervalModifierMonths: 0, severityMultiplier: 1 },
+  mobilized: { minimum: 25, intervalModifierMonths: 0, severityMultiplier: 1.1 },
+  aggressive: { minimum: 50, intervalModifierMonths: 1, severityMultiplier: 1.25 },
+  critical: { minimum: 75, intervalModifierMonths: 2, severityMultiplier: 1.5 },
+};
+
+export function getCorporationThreatTier(threat: number): CorporationThreatTier {
+  if (threat >= THREAT_RULES.critical.minimum) return "critical";
+  if (threat >= THREAT_RULES.aggressive.minimum) return "aggressive";
+  if (threat >= THREAT_RULES.mobilized.minimum) return "mobilized";
+  return "monitored";
+}
+
+export function getCorporationPressure(state: GameState): CorporationPressure {
+  const completion = getCompletionPressure(state);
+  const tier = getCorporationThreatTier(state.corporation.threat);
+  const rule = THREAT_RULES[tier];
+  const baseResponseIntervalMonths = getCorporationResponseInterval(completion.tier);
+  const responseIntervalMonths = Math.max(
+    1,
+    baseResponseIntervalMonths - rule.intervalModifierMonths,
+  );
+  const nextResponseMonth = state.corporation.lastResponseMonth + responseIntervalMonths;
+  return {
+    tier,
+    severityMultiplier: rule.severityMultiplier,
+    intervalModifierMonths: rule.intervalModifierMonths,
+    baseResponseIntervalMonths,
+    responseIntervalMonths,
+    nextResponseMonth,
+    monthsUntilResponse: Math.max(0, nextResponseMonth - state.turn),
+  };
+}
+
+export function isCorporationResponseDue(
+  state: GameState,
+  _tier: CompletionPressureTier = getCompletionPressure(state).tier,
+): boolean {
+  return state.turn - state.corporation.lastResponseMonth
+    >= getCorporationPressure(state).responseIntervalMonths;
+}
 
 export function getBrbCompletionPercent(state: GameState): number {
   const completedPoints = TRACK_KEYS.reduce(
@@ -89,6 +151,5 @@ export function describeCompletionPressure(pressure: CompletionPressure): string
 export function formatCampaignTime(month: number): string {
   const elapsedMonth = Math.max(1, Math.floor(month));
   const year = Math.floor((elapsedMonth - 1) / 12) + 1;
-  const monthOfYear = ((elapsedMonth - 1) % 12) + 1;
-  return `Month ${elapsedMonth} · Year ${year}, Month ${monthOfYear}`;
+  return `Campaign Month ${elapsedMonth} · Year ${year}`;
 }

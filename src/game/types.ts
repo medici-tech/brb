@@ -13,6 +13,8 @@ export const TRACK_KEYS = [
   "stability",
 ] as const;
 
+export const ADVISOR_IDS = ["analyst", "fixer", "steward"] as const;
+
 export const CARD_TYPES = ["crisis", "advisor", "corporation"] as const;
 export const CARD_RARITIES = ["common", "rare"] as const;
 export const ECHO_TYPES = ["card", "relationship", "system", "ending"] as const;
@@ -27,12 +29,31 @@ export type RouteId = (typeof ROUTE_IDS)[number];
 export type ResourcePool = Record<ResourceKey, number>;
 export type TrackPool = Record<TrackKey, number>;
 
+export type CompletionPressureTier = "quiet" | "watched" | "contested" | "severe" | "critical";
+export type PanicAuditSource = "action_or_card" | "corporation_response" | "base_pressure" | "completion_pressure";
+export type CampaignLengthBucket =
+  | "under_1_year"
+  | "year_2"
+  | "years_3_to_5"
+  | "years_6_to_10"
+  | "over_10_years";
+export type ActivationFailureReason =
+  | "activated"
+  | "activation_corporate_capture"
+  | "tracks_never_ready"
+  | "panic_before_activation"
+  | "institutions_before_activation"
+  | "advisors_before_activation"
+  | "corporation_capture_before_activation"
+  | "corporation_unsafe_before_activation"
+  | "strategy_delayed_after_readiness";
+
 export type PressurePool = {
   stress: number;
   panic: number;
 };
 
-export type AdvisorId = "analyst" | "fixer" | "steward";
+export type AdvisorId = (typeof ADVISOR_IDS)[number];
 export type ArchetypeId = "technocrat" | "populist" | "operator";
 export type CorporationStrategy =
   | "expanding"
@@ -58,7 +79,7 @@ export type AdvisorDefinition = {
   crisisSpecialty: CorporationStrategy;
   baseCompetence: number;
   loyaltyCeiling: number;
-  breakingPoint: number;
+  loyaltyBreakingPoint: number;
   bias: string;
 };
 
@@ -68,6 +89,34 @@ export type AdvisorState = {
   leverage: number;
   competence: number;
   active: boolean;
+};
+
+export type AdvisorDelta = Partial<
+  Pick<AdvisorState, "loyalty" | "alignment" | "leverage" | "competence" | "active">
+>;
+
+export type StateDelta = {
+  resources: Partial<ResourcePool>;
+  pressures: Partial<PressurePool>;
+  tracks: Partial<TrackPool>;
+  institutions?: number;
+  corporationProgress?: number;
+  corporationThreat?: number;
+  advisors: Partial<Record<AdvisorId, AdvisorDelta>>;
+};
+
+export type ResolvedEffect = {
+  label: string;
+  delta: StateDelta;
+};
+
+export type TurnResolution = {
+  month: number;
+  ignoredSituation: ResolvedEffect | null;
+  commitment: ResolvedEffect;
+  advisorReactions: ResolvedEffect | null;
+  corporationResponse: ResolvedEffect | null;
+  monthlyPressure: ResolvedEffect | null;
 };
 
 export type ArchetypeDefinition = {
@@ -136,6 +185,7 @@ export type SituationOutcome = {
 export type SituationCardChoice = SituationOutcome & {
   id: string;
   label: string;
+  costs: Partial<ResourcePool>;
 };
 
 export type CardRequirements = {
@@ -205,6 +255,27 @@ export type ConsultationResult = {
   predictedStrategy: CorporationStrategy;
   confidence: "low" | "medium" | "high";
   archetypeAbilityApplied: boolean;
+};
+
+export type ActionPreview = {
+  actionKey: string;
+  label: string;
+  costs: string[];
+  knownChanges: string[] | null;
+  result: string;
+  risk: string | null;
+  delayedConsequence: string | null;
+  permanent: boolean;
+  disabledReason: string | null;
+};
+
+export type AdvisorRecommendation = {
+  advisorId: AdvisorId;
+  action: MajorAction;
+  actionKey: string;
+  actionLabel: string;
+  rationale: string;
+  warning: string;
 };
 
 export type CardEncounter = {
@@ -301,6 +372,7 @@ export type UnseenRouteHint = {
 };
 
 export type DeclassifiedReport = {
+  rulesVersion: number;
   runId: string;
   seed: number;
   archetypeId: ArchetypeId;
@@ -312,6 +384,22 @@ export type DeclassifiedReport = {
   completedRoute: RouteId | null;
   unseenRouteHint: UnseenRouteHint;
   suggestedExperiment: string;
+  finalSnapshot: ReportFinalSnapshot | null;
+};
+
+export type ReportFinalSnapshot = {
+  resources: ResourcePool;
+  pressures: PressurePool;
+  tracks: TrackPool;
+  institutions: number;
+  corporation: {
+    progress: number;
+    threat: number;
+  };
+  advisors: Record<
+    AdvisorId,
+    Pick<AdvisorState, "active" | "alignment" | "loyalty" | "leverage">
+  >;
 };
 
 export type DeckState = {
@@ -322,8 +410,38 @@ export type DeckState = {
   cardSources: Record<string, string>;
 };
 
+export type MeterAudit = {
+  before: number;
+  after: number;
+  actionOrCard: number;
+  corporationResponse: number;
+  basePressure: number;
+  completionPressure: number;
+};
+
+export type MonthAudit = {
+  month: number;
+  pressureTier: CompletionPressureTier;
+  corporationResponseIntervalMonths: number;
+  corporationResponded: boolean;
+  corporationProgress: MeterAudit;
+  panic: MeterAudit;
+};
+
+export type CorporationThreatTier = "monitored" | "mobilized" | "aggressive" | "critical";
+
+export type CorporationPressure = {
+  tier: CorporationThreatTier;
+  severityMultiplier: number;
+  intervalModifierMonths: number;
+  baseResponseIntervalMonths: number;
+  responseIntervalMonths: number;
+  nextResponseMonth: number;
+  monthsUntilResponse: number;
+};
+
 export type GameState = {
-  version: 3;
+  version: 4;
   runId: string;
   seed: number;
   rngState: number;
@@ -343,7 +461,10 @@ export type GameState = {
     progress: number;
     threat: number;
     lastMove: CorporationStrategy | null;
+    lastResponseMonth: number;
   };
+  lastMonthAudit: MonthAudit | null;
+  lastTurnResolution: TurnResolution | null;
   activeCardId: string | null;
   deck: DeckState;
   cardHistory: CardEncounter[];
@@ -419,140 +540,16 @@ export type ReplayIntent = {
   experiment: string;
 };
 
-export type BotId =
-  | "balanced"
-  | "rush"
-  | "defensive"
-  | "fixer"
-  | "institutionalist"
-  | "command"
-  | "coalition"
-  | "engineering_first"
-  | "legitimacy_first"
-  | "stability_first"
-  | "access_first"
-  | "delayed_deposit";
-
-export type CivicRequirementId =
-  | "all_tracks_50"
-  | "corporation_access_safe"
-  | "legitimacy_75"
-  | "stability_75"
-  | "institutions_55"
-  | "panic_below_60"
-  | "leverage_below_65"
-  | "no_emergency_rule"
-  | "civic_history";
-
-export type CivicRequirementObservation = {
-  id: CivicRequirementId;
-  label: string;
-  passed: boolean;
-  actual: number | boolean | string;
-  target: string;
-};
-
-export type CivicLegacyEvaluation = {
-  eligible: boolean;
-  observations: CivicRequirementObservation[];
-};
-
-export type EndingFunnelStage = {
-  id: string;
-  label: string;
-  entered: number;
-  passed: number;
-  dropped: number;
-};
-
-export type BotMonthTrace = {
-  month: number;
-  activeCardId: string | null;
-  consultationAdvisorId: AdvisorId | null;
-  action: MajorAction;
-  confirmedCardAbandonment: boolean;
-  abandonedCardId: string | null;
-  tracks: TrackPool;
-  corporationProgress: number;
-  institutions: number;
-  panic: number;
-  highestLeverage: number;
-  laborCoalitionStatus: RouteStatus;
-};
-
-export type ClosestAttemptTrace = {
-  botId: "institutionalist";
-  runIndex: number;
-  seed: number;
-  archetypeId: ArchetypeId;
-  endingId: EndingId;
-  matchedRequirements: number;
-  totalRequirements: number;
-  deficitScore: number;
-  firstFailedStageId: string;
-  observations: CivicRequirementObservation[];
-  months: BotMonthTrace[];
-};
-
-export type EndingFunnel = {
-  candidates: number;
-  stages: EndingFunnelStage[];
-  completions: number;
-  closestAttempt?: ClosestAttemptTrace;
-};
-
-export type SimulationOptions = {
-  runs: number;
-  seed: number;
-  bots?: BotId[];
-  archetypes?: ArchetypeId[];
-};
-
-export type SimulationReport = {
-  runs: number;
-  endings: Record<EndingId, number>;
-  endingVariations: Record<EndingVariationId, number>;
-  victories: number;
-  averageMonths: number;
-  outcomeSummary: {
-    activations: number;
-    activationRate: number;
-    collapseRate: number;
-    corporateCaptureRate: number;
-    premiumEndings: number;
-    premiumEndingRate: number;
-  };
-  cardTempo: {
-    presentedPerRun: number;
-    activelyResolvedPerRun: number;
-    ignoredPerRun: number;
-  };
-  actionUsage: Record<ActionCategory, number>;
-  cardDrawsByType: Record<CardType, number>;
-  cardDrawsByRarity: Record<CardRarity, number>;
-  echoCategories: Record<EchoType, number>;
-  routesTouched: Record<RouteId, number>;
-  routesOpened: Record<RouteId, number>;
-  routesReopened: Record<RouteId, number>;
-  chainsStarted: Record<RouteId, number>;
-  chainsCompleted: Record<RouteId, number>;
-  normalCompletions: Record<RouteId, number>;
-  reconciledCompletions: Record<RouteId, number>;
-  invalidCompletions: Record<RouteId, number>;
-  openUnfinished: Record<RouteId, number>;
-  closedPermanently: Record<RouteId, number>;
-  routesClosed: Record<RouteId, number>;
-  cardEncounterStatuses: Record<CardEncounterStatus, number>;
-  cardChoiceSelections: Record<string, Record<string, number>>;
-  pivotalDecisionCategories: Record<ActionCategory, number>;
-  narrativePivotCategories: Record<ActionCategory, number>;
-  strategicPivotCategories: Record<ActionCategory, number>;
-  finalTurningPointCategories: Record<ActionCategory, number>;
-  endingFunnels: Record<"civic_legacy" | "government_by_command", EndingFunnel>;
-  endingContributorCounts: Record<string, number>;
-  advisorConsultations: Record<AdvisorId, number>;
-  averageFinalLeverage: Record<AdvisorId, number>;
-  advisorDepartures: number;
-  byBot: Record<BotId, { runs: number; victories: number }>;
-  byArchetype: Record<ArchetypeId, { runs: number; victories: number }>;
-};
+export type {
+  BotId,
+  BotMonthTrace,
+  CivicLegacyEvaluation,
+  CivicRequirementId,
+  CivicRequirementObservation,
+  ClosestAttemptTrace,
+  EndingFunnel,
+  EndingFunnelStage,
+  LongestCampaignTrace,
+  SimulationOptions,
+  SimulationReport,
+} from "./simulation-types";

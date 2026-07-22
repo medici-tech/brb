@@ -1,175 +1,9 @@
 import type {
-  AdvisorDefinition,
-  ArchetypeDefinition,
-  CorporationMove,
-  Ending,
-  EndingId,
-  ResourcePool,
   RouteId,
   SituationCard,
-  TrackKey,
 } from "./types";
 
-export const BASE_RESOURCES: ResourcePool = {
-  money: 48,
-  influence: 42,
-  intelligence: 38,
-  trust: 46,
-  capacity: 44,
-};
-
-export const CARD_APPEARANCE_CHANCE = 0.55;
-export const DEPOSIT_PROGRESS = { standard: 25, large: 40 } as const;
-
-export const ADVISORS: Record<AdvisorDefinition["id"], AdvisorDefinition> = {
-  analyst: {
-    id: "analyst",
-    name: "The Analyst",
-    specialty: "Forecasts and Corporation intelligence",
-    agenda: ["counter", "deposit"],
-    crisisSpecialty: "infiltrating",
-    baseCompetence: 82,
-    loyaltyCeiling: 76,
-    breakingPoint: 24,
-    bias: "Prefers precise plans even when delay is dangerous.",
-  },
-  fixer: {
-    id: "fixer",
-    name: "The Fixer",
-    specialty: "Crisis control and political deals",
-    agenda: ["advisor", "faction", "counter"],
-    crisisSpecialty: "buying_influence",
-    baseCompetence: 76,
-    loyaltyCeiling: 70,
-    breakingPoint: 20,
-    bias: "Treats personal leverage as the price of effective action.",
-  },
-  steward: {
-    id: "steward",
-    name: "The Steward",
-    specialty: "Public trust and institutional stability",
-    agenda: ["card", "institutions", "deposit"],
-    crisisSpecialty: "discrediting",
-    baseCompetence: 70,
-    loyaltyCeiling: 84,
-    breakingPoint: 30,
-    bias: "Rejects shortcuts that weaken legitimacy.",
-  },
-};
-
-export const ARCHETYPES: Record<ArchetypeDefinition["id"], ArchetypeDefinition> = {
-  technocrat: {
-    id: "technocrat",
-    name: "Technocrat",
-    description: "Precise forecasts and technical execution, with a weaker public connection.",
-    resourceChanges: { intelligence: 10, capacity: 8, trust: -8 },
-    trackChanges: { engineering: 5 },
-    advisorChanges: { analyst: { loyalty: 8, alignment: 8 } },
-    favoredCardType: "corporation",
-    liability: "Opaque choices cost 3 additional Trust.",
-    endingVariationTitle: "Perfect Machine, Empty State",
-  },
-  populist: {
-    id: "populist",
-    name: "Populist",
-    description: "Strong public energy with dangerous consequences when that public is betrayed.",
-    resourceChanges: { trust: 12, influence: 6, intelligence: -6 },
-    trackChanges: { legitimacy: 5 },
-    advisorChanges: { steward: { loyalty: 6 }, fixer: { leverage: 5 } },
-    favoredCardType: "crisis",
-    liability: "Public betrayal choices add 5 additional Panic.",
-    endingVariationTitle: "The Crowd Presses the Button",
-  },
-  operator: {
-    id: "operator",
-    name: "Operator",
-    description: "Efficient crisis control bought with rapidly rising advisor leverage.",
-    resourceChanges: { money: 8, influence: 8, trust: -5 },
-    trackChanges: { access: 5 },
-    advisorChanges: { fixer: { competence: 8, leverage: 8 } },
-    favoredCardType: "advisor",
-    liability: "Consultations create twice the normal leverage.",
-    endingVariationTitle: "Government by Command",
-  },
-};
-
-export const DEPOSIT_COSTS: Record<TrackKey, ResourcePool> = {
-  engineering: { money: 10, influence: 0, intelligence: 3, trust: 0, capacity: 7 },
-  access: { money: 0, influence: 9, intelligence: 7, trust: 0, capacity: 3 },
-  legitimacy: { money: 0, influence: 6, intelligence: 0, trust: 10, capacity: 2 },
-  stability: { money: 6, influence: 0, intelligence: 0, trust: 6, capacity: 6 },
-};
-
-export const CORPORATION_MOVES: Record<CorporationMove["id"], CorporationMove> = {
-  expanding: {
-    id: "expanding",
-    name: "Expand",
-    description: "The Corporation advances its project while the player is distracted.",
-    effects: { corporationProgress: 6, corporationThreat: 2 },
-  },
-  infiltrating: {
-    id: "infiltrating",
-    name: "Infiltrate",
-    description: "Insiders compromise technical capacity and intelligence.",
-    effects: {
-      resources: { capacity: -4, intelligence: -3 },
-      corporationProgress: 4,
-      corporationThreat: 5,
-    },
-  },
-  discrediting: {
-    id: "discrediting",
-    name: "Discredit",
-    description: "A public campaign attacks the project's legitimacy.",
-    effects: {
-      resources: { trust: -6 },
-      pressures: { panic: 5 },
-      corporationProgress: 3,
-      corporationThreat: 3,
-    },
-  },
-  buying_influence: {
-    id: "buying_influence",
-    name: "Buy Influence",
-    description: "The Corporation buys allies and makes the coalition expensive to hold.",
-    effects: {
-      resources: { influence: -5 },
-      corporationProgress: 5,
-      corporationThreat: 3,
-      advisors: { fixer: { leverage: 2 } },
-    },
-  },
-};
-
-export const ENDING_COPY: Record<
-  EndingId,
-  Omit<Ending, "reason" | "variationId" | "variationTitle">
-> = {
-  civic_legacy: {
-    id: "civic_legacy",
-    title: "A Republic Still Standing",
-    description: "The BRB activates under public and institutional control.",
-    victory: true,
-  },
-  compromised_activation: {
-    id: "compromised_activation",
-    title: "The Necessary Regime",
-    description: "The BRB activates, but the shortcuts used to finish it become permanent rule.",
-    victory: true,
-  },
-  corporate_capture: {
-    id: "corporate_capture",
-    title: "Terms and Conditions",
-    description: "The Corporation controls the project, its operators, or the state around it.",
-    victory: false,
-  },
-  state_collapse: {
-    id: "state_collapse",
-    title: "The Project Outlived the State",
-    description: "The campaign ends before the player can safely activate the BRB.",
-    victory: false,
-  },
-};
+export * from "./core-content";
 
 const COMMON = { rarity: "common" as const, cooldownTurns: 4, maxPerRun: 2 };
 const RARE = { rarity: "rare" as const, cooldownTurns: 99, maxPerRun: 1 };
@@ -187,6 +21,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "cut",
         label: "Cut public programs",
+        costs: {},
         effects: { resources: { money: 12, trust: -8 }, pressures: { stress: 2 } },
         echoHint: "The public ledger will remember what was cut.",
         echoes: [{ type: "ending", hint: "Austerity entered the historical record.", contributor: "austerity_first" }],
@@ -195,6 +30,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "delay",
         label: "Accept the delay",
+        costs: {},
         effects: { resources: { capacity: -5 }, pressures: { stress: 5 } },
         echoHint: "The project schedule is now politically exposed.",
         echoes: [{ type: "system", hint: "Delay became part of the project doctrine.", modifier: "accepted_delay" }],
@@ -218,14 +54,16 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "protect",
         label: "Protect the whistleblower",
-        effects: { resources: { trust: 9, intelligence: -5 }, institutions: 5 },
+        costs: { intelligence: 5 },
+        effects: { resources: { trust: 9 }, institutions: 5 },
         echoHint: "The Steward will remember that institutions came first.",
         echoes: [{ type: "relationship", hint: "The Steward remembers your restraint.", advisorId: "steward", memory: "protected_whistleblower" }],
       },
       {
         id: "contain",
         label: "Let the Fixer contain it",
-        effects: { resources: { influence: -5 }, advisors: { fixer: { leverage: 5, alignment: 5 } }, institutions: -4 },
+        costs: { influence: 5 },
+        effects: { advisors: { fixer: { leverage: 5, alignment: 5 } }, institutions: -4 },
         echoHint: "The Fixer now owns part of this secret.",
         echoes: [{ type: "relationship", hint: "The Fixer remembers the secret you shared.", advisorId: "fixer", memory: "contained_whistleblower" }],
         tags: ["opaque"],
@@ -250,14 +88,16 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "pay",
         label: "Meet their demands",
-        effects: { resources: { money: -9, capacity: 5 }, institutions: 2 },
+        costs: { money: 9 },
+        effects: { resources: { capacity: 5 }, institutions: 2 },
         echoHint: "Organized labor sees that pressure can work.",
         echoes: [{ type: "ending", hint: "Labor accommodation entered the record.", contributor: "labor_accommodation" }],
       },
       {
         id: "replace",
         label: "Replace the organizers",
-        effects: { resources: { capacity: -8, influence: -4 }, pressures: { stress: 5 } },
+        costs: { influence: 4 },
+        effects: { resources: { capacity: -8 }, pressures: { stress: 5 } },
         echoHint: "Replacement crews will not forget how they arrived.",
         echoes: [{ type: "system", hint: "Contractor fear now shapes Engineering.", modifier: "replacement_contractors" }],
         tags: ["public_betrayal"],
@@ -282,14 +122,16 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "transparent",
         label: "Answer in public",
-        effects: { resources: { trust: 10, intelligence: -6 }, corporationThreat: 3 },
+        costs: { intelligence: 6 },
+        effects: { resources: { trust: 10 }, corporationThreat: 3 },
         echoHint: "Public testimony has narrowed your future denials.",
         echoes: [{ type: "ending", hint: "Transparency entered the record.", contributor: "public_testimony" }],
       },
       {
         id: "closed",
         label: "Move to closed session",
-        effects: { resources: { influence: -6, trust: -4 }, pressures: { panic: -2 } },
+        costs: { influence: 6 },
+        effects: { resources: { trust: -4 }, pressures: { panic: -2 } },
         echoHint: "A classified version of the hearing now exists.",
         echoes: [{ type: "system", hint: "Secrecy became standard procedure.", modifier: "closed_oversight" }],
         tags: ["opaque"],
@@ -314,6 +156,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "deal",
         label: "Make the deal",
+        costs: {},
         effects: { resources: { intelligence: 12, trust: -4 }, corporationThreat: -5, institutions: -2 },
         echoHint: "The defector expects protection after activation.",
         echoes: [{ type: "relationship", hint: "The Analyst remembers the immunity deal.", advisorId: "analyst", memory: "protected_defector" }],
@@ -322,7 +165,8 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "sting",
         label: "Turn the offer into a sting",
-        effects: { resources: { intelligence: -5 }, corporationProgress: -8, corporationThreat: 4 },
+        costs: { intelligence: 5 },
+        effects: { corporationProgress: -8, corporationThreat: 4 },
         echoHint: "The Corporation now suspects its internal channels.",
         echoes: [{ type: "ending", hint: "Active resistance entered the record.", contributor: "corporate_sting" }],
       },
@@ -346,14 +190,16 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "audit",
         label: "Audit the inner circle",
-        effects: { resources: { intelligence: -5 }, advisors: { analyst: { loyalty: -4 }, fixer: { loyalty: -4 }, steward: { loyalty: -4 } }, corporationThreat: -3 },
+        costs: { intelligence: 5 },
+        effects: { advisors: { analyst: { loyalty: -4 }, fixer: { loyalty: -4 }, steward: { loyalty: -4 } }, corporationThreat: -3 },
         echoHint: "Every advisor now knows they were investigated.",
         echoes: [{ type: "relationship", hint: "The cabinet remembers the loyalty audit.", advisorId: "analyst", memory: "subjected_to_loyalty_audit" }],
       },
       {
         id: "false",
         label: "Feed them a false plan",
-        effects: { resources: { intelligence: -8 }, corporationProgress: -6, pressures: { stress: 3 } },
+        costs: { intelligence: 8 },
+        effects: { corporationProgress: -6, pressures: { stress: 3 } },
         echoHint: "A false project timeline is moving through the Corporation.",
         echoes: [{ type: "system", hint: "Deception changed future Corporation forecasts.", modifier: "false_plan_in_circulation" }],
         tags: ["opaque"],
@@ -378,13 +224,15 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "public",
         label: "Restore public service first",
-        effects: { resources: { capacity: -9, trust: 8 }, tracks: { engineering: -3 } },
+        costs: { capacity: 9 },
+        effects: { resources: { trust: 8 }, tracks: { engineering: -3 } },
         echoHint: "The public saw which grid came first.",
         echoes: [{ type: "ending", hint: "Public service entered the record.", contributor: "public_grid_first" }],
       },
       {
         id: "project",
         label: "Protect BRB systems first",
+        costs: {},
         effects: { resources: { trust: -10 }, tracks: { engineering: 4 }, pressures: { panic: 7 } },
         echoHint: "Hospitals went dark while the prototype stayed online.",
         echoes: [{ type: "ending", hint: "Project-first triage entered the record.", contributor: "brb_grid_first" }],
@@ -410,14 +258,16 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "share",
         label: "Share authority",
-        effects: { resources: { influence: -5, trust: 8 }, institutions: 7 },
+        costs: { influence: 5 },
+        effects: { resources: { trust: 8 }, institutions: 7 },
         echoHint: "The coalition now expects shared control at activation.",
         echoes: [{ type: "relationship", hint: "The Steward remembers shared authority.", advisorId: "steward", memory: "shared_activation_authority" }],
       },
       {
         id: "pressure",
         label: "Pressure the holdouts",
-        effects: { resources: { influence: -9 }, tracks: { access: 4 }, institutions: -6 },
+        costs: { influence: 9 },
+        effects: { tracks: { access: 4 }, institutions: -6 },
         echoHint: "The coalition complied, but stopped trusting the process.",
         echoes: [{ type: "ending", hint: "Coerced legitimacy entered the record.", contributor: "coerced_coalition" }],
         tags: ["public_betrayal"],
@@ -442,14 +292,16 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "expose",
         label: "Expose the guest list",
-        effects: { resources: { intelligence: -6, trust: 5 }, corporationProgress: -5 },
+        costs: { intelligence: 6 },
+        effects: { resources: { trust: 5 }, corporationProgress: -5 },
         echoHint: "The guest list may support a larger public case.",
         echoes: [{ type: "ending", hint: "Corporate exposure entered the record.", contributor: "exposed_lobby" }],
       },
       {
         id: "outbid",
         label: "Call in your own favors",
-        effects: { resources: { influence: -10 }, corporationThreat: -5, advisors: { fixer: { leverage: 3 } } },
+        costs: { influence: 10 },
+        effects: { corporationThreat: -5, advisors: { fixer: { leverage: 3 } } },
         echoHint: "The Fixer now knows the price of your coalition.",
         echoes: [{ type: "relationship", hint: "The Fixer remembers the counter-lobby.", advisorId: "fixer", memory: "ran_counter_lobby" }],
         tags: ["opaque"],
@@ -474,6 +326,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "sign",
         label: "Sign it",
+        costs: {},
         effects: { resources: { capacity: 10, trust: -10 }, institutions: -12, tracks: { engineering: 5 } },
         echoHint: "Emergency authority will outlive this crisis.",
         echoes: [
@@ -485,7 +338,8 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "veto",
         label: "Preserve normal authority",
-        effects: { resources: { influence: -6 }, institutions: 6, pressures: { stress: 5 } },
+        costs: { influence: 6 },
+        effects: { institutions: 6, pressures: { stress: 5 } },
         echoHint: "The Fixer will remember that you refused the shortcut.",
         echoes: [{ type: "relationship", hint: "The Fixer remembers the veto.", advisorId: "fixer", memory: "emergency_bill_vetoed" }],
       },
@@ -509,13 +363,15 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "hire",
         label: "Hire an expensive parallel team",
-        effects: { resources: { money: -10, capacity: 9 } },
+        costs: { money: 10 },
+        effects: { resources: { capacity: 9 } },
         echoHint: "A second contractor network now depends on the project.",
         echoes: [{ type: "system", hint: "Parallel contractors changed project capacity.", modifier: "parallel_contractors" }],
       },
       {
         id: "prioritize",
         label: "Prioritize the BRB",
+        costs: {},
         effects: { tracks: { engineering: 4 }, institutions: -4, pressures: { stress: 4 } },
         echoHint: "Other state work has been formally deprioritized.",
         echoes: [{ type: "ending", hint: "Project priority entered the record.", contributor: "brb_over_services" }],
@@ -541,7 +397,8 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "follow",
         label: "Follow the payment",
-        effects: { resources: { intelligence: -5 }, pressures: { stress: 2 } },
+        costs: { intelligence: 5 },
+        effects: { pressures: { stress: 2 } },
         echoHint: "A corporate ownership trail has been opened.",
         echoes: [{ type: "card", hint: "A classified follow-up entered the Situation Deck.", addCardIds: ["silent_partner"] }],
         setFlags: ["audit_started"],
@@ -550,6 +407,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "close",
         label: "Close the audit quietly",
+        costs: {},
         effects: { resources: { money: 7, trust: -5 }, advisors: { fixer: { leverage: 3 } } },
         echoHint: "The corporate trail has been sealed—for now.",
         echoes: [{ type: "card", hint: "A classified follow-up was removed from the Situation Deck.", removeCardIds: ["silent_partner"] }],
@@ -579,7 +437,8 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "seize",
         label: "Seize the contractor",
-        effects: { resources: { influence: -8, capacity: -5 }, corporationProgress: -10, institutions: 4 },
+        costs: { influence: 8, capacity: 5 },
+        effects: { corporationProgress: -10, institutions: 4 },
         echoHint: "The ownership chain will become part of the public case.",
         echoes: [{ type: "ending", hint: "Corporate exposure entered the final record.", contributor: "corporation_exposed" }],
         setFlags: ["audit_resolved"],
@@ -588,6 +447,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "deal",
         label: "Make a controlled deal",
+        costs: {},
         effects: {
           resources: { intelligence: 12, influence: 5, trust: -4 },
           corporationThreat: 7,
@@ -627,6 +487,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "meet",
         label: "Meet their organizers",
+        costs: {},
         effects: { resources: { trust: 5 }, pressures: { stress: 2 } },
         echoHint: "The labor leadership will remember this meeting.",
         echoes: [{ type: "card", hint: "A movement follow-up entered the Situation Deck.", addCardIds: ["national_march"] }],
@@ -636,6 +497,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "clear",
         label: "Clear the gate",
+        costs: {},
         effects: { resources: { capacity: 4, trust: -7 }, pressures: { panic: 4 } },
         echoHint: "Images from Gate Seven are spreading nationally.",
         echoes: [{ type: "card", hint: "A protest follow-up entered the Situation Deck.", addCardIds: ["national_march"] }],
@@ -665,7 +527,8 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "address",
         label: "Address the country",
-        effects: { resources: { trust: 10, influence: -6 }, pressures: { panic: -5 }, institutions: 6 },
+        costs: { influence: 6 },
+        effects: { resources: { trust: 10 }, pressures: { panic: -5 }, institutions: 6 },
         echoHint: "The movement now expects a place in the BRB settlement.",
         echoes: [{ type: "ending", hint: "A labor-backed settlement entered the final record.", contributor: "labor_backed_activation" }],
         setFlags: ["protest_resolved"],
@@ -682,6 +545,7 @@ export const SITUATION_CARDS: SituationCard[] = [
       {
         id: "ban",
         label: "Ban the march",
+        costs: {},
         effects: { resources: { trust: -12, capacity: 5 }, pressures: { panic: 9 }, institutions: -10 },
         echoHint: "The ban has created a permanent opposition memory.",
         echoes: [{ type: "ending", hint: "Movement suppression entered the final record.", contributor: "march_suppressed" }],

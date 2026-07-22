@@ -1,4 +1,5 @@
 import {
+  ADVISOR_IDS,
   RESOURCE_KEYS,
   TRACK_KEYS,
   type ActionCategory,
@@ -7,6 +8,7 @@ import {
   type DecisionRecord,
   type Effects,
   type GameState,
+  type StateDelta,
 } from "./types";
 
 export function clamp(value: number, min = 0, max = 100): number {
@@ -15,6 +17,100 @@ export function clamp(value: number, min = 0, max = 100): number {
 
 export function cloneState(state: GameState): GameState {
   return structuredClone(state);
+}
+
+export type EffectSnapshot = Pick<
+  GameState,
+  "resources" | "pressures" | "tracks" | "institutions" | "advisors"
+> & {
+  corporation: Pick<GameState["corporation"], "progress" | "threat">;
+};
+
+export function snapshotGameEffects(state: GameState): EffectSnapshot {
+  return {
+    resources: { ...state.resources },
+    pressures: { ...state.pressures },
+    tracks: { ...state.tracks },
+    institutions: state.institutions,
+    corporation: {
+      progress: state.corporation.progress,
+      threat: state.corporation.threat,
+    },
+    advisors: Object.fromEntries(
+      ADVISOR_IDS.map((advisorId) => [
+        advisorId,
+        { ...state.advisors[advisorId] },
+      ]),
+    ) as GameState["advisors"],
+  };
+}
+
+function numericDelta(before: number, after: number): number | undefined {
+  const delta = after - before;
+  return delta === 0 ? undefined : delta;
+}
+
+export function diffEffectSnapshots(before: EffectSnapshot, after: EffectSnapshot): StateDelta {
+  const delta: StateDelta = {
+    resources: {},
+    pressures: {},
+    tracks: {},
+    advisors: {},
+  };
+
+  for (const key of RESOURCE_KEYS) {
+    const change = numericDelta(before.resources[key], after.resources[key]);
+    if (change !== undefined) delta.resources[key] = change;
+  }
+  for (const key of ["stress", "panic"] as const) {
+    const change = numericDelta(before.pressures[key], after.pressures[key]);
+    if (change !== undefined) delta.pressures[key] = change;
+  }
+  for (const key of TRACK_KEYS) {
+    const change = numericDelta(before.tracks[key], after.tracks[key]);
+    if (change !== undefined) delta.tracks[key] = change;
+  }
+
+  const institutions = numericDelta(before.institutions, after.institutions);
+  if (institutions !== undefined) delta.institutions = institutions;
+  const corporationProgress = numericDelta(
+    before.corporation.progress,
+    after.corporation.progress,
+  );
+  if (corporationProgress !== undefined) delta.corporationProgress = corporationProgress;
+  const corporationThreat = numericDelta(
+    before.corporation.threat,
+    after.corporation.threat,
+  );
+  if (corporationThreat !== undefined) delta.corporationThreat = corporationThreat;
+
+  for (const advisorId of ADVISOR_IDS) {
+    const prior = before.advisors[advisorId];
+    const current = after.advisors[advisorId];
+    const advisorDelta: NonNullable<StateDelta["advisors"][AdvisorId]> = {};
+    for (const key of ["loyalty", "alignment", "leverage", "competence"] as const) {
+      const change = numericDelta(prior[key], current[key]);
+      if (change !== undefined) advisorDelta[key] = change;
+    }
+    if (prior.active !== current.active) advisorDelta.active = current.active;
+    if (Object.keys(advisorDelta).length > 0) delta.advisors[advisorId] = advisorDelta;
+  }
+
+  return delta;
+}
+
+export function diffGameState(before: GameState, after: GameState): StateDelta {
+  return diffEffectSnapshots(snapshotGameEffects(before), snapshotGameEffects(after));
+}
+
+export function hasStateDelta(delta: StateDelta): boolean {
+  return Object.keys(delta.resources).length > 0
+    || Object.keys(delta.pressures).length > 0
+    || Object.keys(delta.tracks).length > 0
+    || delta.institutions !== undefined
+    || delta.corporationProgress !== undefined
+    || delta.corporationThreat !== undefined
+    || Object.keys(delta.advisors).length > 0;
 }
 
 export function addHistory(
@@ -107,7 +203,7 @@ export function populateDecisionImpact(
     (sum, key) => sum + Math.abs(after.deposited[key] - before.deposited[key]),
     0,
   );
-  const advisorImpact = (Object.keys(after.advisors) as AdvisorId[]).reduce(
+  const advisorImpact = ADVISOR_IDS.reduce(
     (sum, advisorId) => {
       const prior = before.advisors[advisorId];
       const current = after.advisors[advisorId];

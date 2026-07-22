@@ -30,10 +30,10 @@ Every run builds a unique classified political history. Players should finish fe
 > Assess → Investigate → Commit → Endure consequences → Adapt
 
 1. **Receive the briefing.** See the current Situation Card, changes from the prior turn, resource pressure, an estimate of Corporation activity, and advisor reactions.
-2. **Investigate and consult.** Take one limited information action without using the major commitment. Consult an advisor, spend Intelligence, inspect a faction, investigate the Corporation, or request projections. Information can be accurate, incomplete, or biased.
+2. **Investigate and consult.** The prototype allows one optional advisor consultation before the major commitment. It costs Intelligence and can be accurate, incomplete, or biased. Separate faction inspections, Corporation investigations, and projection requests remain future information-action hooks.
 3. **Make one major commitment.** Deposit resources, resolve the crisis, counter the Corporation, strengthen a political faction, manage an advisor, recover or produce resources, or protect stability.
 4. **Resolve rival and faction responses.** The Corporation acts; advisors and factions react according to the chosen action, weak resources, leverage, prior cards, BRB progress, and archetype.
-5. **Show consequences clearly.** Show resource changes, BRB progress, reactions, Corporation activity, new risks, and delayed-consequence hints.
+5. **Show consequences clearly.** Before commitment, show exact costs plus qualitative results and exposure. After commitment, attribute every exact meter change to the Situation, commitment, advisor reaction, Corporation response, or monthly pressure. Show Delayed Echo categories without revealing their classified future content.
 6. **Prepare the next turn.** Give a short report and return the player to a changed situation.
 
 ## Nested loops
@@ -70,7 +70,7 @@ Resources have starting ranges, income sources, costs, caps, floors, and a defin
 
 ### Pressure meters
 
-Stress and panic are managed, not spent. Keeping them separate from resources makes the system easier to understand: resources are tools the player uses; pressure meters are the danger created when the player cannot cope.
+Stress and panic are managed, not spent. Keeping them separate from resources makes the system easier to understand: resources are tools the player uses; pressure meters are the danger created when the player cannot cope. Stress at 80 or more drains Trust but does not directly end the campaign. Panic causes State Collapse at 100, while Institutions remains a state-health meter that causes collapse at 0.
 
 ## BRB tracks
 
@@ -96,9 +96,9 @@ Each advisor has:
 - **Leverage:** power the advisor has gained over the player.
 - **Loyalty ceiling:** the highest sustainable loyalty under current conditions.
 - **Competence:** effectiveness at their work.
-- **Agenda, relationship tags, crisis specialty, and a hidden breaking point.**
+- **Agenda, relationship tags, crisis specialty, and a visible Loyalty breaking point.**
 
-An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence.
+An approved commitment adds 4 Alignment and 1 Loyalty. A disapproved commitment removes 2 Alignment and 2 Loyalty. Competence, Alignment, Loyalty, Leverage, remembered treatment, and false-plan doctrine all shape consultation accuracy. An advisor leaves when Loyalty falls below their individual breaking point or Leverage reaches 90. An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence. Each consultation produces one legal, specific recommendation shaped by that advisor's agenda; it is explicitly advice, not an optimality claim.
 
 ## Corporation
 
@@ -109,7 +109,9 @@ The Corporation is a visible rival with a strategy, not a random attack meter. T
 - Discrediting
 - Buying influence
 
-Players should infer the current state and adapt. Corporation moves respond to player choices and vulnerabilities rather than firing without context.
+Players should infer the current state and adapt. Corporation moves respond to player choices and vulnerabilities rather than firing without context. Each candidate posture receives its own small seeded jitter, so close strategic scores can diverge without sacrificing replay determinism.
+
+Corporation Watch separates three related signals. **Progress** is the rival victory meter and ends the campaign at 100. **Posture** identifies the kind of move being prepared. **Threat** controls response cadence and move severity: Monitored (0–24) is 100% severity, Mobilized (25–49) is 110%, Aggressive (50–74) is 125% and one month faster, and Critical (75–100) is 150% and two months faster. Threat modifies the existing BRB-completion cadence with a one-month minimum.
 
 ## Situation Deck
 
@@ -118,7 +120,9 @@ The prototype contains 15 interactive Situation Cards and two connected chains. 
 - Common cards can appear twice with a four-turn cooldown.
 - Rare cards appear once per run.
 - Requirements, weights, prior decisions, and deck changes determine eligibility.
-- Every choice has an immediate effect and at least one delayed echo with decision provenance.
+- Every choice declares mandatory resource costs separately from floor-clamped damage, has an immediate effect, and records at least one delayed echo with decision provenance.
+
+Advisor memories later change that advisor's forecast quality. System echoes change the related rule: accepted delay worsens recovery tempo, replacement contractors raise Engineering Capacity costs, closed oversight raises opaque Trust costs, a false plan weakens forecasts, parallel contractors improve Capacity recovery, Capacity drift erodes Engineering from the following month, and emergency rule continues to weaken Institutions and endings.
 
 The prototype routes are Labor Coalition (`protest_spark → national_march`) and Corporate Exposure (`audit_discrepancy → silent_partner`). Card selection uses seeded weighted draws so a replay remains reproducible. Corporation cards are visible schemes or fallout the player can answer; the Corporation still takes its automatic underlying turn.
 
@@ -128,7 +132,7 @@ BRB uses a run structure, not traditional roguelike conventions. It does not nee
 
 Each major commitment advances the campaign by one month. Runs have no fixed duration: an exceptional campaign might finish inside a year, while a cautious campaign can span many in-game years. Seeded randomness, a changing Situation Deck, and three archetypes—Technocrat, Populist, and Operator—shape each attempt. Each archetype changes card weights, a consultation interaction, a liability, and a possible ending variation—not only starting numbers.
 
-At the ending, a Declassified Report identifies one pivotal choice, its echoes, one unseen-route hint, and one concrete experiment. Archive v0 keeps only discovered knowledge and the latest report. It never improves starting resources or power.
+At the ending, a versioned Declassified Report identifies the ending trigger, final meters and advisor positions, pivotal choices, one unseen-route hint, and one concrete experiment. Archive v0 keeps only discovered knowledge, including witnessed choice labels and encounter counts. It never improves starting resources or power.
 
 For the full game, optional mutators can include unreliable intelligence, double advisor leverage, a shorter campaign, public-only deposits, or a permanently constrained resource. Persistent progression should primarily reveal knowledge and options—not grant money or other raw power.
 

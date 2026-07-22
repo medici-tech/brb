@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ADVISORS,
   CORPORATION_MOVES,
   DEPOSIT_COSTS,
   SITUATION_CARDS,
@@ -9,7 +10,9 @@ import {
   createGame,
   deserializeGame,
   formatCampaignTime,
+  getActionCost,
   getCompletionPressure,
+  getCorporationResponseInterval,
   serializeGame,
 } from "../../src/game/index.js";
 
@@ -25,6 +28,13 @@ describe("Phase 1.5 content lock", () => {
     expect(SITUATION_CARDS.filter((card) => card.rarity === "rare")).toHaveLength(5);
     expect(SITUATION_CARDS.every((card) => card.choices.every((choice) => choice.echoes.length > 0))).toBe(true);
     expect(SITUATION_CARDS.every((card) => card.ignoredOutcome.echoes.length > 0)).toBe(true);
+    expect(
+      SITUATION_CARDS.every((card) =>
+        card.choices.every((choice) =>
+          Object.values(choice.costs).every((cost) => Number.isFinite(cost) && cost >= 0),
+        ),
+      ),
+    ).toBe(true);
   });
 
   it("gives each BRB track a different resource cost", () => {
@@ -41,6 +51,42 @@ describe("seeded runs", () => {
   it("round-trips a run through a local-save-safe JSON string", () => {
     const state = createGame(99, "operator");
     expect(deserializeGame(serializeGame(state))).toEqual(state);
+  });
+
+  it("persists the Corporation cadence clock after a response", () => {
+    const state = createGame(100);
+    state.activeCardId = null;
+    state.turn = 4;
+    state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    const responded = commitAction(state, { type: "recover_resource", resource: "money" }).state;
+
+    expect(responded.lastMonthAudit?.corporationResponded).toBe(true);
+    expect(responded.corporation.lastResponseMonth).toBe(4);
+    expect(deserializeGame(serializeGame(responded))).toEqual(responded);
+  });
+
+  it("migrates an older version-3 save to a deterministic cadence clock", () => {
+    const legacy = JSON.parse(serializeGame(createGame(102)));
+    legacy.version = 3;
+    legacy.turn = 9;
+    delete legacy.corporation.lastResponseMonth;
+    delete legacy.lastMonthAudit;
+    delete legacy.lastTurnResolution;
+
+    const restored = deserializeGame(JSON.stringify(legacy));
+    expect(restored.version).toBe(4);
+    expect(restored.corporation.lastResponseMonth).toBe(8);
+    expect(restored.lastMonthAudit).toBeNull();
+    expect(restored.lastTurnResolution).toBeNull();
+  });
+
+  it("rejects a malformed current-version save instead of repairing it", () => {
+    const malformed = JSON.parse(serializeGame(createGame(103)));
+    delete malformed.corporation.lastResponseMonth;
+
+    expect(() => deserializeGame(JSON.stringify(malformed))).toThrow(
+      /unsupported or invalid BRB save/i,
+    );
   });
 });
 
@@ -63,6 +109,160 @@ describe("consultation phase", () => {
 });
 
 describe("major commitments", () => {
+  it.each([
+    ["analyst", ADVISORS.analyst.loyaltyBreakingPoint],
+    ["fixer", ADVISORS.fixer.loyaltyBreakingPoint],
+    ["steward", ADVISORS.steward.loyaltyBreakingPoint],
+  ] as const)(
+    "keeps %s at or above the Loyalty threshold and removes them below it",
+    (advisorId, threshold) => {
+      const resolveAtPostReactionLoyalty = (loyalty: number) => {
+        const state = createGame(301);
+        state.activeCardId = null;
+        state.resources = {
+          money: 100,
+          influence: 100,
+          intelligence: 100,
+          trust: 100,
+          capacity: 100,
+        };
+        for (const advisor of Object.values(state.advisors)) advisor.loyalty = 100;
+        state.advisors[advisorId].loyalty = loyalty;
+        return commitAction(state, { type: "recover_resource", resource: "money" }).state;
+      };
+
+      const above = resolveAtPostReactionLoyalty(threshold + 3);
+      expect(above.advisors[advisorId]).toMatchObject({
+        active: true,
+        loyalty: threshold + 1,
+      });
+
+      const at = resolveAtPostReactionLoyalty(threshold + 2);
+      expect(at.advisors[advisorId]).toMatchObject({
+        active: true,
+        loyalty: threshold,
+      });
+
+      const below = resolveAtPostReactionLoyalty(threshold + 1);
+      expect(below.advisors[advisorId]).toMatchObject({
+        active: false,
+        loyalty: threshold - 1,
+      });
+    },
+  );
+
+  it("uses Leverage 90, but not 89, as an advisor departure threshold", () => {
+    const state = createGame(302);
+    state.activeCardId = null;
+    state.resources = {
+      money: 100,
+      influence: 100,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+    state.advisors.analyst.leverage = 89;
+    state.advisors.fixer.leverage = 90;
+
+    const result = commitAction(
+      state,
+      { type: "recover_resource", resource: "money" },
+    ).state;
+
+    expect(result.advisors.analyst.active).toBe(true);
+    expect(result.advisors.fixer.active).toBe(false);
+  });
+
+  it("changes Alignment and Loyalty according to approval without using low Alignment to remove an advisor", () => {
+    const state = createGame(303);
+    state.activeCardId = null;
+    state.resources = {
+      money: 100,
+      influence: 100,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+    state.advisors.analyst.alignment = 0;
+    const before = structuredClone(state.advisors);
+
+    const result = commitAction(state, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    }).state;
+
+    expect(result.advisors.analyst).toMatchObject({
+      active: true,
+      alignment: 4,
+      loyalty: before.analyst.loyalty + 1,
+    });
+    expect(result.advisors.steward).toMatchObject({
+      alignment: before.steward.alignment + 4,
+      loyalty: before.steward.loyalty + 1,
+    });
+    expect(result.advisors.fixer).toMatchObject({
+      alignment: before.fixer.alignment - 2,
+      loyalty: before.fixer.loyalty - 2,
+    });
+  });
+
+  it("ends the campaign when the final commitment drives every advisor below Loyalty", () => {
+    const state = createGame(304);
+    state.activeCardId = null;
+    state.resources = {
+      money: 100,
+      influence: 100,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+    for (const advisorId of Object.keys(ADVISORS) as (keyof typeof ADVISORS)[]) {
+      state.advisors[advisorId].loyalty =
+        ADVISORS[advisorId].loyaltyBreakingPoint + 1;
+    }
+
+    const result = commitAction(
+      state,
+      { type: "recover_resource", resource: "money" },
+    ).state;
+
+    expect(Object.values(result.advisors).every((advisor) => !advisor.active)).toBe(true);
+    expect(result.ending).toMatchObject({
+      id: "state_collapse",
+      reason: "No advisor remained willing to operate the government.",
+    });
+  });
+
+  it("uses only the pressure tier to determine Corporation response cadence", () => {
+    expect({
+      quiet: getCorporationResponseInterval("quiet"),
+      watched: getCorporationResponseInterval("watched"),
+      contested: getCorporationResponseInterval("contested"),
+      severe: getCorporationResponseInterval("severe"),
+      critical: getCorporationResponseInterval("critical"),
+    }).toEqual({ quiet: 4, watched: 3, contested: 2, severe: 1, critical: 1 });
+  });
+
+  it("resumes a saved Quiet cadence without resetting its response clock", () => {
+    let state = createGame(101);
+    state.activeCardId = null;
+    state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
+    state.tracks = { engineering: 0, access: 0, legitimacy: 0, stability: 0 };
+
+    for (const expectedMonth of [1, 2, 3]) {
+      const result = commitAction(state, { type: "recover_resource", resource: "money" });
+      expect(result.state.lastMonthAudit?.month).toBe(expectedMonth);
+      expect(result.state.lastMonthAudit?.corporationResponded).toBe(false);
+      state = deserializeGame(serializeGame(result.state));
+      state.activeCardId = null;
+    }
+
+    const monthFour = commitAction(state, { type: "recover_resource", resource: "money" }).state;
+    expect(monthFour.lastMonthAudit?.corporationResponded).toBe(true);
+    expect(monthFour.corporation.lastResponseMonth).toBe(4);
+  });
+
   it("treats commitments as months without ending at an arbitrary deadline", () => {
     const state = createGame(2);
     state.activeCardId = null;
@@ -77,7 +277,7 @@ describe("major commitments", () => {
     expect(result.accepted).toBe(true);
     expect(result.state.phase).not.toBe("ended");
     expect(result.state.turn).toBe(121);
-    expect(formatCampaignTime(120)).toBe("Month 120 · Year 10, Month 12");
+    expect(formatCampaignTime(120)).toBe("Campaign Month 120 · Year 10");
   });
 
   it("raises monthly pressure as BRB completion approaches readiness", () => {
@@ -208,6 +408,7 @@ describe("major commitments", () => {
   it("blocks the Corporation when the player counters the predicted strategy", () => {
     const initial = createGame(5);
     initial.activeCardId = null;
+    initial.turn = 4;
     initial.corporation.strategy = "expanding";
     initial.corporation.progress = 30;
     const result = commitAction(initial, {
@@ -236,9 +437,133 @@ describe("major commitments", () => {
     expect(result.error).toMatch(/costs more resources/i);
     expect(initial).toEqual(before);
   });
+
+  it("requires mandatory Situation costs before granting their benefits", () => {
+    const initial = createGame(71);
+    initial.activeCardId = "capacity_bottleneck";
+    initial.resources.money = 0;
+    const before = structuredClone(initial);
+
+    const rejected = commitAction(initial, {
+      type: "resolve_card",
+      choiceId: "hire",
+    });
+
+    expect(rejected.accepted).toBe(false);
+    expect(rejected.error).toMatch(/costs more resources/i);
+    expect(rejected.state).toEqual(before);
+    expect(initial).toEqual(before);
+  });
+
+  it("spends mandatory Situation costs exactly once and floors consequence damage", () => {
+    const hire = createGame(72);
+    hire.activeCardId = "capacity_bottleneck";
+    hire.resources.money = 10;
+    hire.resources.capacity = 0;
+    const hired = commitAction(hire, {
+      type: "resolve_card",
+      choiceId: "hire",
+    });
+    expect(hired.accepted).toBe(true);
+    expect(hired.state.lastTurnResolution?.commitment.delta.resources).toMatchObject({
+      money: -10,
+      capacity: 9,
+    });
+
+    const cut = createGame(74);
+    cut.activeCardId = "budget_shortfall";
+    cut.resources.trust = 0;
+    const cutResult = commitAction(cut, {
+      type: "resolve_card",
+      choiceId: "cut",
+    });
+    expect(cutResult.accepted).toBe(true);
+    expect(cutResult.state.resources.trust).toBe(0);
+    expect(cutResult.state.lastTurnResolution?.commitment.delta.resources.money).toBe(12);
+  });
+
+  it("rejects zero-progress deposits at 100 but allows a final partial deposit", () => {
+    const complete = createGame(75);
+    complete.activeCardId = null;
+    complete.tracks.engineering = 100;
+    const rejected = commitAction(complete, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    });
+    expect(rejected.accepted).toBe(false);
+    expect(rejected.error).toMatch(/already complete/i);
+
+    const nearlyComplete = createGame(76);
+    nearlyComplete.activeCardId = null;
+    nearlyComplete.tracks.engineering = 99;
+    nearlyComplete.resources = {
+      money: 100,
+      influence: 100,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+    const accepted = commitAction(nearlyComplete, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    });
+    expect(accepted.accepted).toBe(true);
+    expect(accepted.state.tracks.engineering).toBe(100);
+  });
+
+  it("uses independent seeded jitter when choosing the next Corporation strategy", () => {
+    function strategyFor(rngState: number) {
+      const state = createGame(77);
+      state.activeCardId = null;
+      state.rngState = rngState;
+      state.corporation.progress = 95;
+      state.tracks = { engineering: 0, access: 0, legitimacy: 0, stability: 0 };
+      state.resources = {
+        money: 100,
+        influence: 100,
+        intelligence: 100,
+        trust: 100,
+        capacity: 100,
+      };
+      state.advisors.fixer.leverage = 10;
+      return commitAction(state, {
+        type: "recover_resource",
+        resource: "money",
+      }).state.corporation.strategy;
+    }
+
+    expect(strategyFor(1)).toBe("buying_influence");
+    expect(strategyFor(2)).toBe("expanding");
+    expect(strategyFor(1)).toBe(strategyFor(1));
+  });
 });
 
 describe("endings", () => {
+  it("keeps Stress nonterminal at 100", () => {
+    const state = createGame(20);
+    state.activeCardId = null;
+    state.resources = {
+      money: 100,
+      influence: 15,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+    state.corporation.progress = 0;
+    state.pressures = { stress: 100, panic: 0 };
+    state.institutions = 100;
+
+    const result = commitAction(
+      state,
+      { type: "recover_resource", resource: "money" },
+    ).state;
+    expect(result.pressures.stress).toBe(100);
+    expect(result.phase).not.toBe("ended");
+    expect(result.ending).toBeNull();
+  });
+
   it("produces the civic ending when activation is safe and legitimate", () => {
     const state = createGame(21);
     state.tracks = { engineering: 80, access: 80, legitimacy: 80, stability: 80 };
@@ -275,5 +600,161 @@ describe("endings", () => {
     const result = commitAction(state, { type: "activate_brb" });
     expect(result.state.ending?.id).toBe("compromised_activation");
     expect(result.state.ending?.variationId).toBe("government_by_command");
+  });
+
+  it("explains every failed Civic condition in a compromised activation", () => {
+    const state = createGame(24);
+    state.activeCardId = null;
+    state.tracks = { engineering: 50, access: 50, legitimacy: 50, stability: 50 };
+    state.corporation.progress = 20;
+    state.institutions = 40;
+    state.pressures.panic = 65;
+    state.advisors.fixer.leverage = 70;
+    state.systemModifiers.push("emergency_rule");
+
+    const result = commitAction(state, { type: "activate_brb" }).state;
+
+    expect(result.ending?.id).toBe("compromised_activation");
+    expect(result.ending?.reason).toMatch(/Legitimacy was 50/i);
+    expect(result.ending?.reason).toMatch(/Stability was 50/i);
+    expect(result.ending?.reason).toMatch(/Institutions were 40/i);
+    expect(result.ending?.reason).toMatch(/Panic was 65/i);
+    expect(result.ending?.reason).toMatch(/Leverage was 70/i);
+    expect(result.ending?.reason).toMatch(/emergency rule remained active/i);
+    expect(result.ending?.reason).toMatch(/no civic route or public testimony/i);
+  });
+});
+
+describe("delayed echo rules", () => {
+  it("makes accepted delay increase later recovery Progress with provenance", () => {
+    const state = createGame(181);
+    state.activeCardId = "budget_shortfall";
+    const delayed = commitAction(state, {
+      type: "resolve_card",
+      choiceId: "delay",
+    }).state;
+    const source = delayed.decisionHistory.find((decision) =>
+      decision.systemModifiers.includes("accepted_delay"),
+    );
+    delayed.activeCardId = null;
+    delayed.corporation.progress = 20;
+
+    const recovered = commitAction(delayed, {
+      type: "recover_resource",
+      resource: "money",
+    }).state;
+
+    expect(recovered.lastTurnResolution?.commitment.delta.corporationProgress).toBe(5);
+    expect(
+      recovered.decisionHistory.find((decision) => decision.id === source?.id)
+        ?.linkedConsequences,
+    ).toBe(1);
+    expect(recovered.history).toContainEqual(
+      expect.objectContaining({ causedByDecisionId: source?.id }),
+    );
+  });
+
+  it("applies replacement-contractor and closed-oversight surcharges", () => {
+    const strike = createGame(182);
+    strike.activeCardId = "contractor_strike";
+    const replaced = commitAction(strike, {
+      type: "resolve_card",
+      choiceId: "replace",
+    }).state;
+    replaced.activeCardId = null;
+    replaced.resources = {
+      money: 100,
+      influence: 100,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+
+    expect(getActionCost(replaced, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    }).capacity).toBe(10);
+    const deposited = commitAction(replaced, {
+      type: "deposit",
+      track: "engineering",
+      size: "standard",
+    }).state;
+    expect(deposited.deposited.capacity).toBe(10);
+
+    const hearing = createGame(183, "technocrat");
+    hearing.activeCardId = "public_hearing";
+    const closed = commitAction(hearing, {
+      type: "resolve_card",
+      choiceId: "closed",
+    }).state;
+    closed.activeCardId = "whistleblower";
+    expect(getActionCost(closed, {
+      type: "resolve_card",
+      choiceId: "contain",
+    })).toMatchObject({ influence: 5, trust: 5 });
+  });
+
+  it("uses parallel contractors for Capacity recovery", () => {
+    const state = createGame(184);
+    state.activeCardId = "capacity_bottleneck";
+    const hired = commitAction(state, {
+      type: "resolve_card",
+      choiceId: "hire",
+    }).state;
+    hired.activeCardId = null;
+    hired.resources.capacity = 0;
+
+    const recovered = commitAction(hired, {
+      type: "recover_resource",
+      resource: "capacity",
+    }).state;
+
+    expect(recovered.lastTurnResolution?.commitment.delta.resources.capacity).toBe(36);
+  });
+
+  it("starts Capacity drift in the month after the echo is created", () => {
+    const state = createGame(185);
+    state.activeCardId = "capacity_bottleneck";
+    state.tracks.engineering = 50;
+
+    const created = commitAction(
+      state,
+      { type: "recover_resource", resource: "money" },
+      { confirmCardAbandonment: true },
+    ).state;
+    expect(created.systemModifiers).toContain("capacity_drift");
+    expect(created.tracks.engineering).toBe(47);
+
+    created.activeCardId = null;
+    const drifted = commitAction(created, {
+      type: "recover_resource",
+      resource: "money",
+    }).state;
+    expect(drifted.lastTurnResolution?.monthlyPressure?.delta.tracks.engineering).toBe(-1);
+    expect(drifted.tracks.engineering).toBe(46);
+  });
+
+  it("uses advisor memories in later forecasts and links the consequence", () => {
+    const state = createGame(186, "operator");
+    state.activeCardId = "whistleblower";
+    const protectedState = commitAction(state, {
+      type: "resolve_card",
+      choiceId: "protect",
+    }).state;
+    const source = protectedState.decisionHistory.find((decision) =>
+      decision.advisorMemories.includes("steward:protected_whistleblower"),
+    );
+    protectedState.activeCardId = null;
+
+    const consulted = consultAdvisor(protectedState, "steward").state;
+
+    expect(
+      consulted.decisionHistory.find((decision) => decision.id === source?.id)
+        ?.linkedConsequences,
+    ).toBe(1);
+    expect(consulted.history).toContainEqual(
+      expect.objectContaining({ causedByDecisionId: source?.id }),
+    );
   });
 });

@@ -1,3 +1,5 @@
+> **Historical design — not current implementation guidance.** Despite its original “canonical” label, this document is superseded. See the [current documentation index](../../README.md).
+
 # Big Red Button - Canonical Game Design Document
 
 **Title:** Big Red Button

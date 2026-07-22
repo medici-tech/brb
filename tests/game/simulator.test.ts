@@ -16,6 +16,14 @@ describe("headless simulator", () => {
     expect(archetypeTotal).toBe(90);
     expect(report.averageMonths).toBeGreaterThan(0);
     expect(report.averageMonths).toBeLessThan(1_200);
+    expect(report.seed).toBe(20260715);
+    expect(report.corporationResponseCadence).toEqual({
+      quiet: 4,
+      watched: 3,
+      contested: 2,
+      severe: 1,
+      critical: 1,
+    });
     expect(report.actionUsage.deposit).toBeGreaterThan(0);
     expect(report.actionUsage.card).toBeGreaterThan(0);
     expect(report.actionUsage.counter).toBeGreaterThan(0);
@@ -73,6 +81,55 @@ describe("headless simulator", () => {
     }
     expect(report.endingFunnels.civic_legacy.closestAttempt?.botId).toBe("institutionalist");
     expect(report.endingFunnels.civic_legacy.closestAttempt?.months.length).toBeGreaterThan(0);
+
+    expect(report.campaignLength.min).toBeLessThanOrEqual(report.campaignLength.p25);
+    expect(report.campaignLength.p25).toBeLessThanOrEqual(report.campaignLength.median);
+    expect(report.campaignLength.median).toBeLessThanOrEqual(report.campaignLength.p75);
+    expect(report.campaignLength.p75).toBeLessThanOrEqual(report.campaignLength.p90);
+    expect(report.campaignLength.p90).toBeLessThanOrEqual(report.campaignLength.p95);
+    expect(report.campaignLength.p95).toBeLessThanOrEqual(report.campaignLength.max);
+    expect(report.campaignLength.exceeding10Years).toBeLessThanOrEqual(
+      report.campaignLength.exceeding5Years,
+    );
+    expect(report.longestCampaign.monthsSurvived).toBe(report.campaignLength.max);
+    expect(report.longestCampaign.months).toHaveLength(report.campaignLength.max);
+
+    const strategyRuns = Object.values(report.outcomeByStrategy)
+      .reduce((sum, strategy) => sum + strategy.runs, 0);
+    const strategyEndings = Object.values(report.outcomeByStrategy)
+      .flatMap((strategy) => Object.values(strategy.endings))
+      .reduce((sum, count) => sum + count, 0);
+    expect(strategyRuns).toBe(90);
+    expect(strategyEndings).toBe(90);
+
+    expect(Object.values(report.activationFailureReasons).reduce((sum, count) => sum + count, 0)).toBe(90);
+    const lengthBucketRuns = Object.values(report.outcomesByCampaignLength)
+      .reduce((sum, bucket) => sum + bucket.runs, 0);
+    const lengthBucketEndings = Object.values(report.outcomesByCampaignLength)
+      .flatMap((bucket) => Object.values(bucket.endings))
+      .reduce((sum, count) => sum + count, 0);
+    expect(lengthBucketRuns).toBe(90);
+    expect(lengthBucketEndings).toBe(90);
+
+    const auditedMonths = Object.values(report.monthsByPressureTier)
+      .reduce((sum, tier) => sum + tier.months, 0);
+    const meteredMonths = Object.values(report.meterGainByPressureTier)
+      .reduce((sum, tier) => sum + tier.months, 0);
+    expect(auditedMonths / report.runs).toBeCloseTo(report.averageMonths, 2);
+    expect(meteredMonths).toBe(auditedMonths);
+    for (const source of Object.values(report.panicSources)) {
+      expect(source.net).toBe(source.gained - source.reduced);
+    }
+    for (const tier of Object.values(report.meterGainByPressureTier)) {
+      expect(tier.corporationResponseRate).toBeGreaterThanOrEqual(0);
+      expect(tier.corporationResponseRate).toBeLessThanOrEqual(100);
+      expect(tier.corporationGainPerMonth).toBe(
+        tier.months === 0 ? 0 : Number((tier.corporationGain / tier.months).toFixed(4)),
+      );
+      expect(tier.panicGainPerMonth).toBe(
+        tier.months === 0 ? 0 : Number((tier.panicGain / tier.months).toFixed(4)),
+      );
+    }
   });
 
   it("returns the same report for the same seed", () => {
@@ -98,10 +155,13 @@ describe("headless simulator", () => {
     const strategicDepositShare = report.strategicPivotCategories.deposit / 600;
     expect(strategicDepositShare).toBeGreaterThanOrEqual(0.3);
     expect(strategicDepositShare).toBeLessThanOrEqual(0.75);
-    expect(report.cardTempo.presentedPerRun).toBeGreaterThanOrEqual(8);
-    expect(report.cardTempo.presentedPerRun).toBeLessThanOrEqual(11);
-    expect(report.cardTempo.activelyResolvedPerRun).toBeGreaterThanOrEqual(6);
-    expect(report.cardTempo.activelyResolvedPerRun).toBeLessThanOrEqual(8);
+    const presentationsPerMonth = report.cardTempo.presentedPerRun / report.averageMonths;
+    const activeResolutionShare = report.cardTempo.activelyResolvedPerRun /
+      report.cardTempo.presentedPerRun;
+    expect(presentationsPerMonth).toBeGreaterThanOrEqual(0.5);
+    expect(presentationsPerMonth).toBeLessThanOrEqual(0.6);
+    expect(activeResolutionShare).toBeGreaterThanOrEqual(0.65);
+    expect(activeResolutionShare).toBeLessThanOrEqual(0.82);
     expect(report.finalTurningPointCategories.counter).toBeGreaterThan(0);
     expect(report.endingFunnels.civic_legacy.stages.some((stage) => stage.id === "all_tracks_50")).toBe(true);
     expect(report.endingFunnels.government_by_command.stages.some((stage) => stage.id === "command_authority")).toBe(true);
@@ -117,6 +177,22 @@ describe("headless simulator", () => {
     expect(report.endingFunnels.government_by_command.completions).toBe(
       report.endingVariations.government_by_command,
     );
+  });
+
+  it("keeps the long-horizon diagnostic out of normal runs and proves five-year reachability", () => {
+    const normal = runSimulation({ runs: 30, seed: 20260715 });
+    expect(normal.byBot.long_horizon.runs).toBe(0);
+
+    const diagnostic = runSimulation({
+      runs: 30,
+      seed: 20260715,
+      bots: ["long_horizon"],
+      archetypes: ["technocrat"],
+    });
+    expect(diagnostic.byBot.long_horizon.runs).toBe(30);
+    expect(diagnostic.campaignLength.exceeding5Years).toBeGreaterThan(0);
+    expect(diagnostic.campaignLength.max).toBeGreaterThan(60);
+    expect(diagnostic.longestCampaign.months).toHaveLength(diagnostic.campaignLength.max);
   });
 
   it("rejects an invalid run count", () => {

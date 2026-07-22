@@ -25,9 +25,9 @@ Build the revised turn loop, consultation phase, consequence phase, interactive 
 - Three basic strategy bots and a command-line simulator
 - Deterministic behavior tests and TypeScript checks
 
-The engine entry point is [`src/game/index.ts`](../src/game/index.ts). Run `npm test`, `npm run typecheck`, or `npm run simulate -- 1000 20260715` from the project root.
+The engine entry point is [`src/game/index.ts`](../src/game/index.ts). Run `npm test`, `npm run typecheck`, or `npm run simulate -- 3000 20260715` from the project root.
 
-## Phase 1.5: Counterfactual replay slice — Correction gate
+## Phase 1.5: Counterfactual replay slice — Complete
 
 Add the replay engine before changing balance values. Replace Events with the 15-card Situation Deck, make delayed consequences traceable to their originating decisions, and ensure every ending leaves one unfinished question.
 
@@ -49,19 +49,40 @@ Add the replay engine before changing balance values. Replace Events with the 15
 - Explicit route transition history with open, close, reopen, and completion provenance
 - Targeted simulator strategies, ending funnels, card-outcome classifications, and three pivot categories
 
-The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Route integrity now passes, but Phase 1.5 remains open until Civic Legacy viability, card-resolution frequency, and prototype difficulty meet the completion gate.
+The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Determinism, route integrity, decision provenance, card coverage, stable reports, knowledge-only persistence, browser tests, and the static build now pass. Difficulty, ending frequency, and strategy viability are balance questions owned by Phase 2.
 
-## Phase 2: Balance prototype
+## Phase 2: Balance prototype — In progress
 
-Use simulation to produce 10,000-run reports. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model.
+Use 3,000-run simulations for routine comparisons of common outcomes, duration, and card tempo; the current fixed-seed convergence audit found negligible movement from 3,000 to 5,000 on those measures. Use 5,000 when activation or sub-percentage-point movement matters, but do not treat that sample as precise evidence for Civic Legacy or individual strategies. Use alternate seeds or multiple seed blocks when testing seed-to-seed robustness. Compare archetypes and strategies; measure endings, actions, cards, echoes, routes, and unreachable states; then revise the model. Run a 10,000-run comparison only when explicitly requested.
 
 **Goal:** Confirm that multiple strategies are viable and the game is not mathematically broken.
 
 **Exit criterion:** No dominant strategy, impossible required state, or unexplained ending-frequency outlier remains in the chosen targets.
 
+**Current findings:** After the logic-trustworthiness remediation and Loyalty departure change, the latest 3,000-run normal-strategy checkpoint has a 20-month median, 1.47% activation, 0.10% Civic Legacy, 47.50% State Collapse, and 51.03% Corporation capture. The earlier accepted cadence checkpoint remains useful historical evidence, but its 8.43% activation rate predates the current rule set. A separate long-horizon diagnostic proves that five- and ten-year campaigns are mechanically possible, but normal strategies do not produce them.
+
+**Current comprehension checkpoint:** The browser now leads with the objective and loss conditions, places consultation and Situation choices ahead of supporting systems, repeats exact routine effects in confirmation, preserves qualitative/classified Situation disclosure, shows activation and advisor thresholds, and versions reports with a final-state snapshot. This prepares rather than replaces the Phase 3 external onboarding gate.
+
+**Current delivery checkpoint:** The existing IBM Plex and Barlow fonts are self-hosted under OFL 1.1, and the static production export succeeds with network access denied. Chromium Playwright coverage now exercises Start, Campaign, consultation, commitment, attributed consequence, save/resume, Report, same-seed replay, Archive, keyboard navigation, narrow layout, reduced motion, and automated axe scans. These checks protect the current design; they do not approve balance or human comprehension.
+
+### Phase 2 exit checklist
+
+| Evidence | Status | What remains |
+| --- | --- | --- |
+| Deterministic rules, replay, storage, and route provenance | Complete | Preserve the green gate while tuning. |
+| Current fixed-seed automated baseline | Complete for reachability | The current 3,000/5,000 checkpoints are not precise enough to approve rare endings. |
+| Loyalty departure experiment | Automated safety accepted | Validate whether players understand disapproval, Loyalty loss, departure risk, and Manage Advisor. |
+| Six-run guided matrix and three five-commitment replays | Unverified | No completed journal export and cross-run synthesis is stored in the repository. Finish the first three without tuning, then complete the three targeted strategy runs. |
+| Archetype and normal-strategy parity | Incomplete | Compare the current rules across at least one documented alternate seed block; do not extend only the same deterministic prefix. |
+| Activation, premium-ending, and late-game targets | Incomplete | Decide whether the very low activation rate is intended difficulty or evidence for one isolated balance lever. |
+| Card tempo and defensive-style discoverability | Incomplete | Confirm through guided play whether players notice and enjoy the slower survival path. |
+| Final Phase 2 recommendation | Incomplete | Accept or reject the tested lever, rerun the proportionate baseline, and record the decision without rewriting historical checkpoints. |
+
+**Remaining work:** Finish the six-run guided evidence, run one alternate-seed robustness comparison, then choose at most one balance lever to test. Remain in Phase 2 until strategy viability and the low activation/premium-ending rates have an explicit accept-or-change decision.
+
 ## Phase 3: Human playtest build
 
-Add the opening-turn tutorial, polish the responsive interface and consequence feedback, add basic portraits, audio, activation presentation, and a feedback link.
+Validate and polish the existing first-three-month onboarding and How to Play guide, improve the responsive interface and consequence feedback, and add basic portraits, audio, activation presentation, and a feedback link.
 
 **Goal:** A new player can understand and finish a run without assistance.
 
