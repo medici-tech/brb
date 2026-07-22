@@ -18,16 +18,13 @@ import type {
 import type { BookmarkInput, GuidedRunObjective } from "../../playtest/journal";
 import { BrbTracksPanel } from "./BrbTracksPanel";
 import { CampaignAdvisors } from "./CampaignAdvisors";
-import { CampaignActionControl } from "./CampaignActionControl";
+import { CampaignSituationWorkspace } from "./CampaignSituationWorkspace";
 import { CorporationWatchPanel } from "./CorporationWatchPanel";
-import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation";
-import workspaceStyles from "./control-room/SituationWorkspace.module.css";
 import {
   derivePresentationInputs,
   resolvePresentationModel,
 } from "./control-room/presentationStateResolver";
 import { HowToPlayDialog } from "./HowToPlayDialog";
-import { LastTurnResult } from "./LastTurnResult";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
 import { TurnTransitionDialog } from "./TurnTransitionDialog";
@@ -214,69 +211,15 @@ export function CampaignScreen({
       />
 
       <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
-        <section
-          ref={situationWorkspaceRef}
-          aria-label="Situation workspace"
-          tabIndex={-1}
-          className={`situation-panel ${workspaceStyles.situationWorkspace}`}
-        >
-          <ControlRoomPresentation
-            model={controlRoomModel}
-            turn={state.turn}
-            hasActiveSituation={Boolean(card)}
-          />
-
-          {card ? (
-            <div className={`paper-panel ${workspaceStyles.activeFile}`}>
-              <div className="panel-heading mobile-duplicate-situation">
-                <div>
-                  <p className="file-label">SITUATION DECK</p>
-                  <h1>{card.title}</h1>
-                </div>
-                <span className={`classification ${card.rarity}`}>
-                  {card.type} · {card.rarity}
-                </span>
-              </div>
-              <p className="situation-copy mobile-duplicate-situation">{card.description}</p>
-              <div className="choice-list">
-                {card.choices.map((choice) => (
-                  <CampaignActionControl
-                    key={choice.id}
-                    state={state}
-                    action={{ type: "resolve_card", choiceId: choice.id }}
-                    recommendation={recommendation}
-                    activeCardTitle={card.title}
-                    onCommit={onCommit}
-                  />
-                ))}
-              </div>
-              <LastTurnResult
-                resolution={state.lastTurnResolution}
-                echoTypes={resolvedEchoTypes}
-              />
-            </div>
-          ) : (
-            <>
-              <div className={`${workspaceStyles.noActiveFile} mobile-duplicate-situation`}>
-                <p className="file-label">SITUATION DECK · STANDBY</p>
-                <h1>No active file</h1>
-                <p>
-                  The desk is quiet. Choose where to commit the administration.
-                </p>
-              </div>
-              {state.lastTurnResolution ? (
-                <div
-                  className={`paper-panel ${workspaceStyles.inactiveResult}`}
-                >
-                  <LastTurnResult
-                    resolution={state.lastTurnResolution}
-                    echoTypes={resolvedEchoTypes}
-                  />
-                </div>
-              ) : null}
-            </>
-          )}
-        </section>
+        <CampaignSituationWorkspace
+          state={state}
+          card={card}
+          recommendation={recommendation}
+          model={controlRoomModel}
+          resolvedEchoTypes={resolvedEchoTypes}
+          workspaceRef={situationWorkspaceRef}
+          onCommit={onCommit}
+        />
 
         <aside className="operations-column">
           <BrbTracksPanel
