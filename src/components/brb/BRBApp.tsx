@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { commitAction, consultAdvisor, createGame } from "../../game/engine";
-import { createEmptyArchive, createReplayIntent, mergeRunIntoArchive } from "../../game/replay";
+import {
+  claimLegacyDirective,
+  createEmptyArchive,
+  createReplayIntent,
+  mergeRunIntoArchive,
+} from "../../game/replay";
 import {
   clearActiveRun,
   clearReplayIntent,
@@ -15,7 +20,17 @@ import {
   saveLatestReport,
   saveReplayIntent,
 } from "../../game/storage";
-import type { AdvisorId, ArchetypeId, ArchiveV0, CommitOptions, DeclassifiedReport, GameState, MajorAction, ReplayIntent } from "../../game/types";
+import type {
+  AdvisorId,
+  ArchetypeId,
+  ArchiveV1,
+  CommitOptions,
+  DeclassifiedReport,
+  GameState,
+  LegacyDirectiveId,
+  MajorAction,
+  ReplayIntent,
+} from "../../game/types";
 import {
   abandonActivePlaytestRun,
   addPlaytestBookmark,
@@ -57,7 +72,7 @@ export function BRBApp() {
   const [view, setView] = useState<View>("start");
   const [state, setState] = useState<GameState | null>(null);
   const [savedRun, setSavedRun] = useState<GameState | null>(null);
-  const [archive, setArchive] = useState<ArchiveV0>(() => createEmptyArchive());
+  const [archive, setArchive] = useState<ArchiveV1>(() => createEmptyArchive());
   const [report, setReport] = useState<DeclassifiedReport | null>(null);
   const [intent, setIntent] = useState<ReplayIntent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,13 +113,18 @@ export function BRBApp() {
     setView("campaign");
   }
 
-  function begin(archetypeId: ArchetypeId, replay: ReplayIntent | null = intent): void {
+  function begin(
+    archetypeId: ArchetypeId,
+    legacyDirectiveId: LegacyDirectiveId | null = null,
+    replay: ReplayIntent | null = intent,
+  ): void {
     const seed = replay?.seed ?? randomSeed();
     const next = createGame({
       seed,
       archetypeId: replay?.archetypeId ?? archetypeId,
       runId: newRunId(),
       ...(replay ? { experiment: replay.experiment } : {}),
+      legacyDirectiveId: replay?.legacyDirectiveId ?? legacyDirectiveId,
     });
     openGame(next);
   }
@@ -178,12 +198,19 @@ export function BRBApp() {
       archetypeId: nextIntent.archetypeId,
       runId: newRunId(),
       experiment: nextIntent.experiment,
+      legacyDirectiveId: nextIntent.legacyDirectiveId,
     });
     const reportSlot = journal.matrix.find((slot) => slot.primaryRunId === report.runId);
     const nextJournal = mode === "same_seed" && reportSlot?.status === "awaiting_replay"
       ? startReplayPlaytestRun(journal, report.runId, next)
       : undefined;
     openGame(next, nextJournal);
+  }
+
+  function claimDirective(directiveId: LegacyDirectiveId): void {
+    const next = claimLegacyDirective(archive, directiveId);
+    saveArchive(window.localStorage, next);
+    setArchive(next);
   }
 
   function bookmarkCampaign(input: BookmarkInput): void {
@@ -255,6 +282,8 @@ export function BRBApp() {
     return (
       <DeclassifiedReportView
         report={report}
+        archive={archive}
+        onClaimDirective={claimDirective}
         onTestTheory={() => replay("same_seed")}
         onOpenNewFile={() => replay("fresh_seed")}
         onArchive={() => setView("archive")}
@@ -291,7 +320,8 @@ export function BRBApp() {
     <StartScreen
       savedRun={savedRun}
       replayIntent={intent}
-      onStart={(archetypeId) => begin(archetypeId)}
+      unlockedDirectiveIds={archive.unlockedDirectiveIds}
+      onStart={(archetypeId, directiveId) => begin(archetypeId, directiveId)}
       onResume={() => {
         if (savedRun) {
           setState(savedRun);

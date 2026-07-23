@@ -1,11 +1,14 @@
 import { ADVISORS, ARCHETYPES, ROUTE_DEFINITIONS } from "../../game/content";
+import { LEGACY_DIRECTIVES } from "../../game/directives";
 import { RESOURCE_LABELS, TRACK_LABELS } from "../../game/guidance";
 import { REPORT_RULES_VERSION } from "../../game/replay";
 import {
   ADVISOR_IDS,
   RESOURCE_KEYS,
   TRACK_KEYS,
+  type ArchiveV1,
   type DeclassifiedReport,
+  type LegacyDirectiveId,
 } from "../../game/types";
 import type { BookmarkInput } from "../../playtest/journal";
 import type { PlaytestRecap, PlaytestRunEntry } from "../../playtest/types";
@@ -26,6 +29,8 @@ const OUTCOME_RULES: Record<DeclassifiedReport["ending"]["id"], string> = {
 
 type Props = {
   report: DeclassifiedReport;
+  archive?: ArchiveV1;
+  onClaimDirective?: (directiveId: LegacyDirectiveId) => void;
   onTestTheory: () => void;
   onOpenNewFile: () => void;
   onArchive: () => void;
@@ -38,6 +43,8 @@ type Props = {
 
 export function DeclassifiedReportView({
   report,
+  archive,
+  onClaimDirective,
   onTestTheory,
   onOpenNewFile,
   onArchive,
@@ -96,6 +103,53 @@ export function DeclassifiedReportView({
           </div>
         </section>
 
+        {archive ? (
+          <section className="directive-reward report-section" aria-labelledby="directive-reward-title">
+            <p className="file-label">LEGACY CLEARANCE · {archive.clearance} / 3</p>
+            <h2 id="directive-reward-title">
+              {archive.pendingDirectiveDraft
+                ? "Choose one authorization to preserve."
+                : archive.unlockedDirectiveIds.length === Object.keys(LEGACY_DIRECTIVES).length
+                  ? "Every Legacy Directive has been recovered."
+                  : "Clearance is accumulating."}
+            </h2>
+            {archive.pendingDirectiveDraft ? (
+              <>
+                <p>
+                  This seeded draft is fixed for the completed campaign. Choose one
+                  permanent unlock; the card will remain available for later files.
+                </p>
+                <div className="directive-draft">
+                  {archive.pendingDirectiveDraft.candidateIds.map((id) => {
+                    const directive = LEGACY_DIRECTIVES[id];
+                    return (
+                      <article key={id}>
+                        <span>{directive.rarity}</span>
+                        <h3>{directive.title}</h3>
+                        <p>{directive.description}</p>
+                        <strong>{directive.benefit}</strong>
+                        <small>Cost: {directive.warning}</small>
+                        <button
+                          className="primary-button"
+                          type="button"
+                          onClick={() => onClaimDirective?.(id)}
+                        >
+                          Preserve {directive.title}
+                        </button>
+                      </article>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <p>
+                Completed campaigns grant 1 Clearance point; victories grant 3.
+                At 3 points, a seeded Directive draft becomes available.
+              </p>
+            )}
+          </section>
+        ) : null}
+
         {report.finalSnapshot ? (
           <section className="report-final-state" aria-labelledby="final-state-title">
             <p className="file-label">FINAL STATE · WHAT THE CAMPAIGN LEFT BEHIND</p>
@@ -137,6 +191,14 @@ export function DeclassifiedReportView({
 
         <dl className="report-metadata">
           <div><dt>Doctrine</dt><dd>{ARCHETYPES[report.archetypeId].name}</dd></div>
+          <div>
+            <dt>Legacy Directive</dt>
+            <dd>
+              {report.legacyDirective.equippedId
+                ? `${LEGACY_DIRECTIVES[report.legacyDirective.equippedId].title} · ${report.legacyDirective.used ? "used" : "held"}`
+                : "None equipped"}
+            </dd>
+          </div>
           <div><dt>Story route completed</dt><dd>{report.completedRoute ? ROUTE_DEFINITIONS[report.completedRoute].label : "None this run"}</dd></div>
           <div><dt>Replay code (seed)</dt><dd>{report.seed}</dd></div>
         </dl>
@@ -198,7 +260,7 @@ export function DeclassifiedReportView({
             <button className="primary-button" disabled={guidedReplayRequired && recapRequired} onClick={onTestTheory}>Test This Theory</button>
             <button className="secondary-button" onClick={onOpenNewFile}>Open a New File</button>
           </div>
-          <small>{guidedReplayRequired && recapRequired ? "Save the playtest recap before beginning the required replay sample. " : null}Test This Theory repeats the seed under current rules. Open a New File creates a fresh seed. Neither grants power.</small>
+          <small>{guidedReplayRequired && recapRequired ? "Save the playtest recap before beginning the required replay sample. " : null}Test This Theory repeats the seed and equipped Directive under current rules. Open a New File creates a fresh seed with the same loadout.</small>
         </section>
 
         {playtestRun && onSaveRecap ? <PlaytestRecapForm key={playtestRun.runId} existing={playtestRun.recap} onSave={onSaveRecap} /> : null}

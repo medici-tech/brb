@@ -17,10 +17,15 @@ function reportFixture(): DeclassifiedReport {
     echoHints: ["A classified follow-up left the deck."],
   };
   return {
-    rulesVersion: 1,
+    rulesVersion: 2,
     runId: "report-run",
     seed: 42,
     archetypeId: "technocrat",
+    legacyDirective: {
+      equippedId: null,
+      used: false,
+      usedOnDecisionId: null,
+    },
     ending: {
       id: "compromised_activation",
       title: "The Necessary Regime",
@@ -150,6 +155,36 @@ describe("campaign replay UI", () => {
     expect(result).not.toHaveTextContent(/austerity entered the historical record/i);
   });
 
+  it("discloses and sends a one-use Legacy Directive with the commitment", () => {
+    const state = createGame({
+      seed: 12,
+      legacyDirectiveId: "emergency_appropriation",
+    });
+    state.activeCardId = null;
+    const onCommit = vi.fn();
+    render(
+      <CampaignScreen
+        state={state}
+        error={null}
+        onCommit={onCommit}
+        onConsult={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/money \+12 · stress \+4 · available once/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /recover intel/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(/optional legacy directive · common/i);
+    expect(dialog).toHaveTextContent(/emergency appropriation: money \+12.*cost: stress \+4/i);
+    fireEvent.click(screen.getByRole("button", { name: /authorize with emergency appropriation/i }));
+
+    expect(onCommit).toHaveBeenCalledWith(
+      { type: "recover_resource", resource: "intelligence" },
+      { useLegacyDirective: true },
+    );
+  });
+
   it("renders undiscovered Archive entries as silhouettes", () => {
     render(<ArchiveView archive={createEmptyArchive()} onBack={vi.fn()} />);
     expect(screen.getAllByLabelText(/classified card silhouette/i)).toHaveLength(15);
@@ -189,6 +224,33 @@ describe("campaign replay UI", () => {
     fireEvent.click(screen.getByRole("button", { name: /open a new file/i }));
     expect(theory).toHaveBeenCalledOnce();
     expect(fresh).toHaveBeenCalledOnce();
+  });
+
+  it("renders a deterministic reward draft and claims one Directive", () => {
+    const archive = createEmptyArchive();
+    archive.pendingDirectiveDraft = {
+      candidateIds: [
+        "emergency_appropriation",
+        "coalition_whip",
+        "continuity_freeze_order",
+      ],
+    };
+    const claim = vi.fn();
+    render(
+      <DeclassifiedReportView
+        report={reportFixture()}
+        archive={archive}
+        onClaimDirective={claim}
+        onTestTheory={vi.fn()}
+        onOpenNewFile={vi.fn()}
+        onArchive={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: /choose one authorization/i })).toBeInTheDocument();
+    expect(screen.getByText(/this seeded draft is fixed/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /preserve continuity freeze order/i }));
+    expect(claim).toHaveBeenCalledWith("continuity_freeze_order");
   });
 
   it("marks reports from older rules without rewriting their recorded ending", () => {

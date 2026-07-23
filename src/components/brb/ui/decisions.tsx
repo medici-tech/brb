@@ -101,11 +101,12 @@ type ConfirmActionDialogProps = {
   description: string;
   summary?: ReactNode;
   confirmAction: BrbAction;
+  secondaryConfirmAction?: BrbAction;
   cancelLabel?: string;
   tone?: "warning" | "critical";
 };
 
-export function ConfirmActionDialog({ trigger, title, description, summary, confirmAction, cancelLabel = "Return to briefing", tone = "warning" }: ConfirmActionDialogProps) {
+export function ConfirmActionDialog({ trigger, title, description, summary, confirmAction, secondaryConfirmAction, cancelLabel = "Return to briefing", tone = "warning" }: ConfirmActionDialogProps) {
   const Icon = confirmAction.icon;
   const [open, setOpen] = useState(false);
   return (
@@ -120,6 +121,20 @@ export function ConfirmActionDialog({ trigger, title, description, summary, conf
         {summary ? <div className="confirmation-summary">{summary}</div> : null}
         <DialogFooter className="mt-3 min-w-0">
           <DialogClose asChild><Button variant="quiet">{cancelLabel}</Button></DialogClose>
+          {secondaryConfirmAction ? (
+            <DialogClose asChild>
+              <Button
+                variant="command"
+                disabled={secondaryConfirmAction.disabled}
+                onClick={() => {
+                  setOpen(false);
+                  secondaryConfirmAction.onSelect?.();
+                }}
+              >
+                {secondaryConfirmAction.label}
+              </Button>
+            </DialogClose>
+          ) : null}
           <DialogClose asChild><Button variant={tone === "critical" ? "critical" : "command"} disabled={confirmAction.disabled} onClick={() => {
             setOpen(false);
             confirmAction.onSelect?.();

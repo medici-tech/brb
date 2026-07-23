@@ -45,6 +45,10 @@ export function HowToPlayDialog() {
             <strong>5 · Activate</strong>
             <p>Every track must reach 50. Activation ends the run; Corporation control and political safeguards determine the outcome.</p>
           </section>
+          <section>
+            <strong>6 · Build Clearance</strong>
+            <p>Completed runs earn 1 Clearance; victories earn 3. At 3, choose one permanent Legacy Directive unlock from a seeded draft.</p>
+          </section>
         </div>
         <div className="glossary-grid" aria-label="BRB field glossary">
           <section>
@@ -62,6 +66,10 @@ export function HowToPlayDialog() {
           <section>
             <strong>Delayed Echo</strong>
             <p>A decision has altered a future Situation, relationship, operating doctrine, or final record. The category is visible; the exact consequence stays classified.</p>
+          </section>
+          <section>
+            <strong>Legacy Directive</strong>
+            <p>An optional reward card equipped before a run. It modifies one accepted commitment, applies its listed drawback, and remains permanently unlocked.</p>
           </section>
           <section>
             <strong>Standard Deposit</strong>

@@ -175,6 +175,26 @@ describe("guided playtest UI", () => {
     expect(screen.getAllByRole("button", { name: /open .* file/i })).toHaveLength(3);
   });
 
+  it("equips one unlocked Directive or preserves the no-Directive baseline", () => {
+    const onStart = vi.fn();
+    render(
+      <StartScreen
+        savedRun={null}
+        replayIntent={null}
+        unlockedDirectiveIds={["industrial_surge"]}
+        onStart={onStart}
+        onResume={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /no directive/i })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /industrial surge/i }));
+    expect(screen.getByRole("button", { name: /industrial surge/i })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /open technocrat file/i }));
+    expect(onStart).toHaveBeenCalledWith("technocrat", "industrial_surge");
+  });
+
   it("collects a categorized bookmark note", () => {
     const onSave = vi.fn();
     render(<PlaytestBookmarkDialog onSave={onSave} />);

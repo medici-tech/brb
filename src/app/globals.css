@@ -345,6 +345,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
 .confirmation-summary strong { color: #d7cdbb; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .confirmation-summary p { overflow-wrap: anywhere; margin: 6px 0 0; color: #aaa99f; font-size: 12px; line-height: 1.45; }
 .confirmation-summary .confirmation-warning { grid-column: 1 / -1; border-left: 3px solid var(--red-bright); }
+.confirmation-summary .confirmation-directive { grid-column: 1 / -1; border-left: 3px solid var(--signal); }
 
 .report-shell { max-width: 1120px; }
 .report-paper { padding: clamp(35px, 7vw, 90px); }
@@ -389,6 +390,11 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
 .experiment-panel { margin-top: 45px; padding: 28px; border: 2px solid var(--red); }
 .experiment-reminder { max-width: 760px; color: #4e4b44; font-weight: 650; line-height: 1.55; }
 .report-actions { display: flex; gap: 10px; margin: 25px 0 12px; }
+.directive-draft { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-top: 20px; }
+.directive-draft article { display: grid; gap: 10px; padding: 20px; border: 1px solid var(--line); background: rgba(255,255,255,.18); }
+.directive-draft article > span { font: 700 9px "Geist Mono",monospace; letter-spacing: .1em; text-transform: uppercase; }
+.directive-draft article h3, .directive-draft article p { margin: 0; }
+.directive-draft article small { color: #7d302b; }
 .experiment-panel small { color: #67635a; }
 .primary-button:disabled, .secondary-button:disabled { opacity: .48; cursor: not-allowed; }
 .playtest-recap { margin-top: 42px; padding: 28px; color: var(--ink); border: 2px dashed #8d806c; background: rgba(72,60,43,.05); }
@@ -414,6 +420,17 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
 .archive-choice-records > strong { color: #8f8e86; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .archive-choice-records p { display: flex; justify-content: space-between; gap: 10px; margin: 0; padding-top: 7px; border-top: 1px solid #41433e; color: #c8c0b1; font-size: 11px; }
 .archive-lower-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+.directive-loadout { margin: 24px 0 40px; padding: clamp(24px,4vw,40px); }
+.directive-loadout h2 { margin: 8px 0; font-size: clamp(26px,4vw,42px); }
+.directive-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 20px; }
+.directive-options button, .directive-replay-lock { display: grid; gap: 7px; padding: 14px; text-align: left; color: var(--ink); border: 1px solid var(--line); background: rgba(255,255,255,.2); }
+.directive-options button.selected { outline: 3px solid var(--red); outline-offset: 2px; }
+.directive-options span, .directive-replay-lock span { color: #706c63; font-size: 12px; line-height: 1.4; }
+.campaign-directive { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 12px 0; padding: 14px 18px; color: var(--cream); border-left: 4px solid var(--signal); background: #202320; }
+.campaign-directive h2, .campaign-directive p { margin: 0; }
+.campaign-directive h2 { font-size: 18px; }
+.campaign-directive p { color: #c9c0b1; font-size: 12px; }
+.campaign-directive.used { opacity: .62; border-left-color: #6f756a; }
 .route-record { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding: 16px 0; border-bottom: 1px solid #41433e; }
 .route-record span, .route-record small { color: #97968d; }
 .route-record small { flex-basis: 100%; line-height: 1.45; }
@@ -450,7 +467,7 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
 .rating-guide { grid-column: 1 / -1; margin: 0; padding: 10px 12px; color: #5d5a52; border-left: 3px solid #77766d; background: rgba(87,73,49,.06); font-size: 12px; line-height: 1.5; }
 
 @media (max-width: 980px) {
-  .archetype-grid, .archive-card-grid { grid-template-columns: 1fr 1fr; }
+  .archetype-grid, .archive-card-grid, .directive-options, .directive-draft { grid-template-columns: 1fr 1fr; }
   .campaign-grid, .lower-grid { grid-template-columns: 1fr; }
   .operations-column .dark-panel { height: auto; }
   .advisor-list { grid-template-columns: 1fr; }
@@ -479,7 +496,8 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
   .hero { min-height: 0; padding: 34px 24px; }
   .stamp { position: static; display: inline-block; margin-bottom: 22px; }
   .mission-brief { padding: 13px 14px; }
-  .archetype-grid, .archive-card-grid, .archive-lower-grid, .report-metadata, .report-outcome-summary, .archive-progress { grid-template-columns: 1fr; }
+  .archetype-grid, .archive-card-grid, .archive-lower-grid, .report-metadata, .report-outcome-summary, .archive-progress, .directive-options, .directive-draft { grid-template-columns: 1fr; }
+  .campaign-directive { align-items: flex-start; flex-direction: column; }
   .metric-strip { grid-template-columns: repeat(5,minmax(108px,1fr)); overflow-x: auto; }
   .state-pressure-strip { grid-template-columns: repeat(4,minmax(148px,1fr)); overflow-x: auto; }
   .first-turn-guide { gap: 5px; padding: 12px 16px; }

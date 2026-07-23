@@ -6,6 +6,7 @@ import {
   RESOURCE_LABELS,
 } from "../../game/guidance";
 import { getActiveCard, getValidActions } from "../../game/engine";
+import { LEGACY_DIRECTIVES } from "../../game/directives";
 import { formatCampaignTime } from "../../game/progression";
 import { deriveTurnBeats } from "../../game/turn-beats";
 import { RESOURCE_KEYS } from "../../game/types";
@@ -92,6 +93,9 @@ export function CampaignScreen({
   const controlRoomModel = resolvePresentationModel(
     derivePresentationInputs(state, card?.type ?? null),
   );
+  const equippedDirective = state.legacyDirective.equippedId
+    ? LEGACY_DIRECTIVES[state.legacyDirective.equippedId]
+    : null;
 
   useEffect(() => {
     if (!latestDecisionId || previousDecisionIdRef.current === latestDecisionId) return;
@@ -134,6 +138,19 @@ export function CampaignScreen({
 
       {state.experiment ? (
         <aside className="objective compact"><span>NEXT-RUN THEORY</span>{state.experiment}</aside>
+      ) : null}
+      {equippedDirective ? (
+        <aside className={`campaign-directive ${state.legacyDirective.used ? "used" : ""}`}>
+          <div>
+            <p className="file-label">LEGACY DIRECTIVE · {equippedDirective.rarity}</p>
+            <h2>{equippedDirective.title}</h2>
+          </div>
+          <p>
+            {state.legacyDirective.used
+              ? "Authorization spent for this campaign."
+              : `${equippedDirective.benefit} · ${equippedDirective.warning} · available once`}
+          </p>
+        </aside>
       ) : null}
       {guidedObjective ? (
         <aside className="guided-objective" aria-labelledby="guided-objective-title">

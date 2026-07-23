@@ -1,4 +1,6 @@
 import { ADVISORS } from "../../game/content";
+import { LEGACY_DIRECTIVES } from "../../game/directives";
+import { getActionError } from "../../game/engine";
 import { actionKey, getActionPreview } from "../../game/guidance";
 import type {
   AdvisorRecommendation,
@@ -30,9 +32,26 @@ export function CampaignActionControl({
   compact = false,
 }: Props) {
   const preview = getActionPreview(state, action);
-  const disabled = Boolean(forceDisabled || preview.disabledReason);
-  const recommended = recommendation?.actionKey === actionKey(action);
   const ignoresActiveCard = Boolean(activeCardTitle && action.type !== "resolve_card");
+  const directiveId = state.legacyDirective.equippedId;
+  const directive = directiveId ? LEGACY_DIRECTIVES[directiveId] : null;
+  const directiveAvailable = Boolean(
+    directive
+    && !state.legacyDirective.used
+    && action.type !== "activate_brb",
+  );
+  const directiveOptions: CommitOptions = {
+    ...(ignoresActiveCard ? { confirmCardAbandonment: true } : {}),
+    useLegacyDirective: true,
+  };
+  const directiveError = directiveAvailable
+    ? getActionError(state, action, directiveOptions)
+    : null;
+  const disabled = Boolean(
+    forceDisabled
+    || (preview.disabledReason && (!directiveAvailable || directiveError)),
+  );
+  const recommended = recommendation?.actionKey === actionKey(action);
   const activatesBrb = action.type === "activate_brb";
   const trigger = (
     <button
@@ -65,7 +84,11 @@ export function CampaignActionControl({
         <span className="action-echo">{preview.delayedConsequence}</span>
       ) : null}
       {preview.disabledReason ? (
-        <span className="action-disabled">{preview.disabledReason}</span>
+        <span className="action-disabled">
+          {directiveAvailable && !directiveError
+            ? `${preview.disabledReason} The equipped Directive can make this commitment available.`
+            : preview.disabledReason}
+        </span>
       ) : null}
     </button>
   );
@@ -133,8 +156,25 @@ export function CampaignActionControl({
               </p>
             </section>
           ) : null}
+          {directiveAvailable && directive ? (
+            <section className="confirmation-directive">
+              <strong>Optional Legacy Directive · {directive.rarity}</strong>
+              <p>
+                {directive.title}: {directive.benefit}. Cost: {directive.warning}.
+                It can be used only once this campaign.
+              </p>
+              {directiveError ? <p>Unavailable here: {directiveError}</p> : null}
+            </section>
+          ) : null}
         </>
       )}
+      {...(directiveAvailable && directive ? {
+        secondaryConfirmAction: {
+          label: `Authorize with ${directive.title}`,
+          disabled: Boolean(forceDisabled || directiveError),
+          onSelect: () => onCommit(action, directiveOptions),
+        },
+      } : {})}
       confirmAction={{
         label:
           ignoresActiveCard && activatesBrb
