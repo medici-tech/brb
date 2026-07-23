@@ -16,6 +16,7 @@ import {
 import { applyAdvisorReactions, getActionCategory } from "./advisor-rules";
 import { applyCorporationMove, chooseCorporationStrategy } from "./corporation-rules";
 import { activate, evaluateCivicLegacy, evaluateTerminalState } from "./endings";
+import { applyLegacyDirective } from "./directives";
 import {
   applyIgnoredCard,
   drawSituationCard,
@@ -133,6 +134,7 @@ function normalizeCreateOptions(
       archetypeId,
       runId: `run-${seed}-${archetypeId}`,
       experiment: null,
+      legacyDirectiveId: null,
     };
   }
   const seed = seedOrOptions.seed >>> 0;
@@ -142,6 +144,7 @@ function normalizeCreateOptions(
     archetypeId: chosenArchetype,
     runId: seedOrOptions.runId ?? `run-${seed}-${chosenArchetype}`,
     experiment: seedOrOptions.experiment ?? null,
+    legacyDirectiveId: seedOrOptions.legacyDirectiveId ?? null,
   };
 }
 
@@ -152,13 +155,18 @@ export function createGame(
   const options = normalizeCreateOptions(seedOrOptions, archetypeId);
   const firstRandom = randomInt(options.seed, CORPORATION_STRATEGIES.length);
   const state: GameState = {
-    version: 4,
+    version: 5,
     runId: options.runId,
     seed: options.seed,
     rngState: firstRandom.state,
     turn: 1,
     phase: "briefing",
     archetypeId: options.archetypeId,
+    legacyDirective: {
+      equippedId: options.legacyDirectiveId,
+      used: false,
+      usedOnDecisionId: null,
+    },
     experiment: options.experiment,
     resources: { ...BASE_RESOURCES },
     deposited: { money: 0, influence: 0, intelligence: 0, trust: 0, capacity: 0 },
@@ -585,8 +593,27 @@ export function commitAction(
     );
   }
   const beforeCommitment = snapshotGameEffects(next);
+  const appliedDirective = options.useLegacyDirective
+    ? applyLegacyDirective(next)
+    : null;
   const playerResult = applyPlayerAction(next, action);
-  const commitmentLabel = next.decisionHistory.at(-1)?.summary ?? "Commitment resolved";
+  if (appliedDirective) {
+    if (!playerResult.decisionId) {
+      throw new Error("A Legacy Directive requires decision provenance.");
+    }
+    next.legacyDirective.used = true;
+    next.legacyDirective.usedOnDecisionId = playerResult.decisionId;
+    addHistory(
+      next,
+      "system",
+      `Legacy Directive used: ${appliedDirective.title}. ${appliedDirective.benefit}; ${appliedDirective.warning}.`,
+      { decisionId: playerResult.decisionId },
+    );
+  }
+  const baseCommitmentLabel = next.decisionHistory.at(-1)?.summary ?? "Commitment resolved";
+  const commitmentLabel = appliedDirective
+    ? `${baseCommitmentLabel} · Directive: ${appliedDirective.title}`
+    : baseCommitmentLabel;
   const commitment = resolvedEffect(
     commitmentLabel,
     beforeCommitment,
@@ -603,7 +630,8 @@ export function commitAction(
     snapshotGameEffects(next),
   );
   const pressureTier = getCompletionPressure(next).tier;
-  const corporationResponded = isCorporationResponseDue(next, pressureTier);
+  const corporationResponded = !appliedDirective?.preventCorporationResponse
+    && isCorporationResponseDue(next, pressureTier);
   const beforeCorporation = snapshotGameEffects(next);
   const beforeCorporationStrategy = next.corporation.strategy;
   if (corporationResponded) {

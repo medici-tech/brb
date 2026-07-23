@@ -74,7 +74,12 @@ describe("seeded runs", () => {
     delete legacy.lastTurnResolution;
 
     const restored = deserializeGame(JSON.stringify(legacy));
-    expect(restored.version).toBe(4);
+    expect(restored.version).toBe(5);
+    expect(restored.legacyDirective).toEqual({
+      equippedId: null,
+      used: false,
+      usedOnDecisionId: null,
+    });
     expect(restored.corporation.lastResponseMonth).toBe(8);
     expect(restored.lastMonthAudit).toBeNull();
     expect(restored.lastTurnResolution).toBeNull();

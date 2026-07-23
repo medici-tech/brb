@@ -4,6 +4,7 @@ import { isDeclassifiedReport, isEnding } from "./persisted-data-validation";
 import {
   ADVISOR_IDS,
   ECHO_TYPES,
+  LEGACY_DIRECTIVE_IDS,
   RESOURCE_KEYS,
   ROUTE_IDS,
   TRACK_KEYS,
@@ -265,13 +266,23 @@ function isDeck(value: unknown): boolean {
 
 export function isGameState(value: unknown): value is GameState {
   if (!isRecord(value)
-    || value.version !== 4
+    || value.version !== 5
     || !isNonEmptyString(value.runId)
     || !isInteger(value.seed, 0)
     || !isInteger(value.rngState, 0)
     || !isInteger(value.turn, 1)
     || !isOneOf(value.phase, PHASES)
     || !isOneOf(value.archetypeId, ARCHETYPE_IDS)
+    || !isRecord(value.legacyDirective)
+    || !(value.legacyDirective.equippedId === null
+      || isOneOf(value.legacyDirective.equippedId, LEGACY_DIRECTIVE_IDS))
+    || !isBoolean(value.legacyDirective.used)
+    || !(value.legacyDirective.usedOnDecisionId === null
+      || isNonEmptyString(value.legacyDirective.usedOnDecisionId))
+    || (value.legacyDirective.used
+      ? value.legacyDirective.equippedId === null
+        || value.legacyDirective.usedOnDecisionId === null
+      : value.legacyDirective.usedOnDecisionId !== null)
     || !(value.experiment === null || isString(value.experiment))
     || !isResourcePool(value.resources)
     || !isResourcePool(value.deposited, true)
@@ -331,6 +342,7 @@ export function isGameState(value: unknown): value is GameState {
     || id === undefined
     || (isString(id) && decisionIds.has(id));
   if (!Object.values(state.deck.cardSources).every(knownDecision)) return false;
+  if (!knownDecision(state.legacyDirective.usedOnDecisionId)) return false;
   if (!state.cardHistory.every((encounter) => knownDecision(encounter.causedByDecisionId))) return false;
   if (!state.history.every((entry) =>
     knownDecision(entry.decisionId) && knownDecision(entry.causedByDecisionId))) return false;

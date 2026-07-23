@@ -19,6 +19,14 @@ export const CARD_TYPES = ["crisis", "advisor", "corporation"] as const;
 export const CARD_RARITIES = ["common", "rare"] as const;
 export const ECHO_TYPES = ["card", "relationship", "system", "ending"] as const;
 export const ROUTE_IDS = ["labor_coalition", "corporate_exposure"] as const;
+export const LEGACY_DIRECTIVE_IDS = [
+  "emergency_appropriation",
+  "coalition_whip",
+  "protected_channel",
+  "public_confidence_reserve",
+  "industrial_surge",
+  "continuity_freeze_order",
+] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
 export type TrackKey = (typeof TRACK_KEYS)[number];
@@ -26,6 +34,8 @@ export type CardType = (typeof CARD_TYPES)[number];
 export type CardRarity = (typeof CARD_RARITIES)[number];
 export type EchoType = (typeof ECHO_TYPES)[number];
 export type RouteId = (typeof ROUTE_IDS)[number];
+export type LegacyDirectiveId = (typeof LEGACY_DIRECTIVE_IDS)[number];
+export type LegacyDirectiveRarity = "common" | "rare";
 export type ResourcePool = Record<ResourceKey, number>;
 export type TrackPool = Record<TrackKey, number>;
 
@@ -149,6 +159,23 @@ export type Effects = {
   corporationProgress?: number;
   corporationThreat?: number;
   advisors?: Partial<Record<AdvisorId, Partial<AdvisorState>>>;
+};
+
+export type LegacyDirective = {
+  id: LegacyDirectiveId;
+  title: string;
+  rarity: LegacyDirectiveRarity;
+  description: string;
+  benefit: string;
+  warning: string;
+  effects: Effects;
+  preventCorporationResponse?: boolean;
+};
+
+export type LegacyDirectiveRunState = {
+  equippedId: LegacyDirectiveId | null;
+  used: boolean;
+  usedOnDecisionId: string | null;
 };
 
 export type CardEcho =
@@ -386,6 +413,7 @@ export type DeclassifiedReport = {
   runId: string;
   seed: number;
   archetypeId: ArchetypeId;
+  legacyDirective: LegacyDirectiveRunState;
   ending: Ending;
   pivotalDecision: PivotalDecision;
   narrativePivot: PivotalDecision;
@@ -451,13 +479,14 @@ export type CorporationPressure = {
 };
 
 export type GameState = {
-  version: 4;
+  version: 5;
   runId: string;
   seed: number;
   rngState: number;
   turn: number;
   phase: "briefing" | "consulted" | "ended";
   archetypeId: ArchetypeId;
+  legacyDirective: LegacyDirectiveRunState;
   experiment: string | null;
   resources: ResourcePool;
   deposited: ResourcePool;
@@ -496,6 +525,7 @@ export type CreateGameOptions = {
   archetypeId?: ArchetypeId;
   runId?: string;
   experiment?: string;
+  legacyDirectiveId?: LegacyDirectiveId | null;
 };
 
 export type DepositAction = {
@@ -516,6 +546,7 @@ export type MajorAction =
 
 export type CommitOptions = {
   confirmCardAbandonment?: boolean;
+  useLegacyDirective?: boolean;
 };
 
 export type ActionResult = {
@@ -543,11 +574,28 @@ export type ArchiveV0 = {
   routes: Record<RouteId, ArchiveRouteRecord>;
 };
 
+export type LegacyDirectiveDraft = {
+  candidateIds: LegacyDirectiveId[];
+};
+
+export type ArchiveV1 = {
+  version: 1;
+  processedRunIds: string[];
+  cards: Record<string, ArchiveCardRecord>;
+  endings: Partial<Record<EndingId, number>>;
+  routes: Record<RouteId, ArchiveRouteRecord>;
+  clearance: number;
+  rewardRngState: number;
+  unlockedDirectiveIds: LegacyDirectiveId[];
+  pendingDirectiveDraft: LegacyDirectiveDraft | null;
+};
+
 export type ReplayIntent = {
   mode: "same_seed" | "fresh_seed";
   seed: number;
   archetypeId: ArchetypeId;
   experiment: string;
+  legacyDirectiveId: LegacyDirectiveId | null;
 };
 
 export type {

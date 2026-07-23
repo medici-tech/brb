@@ -8,6 +8,10 @@ import {
   getValidActions,
 } from "./engine";
 import {
+  getCompletionPressure,
+  isCorporationResponseDue,
+} from "./progression";
+import {
   ADVISOR_IDS,
   TRACK_KEYS,
   type AdvisorId,
@@ -476,11 +480,23 @@ export function playBotRun(initialState: GameState, bot: BotId): {
     const activeCardId = state.activeCardId;
     const action = chooseBotAction(state, bot);
     const confirmedCardAbandonment = activeCardId !== null && action.type !== "resolve_card";
+    const directiveReady = Boolean(
+      state.legacyDirective.equippedId
+      && !state.legacyDirective.used
+      && action.type !== "activate_brb",
+    );
+    const useLegacyDirective = directiveReady && (
+      state.legacyDirective.equippedId !== "continuity_freeze_order"
+      || isCorporationResponseDue(state, getCompletionPressure(state).tier)
+    );
     actionCounts[getActionCategory(action)] += 1;
     const result = commitAction(
       state,
       action,
-      confirmedCardAbandonment ? { confirmCardAbandonment: true } : {},
+      {
+        ...(confirmedCardAbandonment ? { confirmCardAbandonment: true } : {}),
+        ...(useLegacyDirective ? { useLegacyDirective: true } : {}),
+      },
     );
     if (!result.accepted) throw new Error(result.error ?? "Bot action was rejected.");
     state = result.state;

@@ -1,5 +1,6 @@
 export * from "./bots";
 export * from "./content";
+export * from "./directives";
 export * from "./engine";
 export * from "./echoes";
 export * from "./guidance";

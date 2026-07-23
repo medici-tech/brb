@@ -1,6 +1,10 @@
 import { getActiveCard, getCardChoiceCost } from "./cards";
 import { DEPOSIT_COSTS } from "./content";
 import {
+  getLegacyDirectiveUseError,
+  getResourcesAfterLegacyDirective,
+} from "./directives";
+import {
   RESOURCE_KEYS,
   TRACK_KEYS,
   type CommitOptions,
@@ -77,6 +81,13 @@ export function getActionError(
   options: CommitOptions = {},
 ): string | null {
   if (state.phase === "ended") return "The run has ended.";
+  if (options.useLegacyDirective) {
+    const directiveError = getLegacyDirectiveUseError(state, action);
+    if (directiveError) return directiveError;
+  }
+  const availableResources = options.useLegacyDirective
+    ? getResourcesAfterLegacyDirective(state)
+    : state.resources;
   if (
     state.activeCardId
     && action.type !== "resolve_card"
@@ -88,7 +99,7 @@ export function getActionError(
     if (state.tracks[action.track] >= 100) {
       return "That BRB track is already complete at 100.";
     }
-    if (!canAfford(state.resources, getActionCost(state, action))) {
+    if (!canAfford(availableResources, getActionCost(state, action))) {
       return "The deposit costs more resources than are available.";
     }
   }
@@ -98,19 +109,19 @@ export function getActionError(
     if (!card.choices.some((choice) => choice.id === action.choiceId)) {
       return "That choice does not belong to the active Situation Card.";
     }
-    if (!canAfford(state.resources, getActionCost(state, action))) {
+    if (!canAfford(availableResources, getActionCost(state, action))) {
       return "That Situation choice costs more resources than are available.";
     }
   }
   if (action.type === "counter_corporation") {
     const cost = getActionCost(state, action);
-    if (!canAfford(state.resources, cost)) {
+    if (!canAfford(availableResources, cost)) {
       return `Countering the Corporation requires ${cost.intelligence} Intelligence and ${cost.influence} Influence.`;
     }
   }
   if (
     action.type === "strengthen_faction"
-    && !canAfford(state.resources, getActionCost(state, action))
+    && !canAfford(availableResources, getActionCost(state, action))
   ) {
     return "Strengthening the coalition requires 8 Influence.";
   }
@@ -118,13 +129,13 @@ export function getActionError(
     if (!state.advisors[action.advisorId].active) {
       return "That advisor is no longer active.";
     }
-    if (!canAfford(state.resources, getActionCost(state, action))) {
+    if (!canAfford(availableResources, getActionCost(state, action))) {
       return "Managing an advisor requires 4 Influence.";
     }
   }
   if (
     action.type === "protect_institutions"
-    && !canAfford(state.resources, getActionCost(state, action))
+    && !canAfford(availableResources, getActionCost(state, action))
   ) {
     return "Protecting institutions requires 6 Money and 4 Trust.";
   }
