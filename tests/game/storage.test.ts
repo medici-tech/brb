@@ -52,6 +52,35 @@ describe("versioned browser persistence", () => {
     expect(loadArchive(storage)).toEqual(archive);
   });
 
+  it("migrates Archive v0 knowledge without granting a Directive", () => {
+    const storage = memoryStorage();
+    const legacy = {
+      version: 0,
+      processedRunIds: ["legacy-run"],
+      cards: {
+        budget_shortfall: {
+          encounters: 1,
+          choices: { cut: 1 },
+          outcomes: ["budget_shortfall:cut"],
+        },
+      },
+      endings: { state_collapse: 1 },
+      routes: {
+        labor_coalition: { highestStep: 1, completed: false },
+        corporate_exposure: { highestStep: 0, completed: false },
+      },
+    };
+    storage.setItem(STORAGE_KEYS.legacyArchive, JSON.stringify(legacy));
+
+    expect(loadArchive(storage)).toMatchObject({
+      version: 1,
+      processedRunIds: ["legacy-run"],
+      clearance: 0,
+      unlockedDirectiveIds: [],
+      pendingDirectiveDraft: null,
+    });
+  });
+
   it("fails safely for invalid or obsolete local data", () => {
     const storage = memoryStorage();
     storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify({ version: 1, resources: { money: 100 } }));
@@ -103,6 +132,11 @@ describe("versioned browser persistence", () => {
     storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify(invalidCard));
     expect(loadActiveRun(storage)).toBeNull();
 
+    const invalidDirective = createGame(83);
+    invalidDirective.legacyDirective.equippedId = "not-a-directive" as never;
+    storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify(invalidDirective));
+    expect(loadActiveRun(storage)).toBeNull();
+
     const invalidSource = createGame(82);
     invalidSource.deck.cardSources.silent_partner = "missing-decision";
     storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify(invalidSource));
@@ -117,7 +151,7 @@ describe("versioned browser persistence", () => {
     storage.setItem(STORAGE_KEYS.legacyActiveRun, JSON.stringify(legacy));
 
     const restored = loadActiveRun(storage);
-    expect(restored?.version).toBe(4);
+    expect(restored?.version).toBe(5);
     expect(restored?.lastTurnResolution).toBeNull();
 
     if (!restored) throw new Error("Expected migrated save");

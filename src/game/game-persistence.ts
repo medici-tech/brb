@@ -11,7 +11,7 @@ export function deserializeGame(serialized: string): GameState {
     !parsed
     || typeof parsed !== "object"
     || !("version" in parsed)
-    || (parsed.version !== 3 && parsed.version !== 4)
+    || (parsed.version !== 3 && parsed.version !== 4 && parsed.version !== 5)
   ) {
     throw new Error("Unsupported or invalid BRB save.");
   }
@@ -40,6 +40,22 @@ export function deserializeGame(serialized: string): GameState {
       const report = migrated.report as Record<string, unknown>;
       if (!Number.isInteger(report.rulesVersion)) report.rulesVersion = 0;
       if (typeof report.finalSnapshot === "undefined") report.finalSnapshot = null;
+    }
+  }
+  if (migrated.version === 4) {
+    migrated.version = 5;
+    migrated.legacyDirective = {
+      equippedId: null,
+      used: false,
+      usedOnDecisionId: null,
+    };
+    if (migrated.report && typeof migrated.report === "object") {
+      const report = migrated.report as Record<string, unknown>;
+      report.legacyDirective = {
+        equippedId: null,
+        used: false,
+        usedOnDecisionId: null,
+      };
     }
   }
 

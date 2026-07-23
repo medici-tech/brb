@@ -12,6 +12,7 @@ import type {
   EndingId,
   EndingVariationId,
   MajorAction,
+  LegacyDirectiveId,
   MonthAudit,
   PanicAuditSource,
   RouteId,
@@ -122,11 +123,13 @@ export type SimulationOptions = {
   seed: number;
   bots?: BotId[];
   archetypes?: ArchetypeId[];
+  legacyDirectiveId?: LegacyDirectiveId | null;
 };
 
 export type SimulationReport = {
   runs: number;
   seed: number;
+  legacyDirectiveId: LegacyDirectiveId | null;
   endings: Record<EndingId, number>;
   endingVariations: Record<EndingVariationId, number>;
   victories: number;

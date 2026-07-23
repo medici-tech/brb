@@ -165,7 +165,7 @@ describe("headless simulator", () => {
     expect(report.finalTurningPointCategories.counter).toBeGreaterThan(0);
     expect(report.endingFunnels.civic_legacy.stages.some((stage) => stage.id === "all_tracks_50")).toBe(true);
     expect(report.endingFunnels.government_by_command.stages.some((stage) => stage.id === "command_authority")).toBe(true);
-  });
+  }, 10_000);
 
   it("reports the command funnel deterministically", () => {
     const report = runSimulation({

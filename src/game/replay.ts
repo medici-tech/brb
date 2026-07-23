@@ -1,19 +1,26 @@
 import { ROUTE_DEFINITIONS, SITUATION_CARDS } from "./content";
 import {
+  drawLegacyDirectiveDraft,
+  INITIAL_DIRECTIVE_REWARD_SEED,
+} from "./directives";
+import {
   ADVISOR_IDS,
+  LEGACY_DIRECTIVE_IDS,
   ROUTE_IDS,
+  type ArchiveV1,
   type ArchiveV0,
   type DeclassifiedReport,
   type DecisionRecord,
   type GameState,
+  type LegacyDirectiveId,
   type ReplayIntent,
   type ReportFinalSnapshot,
   type RouteId,
   type UnseenRouteHint,
 } from "./types";
-import { assertArchiveV0 } from "./persisted-data-validation";
+import { assertArchiveV0, assertArchiveV1 } from "./persisted-data-validation";
 
-export const REPORT_RULES_VERSION = 1;
+export const REPORT_RULES_VERSION = 2;
 
 function routeCompletionIsValid(state: GameState, routeId: RouteId): boolean {
   const route = state.routes[routeId];
@@ -230,6 +237,7 @@ export function buildDeclassifiedReport(state: GameState): DeclassifiedReport {
     runId: state.runId,
     seed: state.seed,
     archetypeId: state.archetypeId,
+    legacyDirective: structuredClone(state.legacyDirective),
     ending: structuredClone(state.ending),
     pivotalDecision: narrativePivot,
     narrativePivot,
@@ -245,9 +253,9 @@ export function buildDeclassifiedReport(state: GameState): DeclassifiedReport {
   };
 }
 
-export function createEmptyArchive(): ArchiveV0 {
+export function createEmptyArchive(): ArchiveV1 {
   return {
-    version: 0,
+    version: 1,
     processedRunIds: [],
     cards: {},
     endings: {},
@@ -255,16 +263,42 @@ export function createEmptyArchive(): ArchiveV0 {
       labor_coalition: { highestStep: 0, completed: false },
       corporate_exposure: { highestStep: 0, completed: false },
     },
+    clearance: 0,
+    rewardRngState: INITIAL_DIRECTIVE_REWARD_SEED,
+    unlockedDirectiveIds: [],
+    pendingDirectiveDraft: null,
   };
 }
 
-export function mergeRunIntoArchive(archive: ArchiveV0, state: GameState): ArchiveV0 {
+function createPendingDirectiveDraft(archive: ArchiveV1): void {
+  if (
+    archive.pendingDirectiveDraft
+    || archive.clearance < 3
+    || archive.unlockedDirectiveIds.length >= LEGACY_DIRECTIVE_IDS.length
+  ) {
+    return;
+  }
+  const result = drawLegacyDirectiveDraft(
+    archive.rewardRngState,
+    archive.unlockedDirectiveIds,
+  );
+  archive.rewardRngState = result.rngState;
+  if (result.draft) {
+    archive.clearance -= 3;
+    archive.pendingDirectiveDraft = result.draft;
+  }
+}
+
+export function mergeRunIntoArchive(archive: ArchiveV1, state: GameState): ArchiveV1 {
   if (!state.ending || !state.report) throw new Error("Only completed runs can enter the Archive.");
   if (archive.processedRunIds.includes(state.runId)) return structuredClone(archive);
 
   const next = structuredClone(archive);
   next.processedRunIds.push(state.runId);
   next.endings[state.ending.id] = (next.endings[state.ending.id] ?? 0) + 1;
+  if (next.unlockedDirectiveIds.length < LEGACY_DIRECTIVE_IDS.length) {
+    next.clearance += state.ending.victory ? 3 : 1;
+  }
 
   for (const encounter of state.cardHistory) {
     const existing = next.cards[encounter.cardId] ?? { encounters: 0, choices: {}, outcomes: [] };
@@ -286,6 +320,24 @@ export function mergeRunIntoArchive(archive: ArchiveV0, state: GameState): Archi
     );
     if (routeCompletionIsValid(state, routeId)) next.routes[routeId].completed = true;
   }
+  createPendingDirectiveDraft(next);
+  return next;
+}
+
+export function claimLegacyDirective(
+  archive: ArchiveV1,
+  directiveId: LegacyDirectiveId,
+): ArchiveV1 {
+  if (!archive.pendingDirectiveDraft?.candidateIds.includes(directiveId)) {
+    throw new Error("That Legacy Directive is not in the pending reward draft.");
+  }
+  if (archive.unlockedDirectiveIds.includes(directiveId)) {
+    throw new Error("That Legacy Directive is already unlocked.");
+  }
+  const next = structuredClone(archive);
+  next.unlockedDirectiveIds.push(directiveId);
+  next.pendingDirectiveDraft = null;
+  createPendingDirectiveDraft(next);
   return next;
 }
 
@@ -298,15 +350,36 @@ export function createReplayIntent(
     seed: mode === "same_seed" ? report.seed : (report.seed + 0x9e3779b9) >>> 0,
     archetypeId: report.archetypeId,
     experiment: report.suggestedExperiment,
+    legacyDirectiveId: report.legacyDirective.equippedId,
   };
 }
 
-export function serializeArchive(archive: ArchiveV0): string {
+export function serializeArchive(archive: ArchiveV1): string {
   return JSON.stringify(archive);
 }
 
-export function deserializeArchive(serialized: string): ArchiveV0 {
+function migrateArchiveV0(archive: ArchiveV0): ArchiveV1 {
+  return {
+    ...structuredClone(archive),
+    version: 1,
+    clearance: 0,
+    rewardRngState: INITIAL_DIRECTIVE_REWARD_SEED,
+    unlockedDirectiveIds: [],
+    pendingDirectiveDraft: null,
+  };
+}
+
+export function deserializeArchive(serialized: string): ArchiveV1 {
   const parsed: unknown = JSON.parse(serialized);
-  assertArchiveV0(parsed);
+  if (
+    parsed
+    && typeof parsed === "object"
+    && "version" in parsed
+    && parsed.version === 0
+  ) {
+    assertArchiveV0(parsed);
+    return migrateArchiveV0(parsed);
+  }
+  assertArchiveV1(parsed);
   return parsed;
 }

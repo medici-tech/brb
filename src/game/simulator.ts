@@ -319,7 +319,12 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
       ? fallbackArchetype
       : (PREFERRED_ARCHETYPES[bot] ?? fallbackArchetype);
     const seed = (options.seed + Math.imul(index + 1, 2654435761)) >>> 0;
-    const result = playBotRun(createGame({ seed, archetypeId: archetype, runId: `sim-${index}-${seed}` }), bot);
+    const result = playBotRun(createGame({
+      seed,
+      archetypeId: archetype,
+      runId: `sim-${index}-${seed}`,
+      legacyDirectiveId: options.legacyDirectiveId ?? null,
+    }), bot);
     const ending = result.state.ending;
     if (!ending) throw new Error("A completed simulation did not produce an ending.");
 
@@ -563,6 +568,7 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
   return {
     runs: options.runs,
     seed: options.seed,
+    legacyDirectiveId: options.legacyDirectiveId ?? null,
     endings,
     victories,
     averageMonths: Number((totalMonths / options.runs).toFixed(2)),

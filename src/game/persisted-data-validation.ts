@@ -1,7 +1,9 @@
 import { ARCHETYPES, ENDING_COPY, SITUATION_CARDS } from "./content";
 import {
   ADVISOR_IDS,
+  LEGACY_DIRECTIVE_IDS,
   ROUTE_IDS,
+  type ArchiveV1,
   type ArchiveV0,
   type DeclassifiedReport,
   type ReplayIntent,
@@ -36,6 +38,14 @@ const CARD_CHOICES = new Map(
     new Set([...card.choices.map((choice) => choice.id), "ignored", "suppressed"]),
   ]),
 );
+
+function isLegacyDirectiveRunState(value: unknown): boolean {
+  return isRecord(value)
+    && (value.equippedId === null || isOneOf(value.equippedId, LEGACY_DIRECTIVE_IDS))
+    && isBoolean(value.used)
+    && (value.usedOnDecisionId === null || isNonEmptyString(value.usedOnDecisionId))
+    && (value.used ? value.equippedId !== null && value.usedOnDecisionId !== null : value.usedOnDecisionId === null);
+}
 
 export function isEnding(value: unknown): boolean {
   return isRecord(value)
@@ -85,6 +95,7 @@ export function isDeclassifiedReport(
     || !isNonEmptyString(value.runId)
     || !isInteger(value.seed, 0)
     || !isOneOf(value.archetypeId, ARCHETYPE_IDS)
+    || !isLegacyDirectiveRunState(value.legacyDirective)
     || !isEnding(value.ending)
     || !isPivot(value.pivotalDecision)
     || !isPivot(value.narrativePivot)
@@ -140,16 +151,75 @@ export function isArchiveV0(value: unknown): value is ArchiveV0 {
   );
 }
 
+export function isArchiveV1(value: unknown): value is ArchiveV1 {
+  if (
+    !isRecord(value)
+    || value.version !== 1
+    || !isStringArray(value.processedRunIds, isNonEmptyString)
+    || new Set(value.processedRunIds).size !== value.processedRunIds.length
+    || !isRecord(value.cards)
+    || !isRecord(value.endings)
+    || !hasRecordKeys(value.routes, ROUTE_IDS, (route) =>
+      isRecord(route)
+      && isInteger(route.highestStep, 0)
+      && isBoolean(route.completed),
+    )
+    || !isInteger(value.clearance, 0)
+    || !isInteger(value.rewardRngState, 0)
+    || !isStringArray(value.unlockedDirectiveIds, (id) =>
+      isOneOf(id, LEGACY_DIRECTIVE_IDS),
+    )
+    || new Set(value.unlockedDirectiveIds).size !== value.unlockedDirectiveIds.length
+    || !(
+      value.pendingDirectiveDraft === null
+      || (
+        isRecord(value.pendingDirectiveDraft)
+        && isStringArray(value.pendingDirectiveDraft.candidateIds, (id) =>
+          isOneOf(id, LEGACY_DIRECTIVE_IDS)
+          && !(value.unlockedDirectiveIds as unknown[]).includes(id),
+        )
+        && value.pendingDirectiveDraft.candidateIds.length > 0
+        && value.pendingDirectiveDraft.candidateIds.length <= 3
+        && new Set(value.pendingDirectiveDraft.candidateIds).size
+          === value.pendingDirectiveDraft.candidateIds.length
+      )
+    )
+  ) {
+    return false;
+  }
+  const cardsValid = Object.entries(value.cards).every(([cardId, record]) =>
+    CARD_ID_SET.has(cardId)
+    && isRecord(record)
+    && isInteger(record.encounters, 0)
+    && isRecord(record.choices)
+    && Object.entries(record.choices).every(([choiceId, count]) =>
+      CARD_CHOICES.get(cardId)?.has(choiceId) === true && isInteger(count, 0),
+    )
+    && isStringArray(record.outcomes),
+  );
+  return cardsValid && Object.entries(value.endings).every(
+    ([endingId, count]) => ENDING_IDS.includes(endingId) && isInteger(count, 0),
+  );
+}
+
 export function isReplayIntent(value: unknown): value is ReplayIntent {
   return isRecord(value)
     && isOneOf(value.mode, ["same_seed", "fresh_seed"] as const)
     && isInteger(value.seed, 0)
     && isOneOf(value.archetypeId, ARCHETYPE_IDS)
-    && isNonEmptyString(value.experiment);
+    && isNonEmptyString(value.experiment)
+    && (value.legacyDirectiveId === null
+      || isOneOf(value.legacyDirectiveId, LEGACY_DIRECTIVE_IDS));
 }
 
 export function assertArchiveV0(value: unknown): asserts value is ArchiveV0 {
   if (!isArchiveV0(value)) {
+    throw new Error("Unsupported or invalid BRB Archive.");
+  }
+}
+
+export function assertArchiveV1(value: unknown): asserts value is ArchiveV1 {
+  if (!isArchiveV1(value)) {
     throw new Error("Unsupported or invalid BRB Archive.");
   }
 }
