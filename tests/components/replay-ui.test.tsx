@@ -104,6 +104,31 @@ describe("campaign replay UI", () => {
     );
   });
 
+  it("explains that activation expires an active card without resolving its ignored outcome", () => {
+    const state = createGame(13);
+    state.activeCardId = "budget_shortfall";
+    state.tracks = {
+      engineering: 50,
+      access: 50,
+      legitimacy: 50,
+      stability: 50,
+    };
+    const onCommit = vi.fn();
+    render(<CampaignScreen state={state} error={null} onCommit={onCommit} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /activate brb/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(/expires unresolved when the brb activates/i);
+    expect(dialog).toHaveTextContent(/ignored consequence and delayed echo do not resolve/i);
+    expect(dialog).not.toHaveTextContent(/resolves as ignored before this commitment/i);
+
+    fireEvent.click(screen.getByRole("button", { name: /expire file and activate/i }));
+    expect(onCommit).toHaveBeenCalledWith(
+      { type: "activate_brb" },
+      { confirmCardAbandonment: true },
+    );
+  });
+
   it("shows exact immediate changes while keeping delayed details classified", () => {
     const state = createGame(12);
     state.activeCardId = "budget_shortfall";

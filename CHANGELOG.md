@@ -14,6 +14,8 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 - Versioned Declassified Reports with final-state snapshots and safe legacy loading.
 - Runtime validation for saved campaigns, reports, replay intent, and Archive data.
 - A turn-transition explanation that attributes the latest consequences to their causes.
+- An ordered post-commitment aftermath that shows improvement, proven strategic connections,
+  meaningful milestones, and the pressure that frames the next decision.
 - Deterministic Chromium coverage for the campaign, reports, replay, Archive, keyboard use,
   narrow layouts, reduced motion, and automated accessibility scans.
 - Self-hosted IBM Plex Sans, IBM Plex Mono, and Barlow Condensed fonts with OFL licenses.
@@ -33,6 +35,9 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 - Corporation strategy tie-breaking consumes independent seeded random values.
 - Invalid nested persisted data fails closed instead of being trusted after a shallow cast.
 - Low-contrast text and keyboard access for horizontally scrollable mobile status strips.
+- Commitment confirmation dialogs now close before the next React state renders, preventing
+  a stale confirmation from covering the aftermath.
+- Long aftermath headings and milestone text remain contained in narrow layouts.
 
 ### Security
 

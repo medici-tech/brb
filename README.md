@@ -23,6 +23,7 @@ Open `http://localhost:3000` after `npm run dev`. The production command creates
 
 - `src/game/content.ts`: advisors, archetypes, deposits, Corporation moves, endings, routes, and Situation Cards
 - `src/game/engine.ts`: game state and turn resolution
+- `src/game/turn-beats.ts`: derived improvement, discovery, milestone, and problem summaries for the post-commitment aftermath
 - `src/game/replay.ts`: pivotal reports, replay intents, and Archive merging
 - `src/game/storage.ts`: versioned browser persistence adapter
 - `src/game/bots.ts`: simple automated strategies

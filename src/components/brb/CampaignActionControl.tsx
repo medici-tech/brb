@@ -126,7 +126,11 @@ export function CampaignActionControl({
           {ignoresActiveCard ? (
             <section className="confirmation-warning">
               <strong>Active Situation</strong>
-              <p>“{activeCardTitle}” resolves as ignored before this commitment.</p>
+              <p>
+                {activatesBrb
+                  ? `“${activeCardTitle}” expires unresolved when the BRB activates. Its ignored consequence and Delayed Echo do not resolve.`
+                  : `“${activeCardTitle}” resolves as ignored before this commitment.`}
+              </p>
             </section>
           ) : null}
         </>

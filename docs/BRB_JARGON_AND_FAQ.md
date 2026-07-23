@@ -313,6 +313,21 @@ Each month has a seeded 55% card-appearance check. Passing the check does not gu
 | A Protest at Gate Seven | `protest_spark` | Crisis | Common | Legitimacy 12+; starts Labor Coalition |
 | The National March | `national_march` | Crisis | Rare follow-up | Labor Coalition finale; Month 5+ |
 
+## Aftermath terms
+
+| Player term / code ID | Meaning |
+| --- | --- |
+| Aftermath beat / `TurnBeat` | Derived presentation summary shown after a commitment; it is not saved and does not change rules |
+| Improvement beat / `improvement` | Positive immediate meter movement caused by the commitment |
+| Strategic connection / `discovery` | A route, doctrine, advisor memory, or archetype interaction already proven by recorded history |
+| Milestone beat / `milestone` | First permanent deposit, track readiness, route opening/completion, or activation readiness |
+| New problem beat / `problem` | Recorded adverse movement or a newly crossed Completion Pressure tier that frames the next decision |
+
+Aftermath beats are computed by `deriveTurnBeats` from the final `GameState`,
+`TurnResolution`, decision provenance, and route history. They never add bonuses,
+change odds, reveal classified future Echo content, or create a second rules engine.
+The expandable exact audit remains the authoritative source-by-source account of the month.
+
 ## Routes and chains
 
 | Route | Code ID | Card chain | Meaning |
