@@ -270,8 +270,12 @@ function scoreAction(state: GameState, action: MajorAction, bot: BotId): number 
   return resourceNeed * 0.28 + crisisBonus + (bot === "defensive" ? 6 : 0);
 }
 
-export function chooseBotAction(state: GameState, bot: BotId): MajorAction {
-  const valid = getValidActions(state);
+export function chooseBotAction(
+  state: GameState,
+  bot: BotId,
+  useLegacyDirective = false,
+): MajorAction {
+  const valid = getValidActions(state, { useLegacyDirective });
   if (valid.length === 0) throw new Error("Bot has no valid actions in an active run.");
   if (bot === "long_horizon") return chooseLongHorizonAction(state, valid);
 
@@ -478,17 +482,18 @@ export function playBotRun(initialState: GameState, bot: BotId): {
     }
 
     const activeCardId = state.activeCardId;
-    const action = chooseBotAction(state, bot);
-    const confirmedCardAbandonment = activeCardId !== null && action.type !== "resolve_card";
-    const directiveReady = Boolean(
+    const directiveReadyForSelection = Boolean(
       state.legacyDirective.equippedId
       && !state.legacyDirective.used
-      && action.type !== "activate_brb",
+      && (
+        state.legacyDirective.equippedId !== "continuity_freeze_order"
+        || isCorporationResponseDue(state, getCompletionPressure(state).tier)
+      )
     );
-    const useLegacyDirective = directiveReady && (
-      state.legacyDirective.equippedId !== "continuity_freeze_order"
-      || isCorporationResponseDue(state, getCompletionPressure(state).tier)
-    );
+    const action = chooseBotAction(state, bot, directiveReadyForSelection);
+    const confirmedCardAbandonment = activeCardId !== null && action.type !== "resolve_card";
+    const useLegacyDirective = directiveReadyForSelection
+      && action.type !== "activate_brb";
     actionCounts[getActionCategory(action)] += 1;
     const result = commitAction(
       state,

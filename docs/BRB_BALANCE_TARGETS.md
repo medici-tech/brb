@@ -20,7 +20,7 @@ Phase 2 balance validation is in progress. The implemented rules currently use:
 - Situation choices declare mandatory costs separately from floor-clamped resource damage; unaffordable choices cannot resolve
 - Accepted delay, replacement contractors, closed oversight, false plans, parallel contractors, Capacity drift, and emergency rule have deterministic downstream mechanics
 
-The accepted activation-reachability cadence produced 8.34% activations at seed `20260715` and 8.02% at alternate seed `20260716`, using 5,000 runs per block. The blocks respectively reached all-track readiness in 1,351 and 1,386 runs, compared with 417 and 401 completed activations. State Collapse remained 40.38–40.76%, Corporation capture remained 51.22–51.28%, and the median remained 22 months. This accepts the automated reachability target; human fun, loss fairness, and replay desire remain unverified.
+The accepted activation-reachability cadence originally produced 8.34% activations at seed `20260715` and 8.02% at alternate seed `20260716`, using 5,000 runs per block. A later correctness audit changed affordability ordering without changing that cadence; the current 3,000-run seed-`20260715` no-Directive checkpoint is 8.50% activation, 40.30% State Collapse, 51.20% Corporation capture, and a 22-month median. This remains inside the automated reachability target; human fun, loss fairness, and replay desire remain unverified.
 
 These results establish reachability, not final balance approval. Activation remains an achievement, Civic Legacy remains rare, and results vary by strategy. The sections below preserve the experiment history in chronological order. Statements inside explicitly historical checkpoints describe what was true at that checkpoint, not the current project status.
 
@@ -147,6 +147,43 @@ Prototype runs use seeded randomness, three archetypes, and Archive v1 Legacy Di
 The no-Directive run remains the balance baseline. Evaluate each Directive as the only changed lever in a 5,000-run fixed-seed comparison beginning with `20260715`; reject or retune any card that moves overall activation outside the 8–12% evaluation band or creates clear archetype dominance. Directive rarity controls reward frequency and specialization, not an approved power tier. Levels remain out of scope.
 
 For the full game, continue evaluating horizontal unlocks such as archetypes, cards, scenarios, advisors, and mutators separately from baseline balance.
+
+### Initial Legacy Directive fixed-seed checkpoint — 2026-07-23
+
+The first isolated 5,000-run block used seed `20260715` and the same bot/archetype rotation for every comparison. Bots attach Common Directives to their first non-activation commitment. They hold Continuity Freeze Order until a Corporation response is actually due, because spending it earlier pays the drawback without exercising its stated benefit.
+
+| Loadout | Activations | Rate | Decision |
+| --- | ---: | ---: | --- |
+| No Directive | 453 | 9.06% | Baseline |
+| Emergency Appropriation (+12 Money, +4 Stress) | 569 | 11.38% | Retain for human playtest |
+| Coalition Whip (+10 Influence, +5 Panic) | 606 | 12.12% | Rejected; above ceiling |
+| Coalition Whip (+8 Influence, +5 Panic) | 586 | 11.72% | Accepted retune |
+| Protected Channel (+10 Intelligence, +5 Threat) | 494 | 9.88% | Retain for human playtest |
+| Public Confidence Reserve (+10 Trust, +4 Progress) | 450 | 9.00% | Retain for human playtest |
+| Industrial Surge (+10 Capacity, −5 Institutions) | 604 | 12.08% | Rejected; above ceiling |
+| Industrial Surge (+8 Capacity, −5 Institutions) | 590 | 11.80% | Accepted retune |
+| Continuity Freeze Order, spent immediately | 389 | 7.78% | Invalid usage policy; benefit often did not fire |
+| Continuity Freeze Order, held until response due | 489 | 9.78% | Accepted usage policy |
+
+Every retained version stayed inside the 8–12% overall evaluation band under the initial bot policy. These comparisons predate both the sequential-affordability correction and Directive-aware bot candidate validation described below. The authored retunes remain in place, but their balance status is provisional until each current Directive receives a fresh isolated 5,000-run comparison against the corrected no-Directive baseline. The initial comparisons also do not prove human timing, perceived fairness, rarity value, or archetype parity.
+
+### Rules and simulation-bot audit checkpoint — 2026-07-23
+
+The rules audit found that a confirmed ignored Situation resolved before the selected commitment, but affordability had been checked against the pre-ignore resources. This could accept a commitment whose cost became unaffordable after the ignored penalty. The correction validates the exact resolution order: ignored or suppressed outcome, optional Legacy Directive, then commitment. No authored costs, effects, starting resources, card odds, deposit values, or Corporation rules changed.
+
+The first 3,000-run no-Directive block used seed `20260715`. The subsequent bot audit found that bots selected from a no-Directive candidate list and only attached a resource Directive afterward, preventing them from considering commitments the card made affordable. Candidate validation now includes an intended equipped Directive while keeping activation available without spending it. A second no-Directive block with the same seed reproduced every reported value exactly, confirming that the bot correction is isolated from the baseline.
+
+| Metric | Prior accepted seed block | Post-rules audit | Post-bot audit |
+| --- | ---: | ---: | ---: |
+| Activations | 266 (8.87%) | 255 (8.50%) | 255 (8.50%) |
+| Civic Legacy | 26 | 25 | 25 |
+| State Collapse | 1,211 (40.37%) | 1,209 (40.30%) | 1,209 (40.30%) |
+| Corporate Capture | 1,523 (50.77%) | 1,536 (51.20%) | 1,536 (51.20%) |
+| Average / median months | 22.67 / 22 | 22.87 / 22 | 22.87 / 22 |
+| Cards presented / actively resolved per run | 12.51 / 8.58 | 12.61 / 8.85 | 12.61 / 8.85 |
+| All tracks ready | 860 | 795 | 795 |
+
+The sequential-affordability correction moves activation down 0.37 percentage points but remains inside the 8–12% evaluation band. It also increases active card resolution, which is consistent with bots no longer abandoning a file for a commitment they cannot afford after the ignored penalty. Treat the new 255-activation block as the current seed-`20260715` no-Directive checkpoint. Do not compensate with another balance lever before human playtests establish whether the change improves cost comprehension.
 
 ## Endings
 

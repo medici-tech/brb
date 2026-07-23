@@ -13,6 +13,17 @@ export function createActiveRunFixture(): GameState {
   return state;
 }
 
+export function createDirectiveRunFixture(): GameState {
+  const state = createGame({
+    seed: FIXTURE_SEED,
+    archetypeId: "technocrat",
+    runId: "browser-directive-run",
+    legacyDirectiveId: "emergency_appropriation",
+  });
+  state.activeCardId = null;
+  return state;
+}
+
 export function createActivationReadyFixture(): GameState {
   const state = createGame({
     seed: FIXTURE_SEED,

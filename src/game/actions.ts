@@ -4,6 +4,7 @@ import {
   getLegacyDirectiveUseError,
   getResourcesAfterLegacyDirective,
 } from "./directives";
+import { clamp } from "./state-helpers";
 import {
   RESOURCE_KEYS,
   TRACK_KEYS,
@@ -13,6 +14,19 @@ import {
   type ResourcePool,
   type TrackKey,
 } from "./types";
+
+function getResourcesAfterIgnoredSituation(state: GameState): ResourcePool {
+  const resources = { ...state.resources };
+  if (!state.activeCardId || state.suppressNextIgnoredCard) return resources;
+
+  const ignoredResourceEffects = getActiveCard(state)?.ignoredOutcome.effects.resources ?? {};
+  for (const resource of RESOURCE_KEYS) {
+    resources[resource] = clamp(
+      resources[resource] + (ignoredResourceEffects[resource] ?? 0),
+    );
+  }
+  return resources;
+}
 
 export function getDepositCost(
   track: TrackKey,
@@ -85,9 +99,13 @@ export function getActionError(
     const directiveError = getLegacyDirectiveUseError(state, action);
     if (directiveError) return directiveError;
   }
+  const resourcesAfterIgnoredSituation =
+    state.activeCardId && action.type !== "resolve_card"
+      ? getResourcesAfterIgnoredSituation(state)
+      : state.resources;
   const availableResources = options.useLegacyDirective
-    ? getResourcesAfterLegacyDirective(state)
-    : state.resources;
+    ? getResourcesAfterLegacyDirective(state, resourcesAfterIgnoredSituation)
+    : resourcesAfterIgnoredSituation;
   if (
     state.activeCardId
     && action.type !== "resolve_card"

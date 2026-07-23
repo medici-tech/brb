@@ -92,8 +92,11 @@ export function getLegacyDirectiveUseError(
   return null;
 }
 
-export function getResourcesAfterLegacyDirective(state: GameState): ResourcePool {
-  const resources = { ...state.resources };
+export function getResourcesAfterLegacyDirective(
+  state: GameState,
+  startingResources: ResourcePool = state.resources,
+): ResourcePool {
+  const resources = { ...startingResources };
   const effects = getEquippedDirective(state)?.effects.resources ?? {};
   for (const resource of RESOURCE_KEYS) {
     resources[resource] = clamp(resources[resource] + (effects[resource] ?? 0));

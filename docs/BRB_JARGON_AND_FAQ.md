@@ -405,12 +405,12 @@ An **ending variation** changes the title and interpretation of a victory. It is
 | Unseen Route | Classified or partial clue about a route the player did not complete |
 | Suggested experiment | Concrete next-run choice proposed by the report |
 | Intelligence Archive | Local knowledge record of encountered cards, witnessed choice labels, encounter counts, endings, and route progress |
-| Knowledge-only persistence | Archive knowledge carries between runs, but starting power does not |
+| Bounded power persistence | The Archive carries knowledge plus permanently unlocked Legacy Directive options; it does not raise base stats or stack upgrades |
 | Encounter | One appearance of a card in a run |
 | Choice witnessed | A card choice recorded in the Archive |
 | Replay divergence | The first decision where a same-seed replay differs from its source run |
 
-The Archive does not unlock resources, improve starting values, or change card odds.
+The Archive does not unlock resources, improve starting values, or change card odds. Its only current power reward is the optional, one-use Legacy Directive equipped before a campaign.
 
 ## FAQ
 
@@ -432,7 +432,7 @@ Yes. A card choice is the month's major commitment.
 
 ### Can I ignore a Situation Card?
 
-Yes, but only with confirmation. Its ignored outcome resolves first, then the selected non-card commitment resolves in the same month. Activation expires the card instead.
+Yes, but only with confirmation. Its ignored outcome resolves first, then the selected non-card commitment resolves in the same month. The engine checks that you can still afford the commitment after that ignored outcome; a Legacy Directive, when selected, applies between those two steps. Activation expires the card instead.
 
 ### Are Rare cards stronger than Common cards?
 
@@ -480,7 +480,7 @@ Yes. An advisor becomes inactive when Loyalty falls below their visible breaking
 
 ### Does the Intelligence Archive make later runs easier?
 
-Only through player knowledge. It does not grant power, resources, better odds, or easier starting values.
+Yes, but only through one deliberately bounded exception: an unlocked Legacy Directive may be equipped and used once in a campaign. The Archive does not grant extra starting resources, higher base values, better card odds, Directive levels, or multiple equipment slots.
 
 ### What does “echo” mean?
 

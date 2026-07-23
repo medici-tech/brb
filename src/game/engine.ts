@@ -685,14 +685,28 @@ export function commitAction(
   return { state: next, accepted: true };
 }
 
-export function getValidActions(state: GameState): MajorAction[] {
+export function getValidActions(
+  state: GameState,
+  options: CommitOptions = {},
+): MajorAction[] {
   if (state.phase === "ended") return [];
   const actions: MajorAction[] = [];
+  const getCandidateOptions = (candidate: MajorAction): CommitOptions =>
+    candidate.type === "activate_brb"
+      ? {
+          ...options,
+          confirmCardAbandonment: true,
+          useLegacyDirective: false,
+        }
+      : {
+          ...options,
+          confirmCardAbandonment: true,
+        };
   const card = getActiveCard(state);
   if (card) {
     for (const choice of card.choices) {
       const candidate: MajorAction = { type: "resolve_card", choiceId: choice.id };
-      if (!getActionError(state, candidate, { confirmCardAbandonment: true })) {
+      if (!getActionError(state, candidate, getCandidateOptions(candidate))) {
         actions.push(candidate);
       }
     }
@@ -700,16 +714,16 @@ export function getValidActions(state: GameState): MajorAction[] {
   for (const track of TRACK_KEYS) {
     for (const size of ["standard", "large"] as const) {
       const candidate: MajorAction = { type: "deposit", track, size };
-      if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
+      if (!getActionError(state, candidate, getCandidateOptions(candidate))) actions.push(candidate);
     }
   }
   for (const predictedStrategy of CORPORATION_STRATEGIES) {
     const candidate: MajorAction = { type: "counter_corporation", predictedStrategy };
-    if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
+    if (!getActionError(state, candidate, getCandidateOptions(candidate))) actions.push(candidate);
   }
   for (const advisorId of ADVISOR_IDS) {
     const candidate: MajorAction = { type: "manage_advisor", advisorId };
-    if (!getActionError(state, candidate, { confirmCardAbandonment: true })) actions.push(candidate);
+    if (!getActionError(state, candidate, getCandidateOptions(candidate))) actions.push(candidate);
   }
   for (const resource of RESOURCE_KEYS) actions.push({ type: "recover_resource", resource });
   for (const action of [
@@ -717,7 +731,7 @@ export function getValidActions(state: GameState): MajorAction[] {
     { type: "protect_institutions" },
     { type: "activate_brb" },
   ] as MajorAction[]) {
-    if (!getActionError(state, action, { confirmCardAbandonment: true })) actions.push(action);
+    if (!getActionError(state, action, getCandidateOptions(action))) actions.push(action);
   }
   return actions;
 }

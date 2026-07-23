@@ -49,7 +49,7 @@ Add the replay engine before changing balance values. Replace Events with the 15
 - Explicit route transition history with open, close, reopen, and completion provenance
 - Targeted simulator strategies, ending funnels, card-outcome classifications, and three pivot categories
 
-The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Determinism, route integrity, decision provenance, card coverage, stable reports, versioned persistence, browser tests, and the static build now pass. Legacy Directive balance is a new Phase 2 question and must remain separate from the accepted no-Directive baseline.
+The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Determinism, route integrity, decision provenance, card coverage, stable reports, versioned persistence, browser tests, and the static build now pass. A July 23 rules audit corrected affordability after ignored Situation penalties, and an identical 3,000-run rerun confirmed that Directive-aware bot candidate validation does not alter the no-Directive baseline. Legacy Directive balance remains a separate Phase 2 question.
 
 ## Phase 2: Balance prototype — In progress
 

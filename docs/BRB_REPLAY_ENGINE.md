@@ -49,7 +49,7 @@ Each month makes a seeded 55% appearance roll. An eligible card must:
 
 The engine then performs a seeded weighted choice. An archetype multiplies the weight of its favored card type by 1.25. Identical seed and decisions therefore produce identical cards, history, and reports.
 
-An active card must be resolved or explicitly abandoned. Choosing a non-card commitment first opens a confirmation; accepting applies the card's ignored or suppressed outcome and then performs the selected commitment in the same turn. Activation instead preserves the card's existing `expired` classification. Bots use deterministic presentation-count policies, and always resolve follow-up cards, so their card tempo remains reproducible without turn-number intervals.
+An active card must be resolved or explicitly abandoned. Choosing a non-card commitment first opens a confirmation; accepting applies the card's ignored or suppressed outcome and then performs the selected commitment in the same turn. Affordability is checked in that same order, including any equipped Directive used between the ignored outcome and the commitment, so an accepted action cannot spend resources already lost to the ignored file. Activation instead preserves the card's existing `expired` classification. Bots use deterministic presentation-count policies, and always resolve follow-up cards, so their card tempo remains reproducible without turn-number intervals.
 
 ## Echoes and provenance
 
@@ -170,7 +170,7 @@ Archive v1 preserves discovered knowledge:
 
 It also stores Clearance, the deterministic Directive reward RNG state, unlocked Directive IDs, and at most one pending draft. Completed losses earn 1 Clearance and victories earn 3. At 3 points the Archive spends 3 and draws up to three still-locked Directives without replacement; Common entries receive four weight units and Rare entries one. Claiming one candidate permanently unlocks it.
 
-The player may equip one unlocked Directive or choose no Directive when creating a run. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
+The player may equip one unlocked Directive or choose no Directive when creating a run. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. Simulation bots validate candidate affordability with the Directive they intend to attach, rather than selecting from a no-Directive action list and adding the card afterward. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
 
 ## Browser persistence
 
@@ -234,7 +234,7 @@ All replay-layer acceptance checks pass:
 - Important card choices are exercised by at least one strategy
 - Advisor memories, archetype abilities, liabilities, routes, and ending variations operate in the engine
 - Every ending creates a stable pivotal decision, hint, and experiment
-- Archive merging is idempotent, reveals only knowledge, and grants no power
+- Archive merging is idempotent; it reveals knowledge and grants only the bounded, optional Legacy Directive progression documented above
 - Browser tests cover card choices, immediate consequences, hidden echo details, silhouettes, report rendering, and both replay buttons
 - TypeScript, unit/component tests, the static build, and the 10,000-run simulator passed before Phase 2 tuning
 

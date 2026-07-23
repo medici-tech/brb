@@ -410,6 +410,33 @@ describe("major commitments", () => {
     expect(confirmed.state.decisionHistory.at(-1)?.category).toBe("recover");
   });
 
+  it("checks affordability after the ignored Situation resolves", () => {
+    const initial = createGame(75);
+    initial.activeCardId = "budget_shortfall";
+    initial.resources.money = 12;
+    initial.resources.trust = 20;
+    initial.cardHistory.push({
+      cardId: "budget_shortfall",
+      turn: initial.turn,
+      choiceId: null,
+      outcomeId: null,
+      causedByDecisionId: null,
+      status: "presented",
+    });
+    const before = structuredClone(initial);
+
+    const rejected = commitAction(
+      initial,
+      { type: "protect_institutions" },
+      { confirmCardAbandonment: true },
+    );
+
+    expect(rejected.accepted).toBe(false);
+    expect(rejected.error).toMatch(/requires 6 Money and 4 Trust/i);
+    expect(rejected.state).toEqual(before);
+    expect(initial).toEqual(before);
+  });
+
   it("blocks the Corporation when the player counters the predicted strategy", () => {
     const initial = createGame(5);
     initial.activeCardId = null;

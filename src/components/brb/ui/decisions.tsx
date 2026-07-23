@@ -119,7 +119,7 @@ export function ConfirmActionDialog({ trigger, title, description, summary, conf
           <DialogDescription className="pt-2 text-sm leading-6 text-muted-foreground">{description}</DialogDescription>
         </DialogHeader>
         {summary ? <div className="confirmation-summary">{summary}</div> : null}
-        <DialogFooter className="mt-3 min-w-0">
+        <DialogFooter className="mt-3 min-w-0 flex-wrap">
           <DialogClose asChild><Button variant="quiet">{cancelLabel}</Button></DialogClose>
           {secondaryConfirmAction ? (
             <DialogClose asChild>

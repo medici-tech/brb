@@ -170,7 +170,7 @@ export function CampaignActionControl({
       )}
       {...(directiveAvailable && directive ? {
         secondaryConfirmAction: {
-          label: `Authorize with ${directive.title}`,
+          label: "Use Legacy Directive",
           disabled: Boolean(forceDisabled || directiveError),
           onSelect: () => onCommit(action, directiveOptions),
         },

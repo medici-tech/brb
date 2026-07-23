@@ -96,4 +96,38 @@ describe("replay-aware bot policy", () => {
       confirmedCardAbandonment: true,
     });
   });
+
+  it("considers commitments made affordable by an equipped resource Directive", () => {
+    const state = createGame({
+      seed: 83,
+      archetypeId: "technocrat",
+      legacyDirectiveId: "emergency_appropriation",
+    });
+    state.activeCardId = null;
+    state.resources = {
+      money: 6,
+      influence: 100,
+      intelligence: 100,
+      trust: 100,
+      capacity: 100,
+    };
+
+    expect(chooseBotAction(state, "engineering_first")).toEqual({
+      type: "recover_resource",
+      resource: "money",
+    });
+    expect(chooseBotAction(state, "engineering_first", true)).toEqual({
+      type: "deposit",
+      track: "engineering",
+      size: "large",
+    });
+
+    const run = playBotRun(state, "engineering_first");
+    expect(run.trace[0]?.action).toEqual({
+      type: "deposit",
+      track: "engineering",
+      size: "large",
+    });
+    expect(run.state.legacyDirective.used).toBe(true);
+  });
 });

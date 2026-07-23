@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { deserializeGame, STORAGE_KEYS } from "../../src/game";
 import {
   createActiveRunFixture,
+  createDirectiveRunFixture,
   FIXTURE_SEED,
   installActiveRun,
   openReportFromReadyRun,
@@ -47,9 +48,35 @@ test("consults, commits, explains the consequence, and resumes the save", async 
   await expect(page.getByRole("button", { name: /Resume file · Campaign Month 2/ })).toBeVisible();
 });
 
+test("uses an equipped Legacy Directive with one normal commitment", async ({ page }) => {
+  await installActiveRun(page, createDirectiveRunFixture());
+  await resumeInstalledRun(page);
+
+  await expect(page.getByRole("heading", { name: "Emergency Appropriation" })).toBeVisible();
+  await openResourceRecovery(page);
+  await page.getByRole("button", { name: /^Recover Intel/ }).click();
+  const confirmation = page.getByRole("dialog");
+  await expect(confirmation).toContainText("Money +12");
+  await expect(confirmation).toContainText("Stress +4");
+  await confirmation.getByRole("button", { name: "Use Legacy Directive" }).click();
+
+  const aftermath = page.getByRole("dialog");
+  await expect(aftermath).toContainText("Directive: Emergency Appropriation");
+  await aftermath.getByRole("button", { name: /Continue to Campaign Month 2/ }).click();
+  await expect(page.getByText("Authorization spent for this campaign.")).toBeVisible();
+
+  const saved = await page.evaluate((key) => window.localStorage.getItem(key), STORAGE_KEYS.activeRun);
+  const restored = deserializeGame(saved ?? "");
+  expect(restored.legacyDirective).toMatchObject({
+    equippedId: "emergency_appropriation",
+    used: true,
+  });
+});
+
 test("opens a report, starts an exact-seed replay, and gives Archive access", async ({ page }) => {
   await openReportFromReadyRun(page);
 
+  await expect(page.getByRole("heading", { name: "Choose one authorization to preserve." })).toBeVisible();
   await expect(page.getByText(`Replay code (seed)${FIXTURE_SEED}`, { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Intelligence Archive" }).click();
   await expect(page.getByRole("heading", { name: "What has been witnessed cannot be unwitnessed." })).toBeVisible();

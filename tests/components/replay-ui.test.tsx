@@ -177,7 +177,7 @@ describe("campaign replay UI", () => {
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveTextContent(/optional legacy directive · common/i);
     expect(dialog).toHaveTextContent(/emergency appropriation: money \+12.*cost: stress \+4/i);
-    fireEvent.click(screen.getByRole("button", { name: /authorize with emergency appropriation/i }));
+    fireEvent.click(screen.getByRole("button", { name: /use legacy directive/i }));
 
     expect(onCommit).toHaveBeenCalledWith(
       { type: "recover_resource", resource: "intelligence" },
