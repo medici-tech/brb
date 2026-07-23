@@ -106,7 +106,7 @@ describe("guided playtest UI", () => {
     const advanced = commitAction(state, { type: "recover_resource", resource: "money" }).state;
     rerender(<CampaignScreen state={advanced} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /continue to campaign month 2/i }));
-    expect(screen.getByRole("heading", { name: /review.*adapt.*commit again/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /improve.*connect.*new problem/i })).toBeInTheDocument();
   });
 
   it("pauses on exact consequences before moving focus to the next Situation", () => {
@@ -124,9 +124,17 @@ describe("guided playtest UI", () => {
     rerender(<CampaignScreen state={advanced} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
 
     const transition = screen.getByRole("dialog");
-    expect(transition).toHaveTextContent(/read the consequences before the next move/i);
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(transition).not.toHaveTextContent(/confirmation required/i);
+    expect(transition).toHaveTextContent(/campaign moved.*pushes back/i);
+    const beatKinds = Array.from(
+      transition.querySelectorAll<HTMLElement>("[data-beat-kind]"),
+      (element) => element.dataset.beatKind,
+    );
+    expect(beatKinds).toEqual(["improvement", "problem"]);
     expect(transition).toHaveTextContent(/money was recovered/i);
     expect(transition).toHaveTextContent(/stress \+7/i);
+    expect(screen.getByText(/open exact action-to-consequence record/i)).toBeInTheDocument();
     const hiddenWorkspace = document.querySelector<HTMLElement>(
       '[aria-label="Situation workspace"]',
     );

@@ -7,4 +7,5 @@ export * from "./progression";
 export * from "./replay";
 export * from "./storage";
 export * from "./simulator";
+export * from "./turn-beats";
 export * from "./types";

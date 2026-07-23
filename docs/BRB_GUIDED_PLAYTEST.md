@@ -28,6 +28,8 @@ The Journal displays the next required step at the top. Recap ratings use explic
 
 - Stop and fix any blocker, save-loss defect, or invalid journal export before continuing.
 - After Month 3, verify the player can state the objective, four loss conditions, permanent-deposit rule, advisor departure thresholds, and the cause of the last month's changes without opening documentation.
+- After a route, doctrine, relationship, or archetype connection appears, ask the player to explain which earlier choice combined with the current one. Record a clarity issue if the answer requires opening the exact audit.
+- After a milestone, ask the player what improved, what pressure the success created, and what the next commitment should address. Record whether the milestone felt satisfying without breaking the severe control-room tone.
 - Treat an issue appearing in two or more runs as recurring.
 - Review the first three natural runs together before changing balance.
 - After all six runs, sort findings into rules/balance, interface clarity, pacing, replay motivation, and defects.

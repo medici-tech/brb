@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
   getAdvisorRecommendation,
-  getAdvisorTurnMoment,
   getTurnEchoTypes,
   RESOURCE_GUIDANCE,
   RESOURCE_LABELS,
 } from "../../game/guidance";
 import { getActiveCard, getValidActions } from "../../game/engine";
 import { formatCampaignTime } from "../../game/progression";
+import { deriveTurnBeats } from "../../game/turn-beats";
 import { RESOURCE_KEYS } from "../../game/types";
 import type {
   AdvisorId,
@@ -48,8 +48,8 @@ const ONBOARDING_STEPS = [
   },
   {
     label: "READ THE AFTERMATH",
-    title: "Review → Adapt → Commit again.",
-    copy: "The last-month record attributes every change. Use it to choose what this month must protect or advance.",
+    title: "Improve → Connect → Face the new problem.",
+    copy: "The aftermath names what improved, which earlier choice mattered, and what pressure your success created. Adapt before committing again.",
   },
   {
     label: "USE THE ROOM",
@@ -75,7 +75,7 @@ export function CampaignScreen({
   const resolvedEchoTypes = state.lastTurnResolution
     ? getTurnEchoTypes(state, state.lastTurnResolution.month)
     : [];
-  const advisorMoment = getAdvisorTurnMoment(state, state.lastTurnResolution);
+  const turnBeats = deriveTurnBeats(state, state.lastTurnResolution);
   const situationWorkspaceRef = useRef<HTMLElement>(null);
   const previousDecisionIdRef = useRef(latestDecisionId);
   const shouldFocusWorkspaceRef = useRef(false);
@@ -243,7 +243,7 @@ export function CampaignScreen({
       </section>
 
       <TurnTransitionDialog
-        advisorMoment={advisorMoment}
+        beats={turnBeats}
         echoTypes={resolvedEchoTypes}
         nextTurn={state.turn}
         onContinue={continueToBriefing}

@@ -31,7 +31,11 @@ test("consults, commits, explains the consequence, and resumes the save", async 
   await confirmation.getByRole("button", { name: "Authorize and end Month 1" }).click();
 
   const aftermath = page.getByRole("dialog");
-  await expect(aftermath.getByRole("heading", { name: "Read the consequences before the next move." })).toBeVisible();
+  await expect(page.getByText("Confirmation required", { exact: true })).toBeHidden();
+  await expect(aftermath.getByRole("heading", { name: "The campaign moved. Now it pushes back." })).toBeVisible();
+  await expect(aftermath.getByText("01 · IMPROVEMENT", { exact: true })).toBeVisible();
+  await expect(aftermath.getByText("04 · NEW PROBLEM", { exact: true })).toBeVisible();
+  await aftermath.getByText("Open exact action-to-consequence record", { exact: true }).click();
   await expect(aftermath.getByText("ACTION-TO-CONSEQUENCE RECORD", { exact: true })).toBeVisible();
   await aftermath.getByRole("button", { name: /Continue to Campaign Month 2/ }).click();
 

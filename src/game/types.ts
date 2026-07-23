@@ -119,6 +119,16 @@ export type TurnResolution = {
   monthlyPressure: ResolvedEffect | null;
 };
 
+export type TurnBeatKind = "improvement" | "discovery" | "milestone" | "problem";
+
+export type TurnBeat = {
+  kind: TurnBeatKind;
+  title: string;
+  explanation: string;
+  exactChanges: string[];
+  linkedDecisionIds: string[];
+};
+
 export type ArchetypeDefinition = {
   id: ArchetypeId;
   name: string;

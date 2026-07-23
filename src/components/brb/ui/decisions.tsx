@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight, MessageSquareQuote, UserRound } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -107,8 +107,9 @@ type ConfirmActionDialogProps = {
 
 export function ConfirmActionDialog({ trigger, title, description, summary, confirmAction, cancelLabel = "Return to briefing", tone = "warning" }: ConfirmActionDialogProps) {
   const Icon = confirmAction.icon;
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="brb-design-system brb-console-grid max-h-[calc(100dvh-2rem)] min-w-0 overflow-x-hidden overflow-y-auto rounded-sm border-border bg-console shadow-[8px_8px_0_rgba(0,0,0,0.45)]">
         <DialogHeader className="min-w-0">
@@ -119,7 +120,10 @@ export function ConfirmActionDialog({ trigger, title, description, summary, conf
         {summary ? <div className="confirmation-summary">{summary}</div> : null}
         <DialogFooter className="mt-3 min-w-0">
           <DialogClose asChild><Button variant="quiet">{cancelLabel}</Button></DialogClose>
-          <DialogClose asChild><Button variant={tone === "critical" ? "critical" : "command"} disabled={confirmAction.disabled} onClick={confirmAction.onSelect}>{Icon ? <Icon aria-hidden="true" /> : null}{confirmAction.label}</Button></DialogClose>
+          <DialogClose asChild><Button variant={tone === "critical" ? "critical" : "command"} disabled={confirmAction.disabled} onClick={() => {
+            setOpen(false);
+            confirmAction.onSelect?.();
+          }}>{Icon ? <Icon aria-hidden="true" /> : null}{confirmAction.label}</Button></DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

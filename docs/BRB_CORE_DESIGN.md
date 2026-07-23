@@ -27,20 +27,21 @@ Every run builds a unique classified political history. Players should finish fe
 
 ## Core loop
 
-> Assess → Investigate → Commit → Endure consequences → Adapt
+> Assess → Investigate → Commit → See improvement → Recognize connections → Face new pressure → Adapt
 
 1. **Receive the briefing.** See the current Situation Card, changes from the prior turn, resource pressure, an estimate of Corporation activity, and advisor reactions.
 2. **Investigate and consult.** The prototype allows one optional advisor consultation before the major commitment. It costs Intelligence and can be accurate, incomplete, or biased. Separate faction inspections, Corporation investigations, and projection requests remain future information-action hooks.
 3. **Make one major commitment.** Deposit resources, resolve the crisis, counter the Corporation, strengthen a political faction, manage an advisor, recover or produce resources, or protect stability.
 4. **Resolve rival and faction responses.** The Corporation acts; advisors and factions react according to the chosen action, weak resources, leverage, prior cards, BRB progress, and archetype.
-5. **Show consequences clearly.** Before commitment, show exact costs plus qualitative results and exposure. After commitment, attribute every exact meter change to the Situation, commitment, advisor reaction, Corporation response, or monthly pressure. Show Delayed Echo categories without revealing their classified future content.
-6. **Prepare the next turn.** Give a short report and return the player to a changed situation.
+5. **Show the improvement loop clearly.** After commitment, lead with what improved, identify any route, doctrine, relationship, or archetype connection that actually surfaced, mark meaningful milestones, and then name the resulting pressure. Celebration is reserved for permanent first progress, track readiness, route discoveries or completions, and activation readiness.
+6. **Preserve exact provenance.** Keep every meter change attributable to the Situation, commitment, advisor reaction, Corporation response, or monthly pressure. A surfaced connection may explain an already-resolved Echo, but future Echo details remain classified.
+7. **Prepare the next turn.** Give a short report that makes the next problem legible, then return the player to a changed situation.
 
 ## Nested loops
 
 ### Moment-to-moment
 
-Read the situation, inspect costs, compare advice, make a choice, and see what changed.
+Read the situation, inspect costs, compare advice, make a choice, see what improved, recognize what earlier decision mattered, and identify the next pressure.
 
 ### Month-to-month
 
