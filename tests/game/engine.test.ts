@@ -56,12 +56,12 @@ describe("seeded runs", () => {
   it("persists the Corporation cadence clock after a response", () => {
     const state = createGame(100);
     state.activeCardId = null;
-    state.turn = 4;
+    state.turn = 5;
     state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
     const responded = commitAction(state, { type: "recover_resource", resource: "money" }).state;
 
     expect(responded.lastMonthAudit?.corporationResponded).toBe(true);
-    expect(responded.corporation.lastResponseMonth).toBe(4);
+    expect(responded.corporation.lastResponseMonth).toBe(5);
     expect(deserializeGame(serializeGame(responded))).toEqual(responded);
   });
 
@@ -241,7 +241,7 @@ describe("major commitments", () => {
       contested: getCorporationResponseInterval("contested"),
       severe: getCorporationResponseInterval("severe"),
       critical: getCorporationResponseInterval("critical"),
-    }).toEqual({ quiet: 4, watched: 3, contested: 2, severe: 1, critical: 1 });
+    }).toEqual({ quiet: 5, watched: 4, contested: 3, severe: 2, critical: 1 });
   });
 
   it("resumes a saved Quiet cadence without resetting its response clock", () => {
@@ -250,7 +250,7 @@ describe("major commitments", () => {
     state.resources = { money: 100, influence: 100, intelligence: 100, trust: 100, capacity: 100 };
     state.tracks = { engineering: 0, access: 0, legitimacy: 0, stability: 0 };
 
-    for (const expectedMonth of [1, 2, 3]) {
+    for (const expectedMonth of [1, 2, 3, 4]) {
       const result = commitAction(state, { type: "recover_resource", resource: "money" });
       expect(result.state.lastMonthAudit?.month).toBe(expectedMonth);
       expect(result.state.lastMonthAudit?.corporationResponded).toBe(false);
@@ -258,9 +258,9 @@ describe("major commitments", () => {
       state.activeCardId = null;
     }
 
-    const monthFour = commitAction(state, { type: "recover_resource", resource: "money" }).state;
-    expect(monthFour.lastMonthAudit?.corporationResponded).toBe(true);
-    expect(monthFour.corporation.lastResponseMonth).toBe(4);
+    const monthFive = commitAction(state, { type: "recover_resource", resource: "money" }).state;
+    expect(monthFive.lastMonthAudit?.corporationResponded).toBe(true);
+    expect(monthFive.corporation.lastResponseMonth).toBe(5);
   });
 
   it("treats commitments as months without ending at an arbitrary deadline", () => {
@@ -408,7 +408,7 @@ describe("major commitments", () => {
   it("blocks the Corporation when the player counters the predicted strategy", () => {
     const initial = createGame(5);
     initial.activeCardId = null;
-    initial.turn = 4;
+    initial.turn = 5;
     initial.corporation.strategy = "expanding";
     initial.corporation.progress = 30;
     const result = commitAction(initial, {

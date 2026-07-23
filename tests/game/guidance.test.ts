@@ -218,36 +218,41 @@ describe("functional Corporation Threat", () => {
     state.corporation.threat = 24;
     expect(getCorporationPressure(state)).toMatchObject({
       tier: "monitored",
-      responseIntervalMonths: 4,
+      responseIntervalMonths: 5,
       severityMultiplier: 1,
     });
     state.corporation.threat = 25;
     expect(getCorporationPressure(state)).toMatchObject({
       tier: "mobilized",
-      responseIntervalMonths: 4,
+      responseIntervalMonths: 5,
       severityMultiplier: 1.1,
     });
     state.corporation.threat = 50;
     expect(getCorporationPressure(state)).toMatchObject({
       tier: "aggressive",
-      responseIntervalMonths: 3,
+      responseIntervalMonths: 4,
       severityMultiplier: 1.25,
     });
     state.corporation.threat = 75;
     expect(getCorporationPressure(state)).toMatchObject({
       tier: "critical",
-      responseIntervalMonths: 2,
+      responseIntervalMonths: 3,
       severityMultiplier: 1.5,
     });
 
     state.tracks = { engineering: 50, access: 50, legitimacy: 0, stability: 0 };
+    state.corporation.threat = 50;
+    expect(getCorporationPressure(state).responseIntervalMonths).toBe(2);
+
+    state.tracks = { engineering: 50, access: 50, legitimacy: 50, stability: 30 };
+    state.corporation.threat = 75;
     expect(getCorporationPressure(state).responseIntervalMonths).toBe(1);
   });
 
   it("scales adverse Corporation effects but not Threat's own increase", () => {
     const state = createGame(19);
     state.activeCardId = null;
-    state.turn = 4;
+    state.turn = 5;
     state.corporation.lastResponseMonth = 0;
     state.corporation.strategy = "infiltrating";
     state.corporation.threat = 25;

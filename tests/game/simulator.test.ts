@@ -18,10 +18,10 @@ describe("headless simulator", () => {
     expect(report.averageMonths).toBeLessThan(1_200);
     expect(report.seed).toBe(20260715);
     expect(report.corporationResponseCadence).toEqual({
-      quiet: 4,
-      watched: 3,
-      contested: 2,
-      severe: 1,
+      quiet: 5,
+      watched: 4,
+      contested: 3,
+      severe: 2,
       critical: 1,
     });
     expect(report.actionUsage.deposit).toBeGreaterThan(0);

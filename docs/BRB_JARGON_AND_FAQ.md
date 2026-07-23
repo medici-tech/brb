@@ -104,10 +104,10 @@ Completion counts at most 50 points from each track. Total readiness is therefor
 
 | Tier / code ID | BRB completion | Base Corporation response | Extra automatic pressure |
 | --- | ---: | ---: | --- |
-| Quiet / `quiet` | 0–24% | Every 4 months | None |
-| Watched / `watched` | 25–49% | Every 3 months | +1 Corporation Progress every 4 months |
-| Contested / `contested` | 50–74% | Every 2 months | +1 Corporation Progress every 3 months |
-| Severe / `severe` | 75–89% | Every month | +1 Corporation Progress every 2 months; +1 Panic every 4 months |
+| Quiet / `quiet` | 0–24% | Every 5 months | None |
+| Watched / `watched` | 25–49% | Every 4 months | +1 Corporation Progress every 4 months |
+| Contested / `contested` | 50–74% | Every 3 months | +1 Corporation Progress every 3 months |
+| Severe / `severe` | 75–89% | Every 2 months | +1 Corporation Progress every 2 months; +1 Panic every 4 months |
 | Critical / `critical` | 90–100% | Every month | +1 Corporation Progress every month; +1 Panic every 3 months |
 
 ### Corporation Threat tiers

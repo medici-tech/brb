@@ -49,6 +49,28 @@ function reportFixture() {
       exceeding5Years: 0,
       exceeding10Years: 0,
     },
+    activationFailureReasons: {
+      activated: 90,
+      activation_corporate_capture: 10,
+      tracks_never_ready: 700,
+      panic_before_activation: 40,
+      institutions_before_activation: 30,
+      advisors_before_activation: 20,
+      corporation_capture_before_activation: 50,
+      corporation_unsafe_before_activation: 40,
+      strategy_delayed_after_readiness: 20,
+    },
+    outcomeByStrategy: {
+      balanced: {
+        runs: 100,
+        endings: {
+          civic_legacy: 1,
+          compromised_activation: 9,
+          corporate_capture: 45,
+          state_collapse: 45,
+        },
+      },
+    },
   };
 }
 
@@ -67,6 +89,10 @@ describe("simulation run log", () => {
     expect(entry).toContain("`20260715`");
     expect(entry).toContain("`abc1234` (clean)");
     expect(entry).toContain("| Activations | 90 (9%) |");
+    expect(entry).toContain("| All tracks ready | 300 |");
+    expect(entry).toContain("| Activation attempts | 100 |");
+    expect(entry).toContain("| tracks_never_ready | 700 |");
+    expect(entry).toContain("| balanced | 100 | 10 |");
     expect(entry).toContain("> Changed only the response interval.");
     expect(entry).toContain("> Activation improved without longer campaigns.");
   });

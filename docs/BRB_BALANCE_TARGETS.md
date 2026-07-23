@@ -11,7 +11,7 @@ Phase 2 balance validation is in progress. The implemented rules currently use:
 - Standard and large deposits worth 25 and 40 track points
 - A seeded 55% monthly Situation Card appearance check
 - Open-ended monthly campaigns with no calendar loss condition
-- Base Corporation responses every 4 months while Quiet, 3 while Watched, 2 while Contested, and monthly while Severe or Critical
+- Base Corporation responses every 5 months while Quiet, 4 while Watched, 3 while Contested, 2 while Severe, and monthly while Critical
 - Corporation Threat modifies that schedule and move severity: 0–24 at 100%, 25–49 at 110%, 50–74 at 125% and one month faster, and 75–100 at 150% and two months faster
 - Separate completion-pressure surcharges shown under Difficulty curve
 - Stress at 80 or more drains Trust but remains nonterminal; Panic causes State Collapse at 100 and Institutions causes it at 0
@@ -20,9 +20,9 @@ Phase 2 balance validation is in progress. The implemented rules currently use:
 - Situation choices declare mandatory costs separately from floor-clamped resource damage; unaffordable choices cannot resolve
 - Accepted delay, replacement contractors, closed oversight, false plans, parallel contractors, Capacity drift, and emergency rule have deterministic downstream mechanics
 
-The latest normal-strategy 3,000-run Loyalty checkpoint produced 1.47% activations, 0.10% Civic Legacy endings, 47.50% State Collapse, 51.03% Corporation capture, and a 20-month median. A separate experiment making Stress terminal at 100 produced 99.73% State Collapse and was rejected; the implemented Stress rule remains unchanged.
+The accepted activation-reachability cadence produced 8.34% activations at seed `20260715` and 8.02% at alternate seed `20260716`, using 5,000 runs per block. The blocks respectively reached all-track readiness in 1,351 and 1,386 runs, compared with 417 and 401 completed activations. State Collapse remained 40.38–40.76%, Corporation capture remained 51.22–51.28%, and the median remained 22 months. This accepts the automated reachability target; human fun, loss fairness, and replay desire remain unverified.
 
-These results establish reachability, not final balance approval. Activation remains uncommon, Civic Legacy remains rare, and results vary sharply by strategy. The sections below preserve the experiment history in chronological order. Statements inside explicitly historical checkpoints describe what was true at that checkpoint, not the current project status.
+These results establish reachability, not final balance approval. Activation remains an achievement, Civic Legacy remains rare, and results vary by strategy. The sections below preserve the experiment history in chronological order. Statements inside explicitly historical checkpoints describe what was true at that checkpoint, not the current project status.
 
 ### Logic trustworthiness remediation checkpoint — 2026-07-19
 
@@ -41,6 +41,17 @@ One-rule 3,000-run ablations used the same seed and the integrated build as the 
 | Capacity drift | 44 (1.47%) | 20 | No activation movement; capture/collapse mix shifted slightly |
 
 Each ablation changed only the named rule. No compensating value was tuned. Card affordability and independent Corporation jitter remain correctness fixes rather than optional tuning variants; the integrated checkpoint records their accepted combined baseline.
+
+### Activation reachability cadence — 2026-07-23
+
+The accepted experiment changes only the base Corporation response intervals from `4/3/2/1/1` to `5/4/3/2/1` across Quiet, Watched, Contested, Severe, and Critical. Corporation Threat modifiers, direct completion-pressure surcharges, deposits, recovery, starting resources, cards, activation requirements, loss thresholds, and bot decisions are unchanged.
+
+| Seed / 5,000 runs | Activation | All tracks ready | Collapse | Capture | Median | Longest |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `20260715` | 417 (8.34%) | 1,351 | 40.38% | 51.28% | 22 | 55 |
+| `20260716` | 401 (8.02%) | 1,386 | 40.76% | 51.22% | 22 | 57 |
+
+Every normal strategy activated in both blocks. Balanced and Legitimacy-first led the two samples rather than Rush, while Fixer and Command were the weakest. No campaign exceeded five years, so the cadence did not create indefinite recovery loops. The automated 8–12% evaluation target is accepted; do not tune another lever before the six-run human matrix tests whether the added reachability feels fair and replayable.
 
 ## Run length
 
@@ -253,7 +264,7 @@ At this checkpoint, full Vitest, TypeScript, and Next build processes had stalle
 
 ## Isolated Corporation cadence experiment
 
-> **Accepted Phase 2 checkpoint:** This is the current base Corporation response schedule and the latest normal-strategy 10,000-run comparison.
+> **Superseded historical checkpoint:** This schedule was later replaced by the accepted `5/4/3/2/1` activation-reachability cadence.
 
 This experiment changes only the base Corporation response schedule. Quiet responds every 4 months, Watched every 3, Contested every 2, and Severe/Critical every month. The clock records the last response month in the saved game, so loading a run cannot reset or reroll the schedule. Deposit rules, card rules, Panic values, completion-pressure surcharges, activation requirements, and bot decisions are unchanged.
 

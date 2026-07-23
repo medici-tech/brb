@@ -36,7 +36,7 @@ Common cards can be drawn twice and require four months between draws. Rare card
 
 Corporation cards show a scheme or fallout the player can answer. They do not replace the automatic Corporation response after the player's major commitment.
 
-The automatic response uses a deterministic completion-tier cadence: every 4 months while Quiet, every 3 while Watched, every 2 while Contested, and monthly while Severe or Critical. The saved `lastResponseMonth` clock carries across tier changes and save/load boundaries. The separate completion-pressure surcharges remain unchanged.
+The automatic response starts with a deterministic completion-tier cadence: every 5 months while Quiet, every 4 while Watched, every 3 while Contested, every 2 while Severe, and monthly while Critical. Corporation Threat then modifies that cadence and the response's adverse effects. Monitored Threat (0–24) leaves both unchanged; Mobilized (25–49) applies 110% severity; Aggressive (50–74) applies 125% severity and responds one month faster; Critical (75–100) applies 150% severity and responds two months faster. Response cadence never becomes faster than monthly. The saved `lastResponseMonth` clock carries across completion and Threat tier changes and save/load boundaries. The separate completion-pressure surcharges remain unchanged.
 
 ## Seeded draw order
 

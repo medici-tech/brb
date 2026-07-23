@@ -192,3 +192,110 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 ### Notes
 
 > Integrated checkpoint after mandatory card affordability, independent Corporation jitter, Loyalty and memory forecast effects, and deterministic downstream doctrine rules. This establishes reachability and tempo under the accepted mechanics; it is not final balance approval.
+## 2026-07-23T05:41:47.448Z — Activation reachability cadence experiment
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Source: `332c0e0` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 417 (8.34%) |
+| Civic Legacy | 41 |
+| State collapse | 2,019 (40.38%) |
+| Corporate capture | 2,564 (51.28%) |
+| Average / median months | 22.78 / 22 |
+| Longest campaign | 55 months |
+| Cards presented / resolved per run | 12.49 / 8.54 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,351 |
+| Activation attempts | 417 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 417 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,649 |
+| panic_before_activation | 342 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 592 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 60 |
+| rush | 417 | 36 |
+| defensive | 417 | 27 |
+| fixer | 417 | 8 |
+| institutionalist | 417 | 53 |
+| command | 417 | 26 |
+| coalition | 417 | 17 |
+| engineering_first | 417 | 28 |
+| legitimacy_first | 416 | 57 |
+| stability_first | 416 | 43 |
+| access_first | 416 | 29 |
+| delayed_deposit | 416 | 33 |
+
+### Notes
+
+> Changed only the base Corporation response cadence from Quiet/Watched/Contested/Severe/Critical 4/3/2/1/1 to 5/4/3/2/1. Deposit costs and progress, recovery, starting resources, cards, activation requirements, direct completion-pressure surcharges, loss thresholds, and bot decisions are unchanged. Evaluation target: 8-12% completed activations, with all-track readiness more common than activation and both loss modes remaining credible.
+
+## 2026-07-23T05:42:29.266Z — Activation reachability alternate-seed audit
+
+- Runs: **5,000**
+- Seed: `20260716`
+- Source: `332c0e0` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 401 (8.02%) |
+| Civic Legacy | 39 |
+| State collapse | 2,038 (40.76%) |
+| Corporate capture | 2,561 (51.22%) |
+| Average / median months | 22.77 / 22 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 12.44 / 8.5 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,386 |
+| Activation attempts | 401 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 401 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,614 |
+| panic_before_activation | 385 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 600 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 53 |
+| rush | 417 | 31 |
+| defensive | 417 | 27 |
+| fixer | 417 | 11 |
+| institutionalist | 417 | 51 |
+| command | 417 | 9 |
+| coalition | 417 | 22 |
+| engineering_first | 417 | 38 |
+| legitimacy_first | 416 | 64 |
+| stability_first | 416 | 40 |
+| access_first | 416 | 35 |
+| delayed_deposit | 416 | 20 |
+
+### Notes
+
+> Robustness check for the isolated 5/4/3/2/1 base Corporation response cadence using alternate seed 20260716. No gameplay values changed after the 20260715 experiment. Acceptance requires activation to remain near the 8-12% evaluation band, all-track readiness to exceed activation, both loss modes to remain credible, and no single normal strategy to own the result.

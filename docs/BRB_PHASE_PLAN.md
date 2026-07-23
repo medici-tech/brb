@@ -59,7 +59,7 @@ Use 3,000-run simulations for routine comparisons of common outcomes, duration, 
 
 **Exit criterion:** No dominant strategy, impossible required state, or unexplained ending-frequency outlier remains in the chosen targets.
 
-**Current findings:** After the logic-trustworthiness remediation and Loyalty departure change, the latest 3,000-run normal-strategy checkpoint has a 20-month median, 1.47% activation, 0.10% Civic Legacy, 47.50% State Collapse, and 51.03% Corporation capture. The earlier accepted cadence checkpoint remains useful historical evidence, but its 8.43% activation rate predates the current rule set. A separate long-horizon diagnostic proves that five- and ten-year campaigns are mechanically possible, but normal strategies do not produce them.
+**Current findings:** The accepted `5/4/3/2/1` Corporation cadence reached 8.34% activation at seed `20260715` and 8.02% at alternate seed `20260716`, with 5,000 runs per block. All-track readiness remained more common than activation, both terminal loss modes remained common, every normal strategy activated, and the median was 22 months. Automated reachability now meets its evaluation target; human fairness and replay desire remain unverified.
 
 **Current comprehension checkpoint:** The browser now leads with the objective and loss conditions, places consultation and Situation choices ahead of supporting systems, repeats exact routine effects in confirmation, preserves qualitative/classified Situation disclosure, shows activation and advisor thresholds, and versions reports with a final-state snapshot. This prepares rather than replaces the Phase 3 external onboarding gate.
 
@@ -73,12 +73,12 @@ Use 3,000-run simulations for routine comparisons of common outcomes, duration, 
 | Current fixed-seed automated baseline | Complete for reachability | The current 3,000/5,000 checkpoints are not precise enough to approve rare endings. |
 | Loyalty departure experiment | Automated safety accepted | Validate whether players understand disapproval, Loyalty loss, departure risk, and Manage Advisor. |
 | Six-run guided matrix and three five-commitment replays | Unverified | No completed journal export and cross-run synthesis is stored in the repository. Finish the first three without tuning, then complete the three targeted strategy runs. |
-| Archetype and normal-strategy parity | Incomplete | Compare the current rules across at least one documented alternate seed block; do not extend only the same deterministic prefix. |
-| Activation, premium-ending, and late-game targets | Incomplete | Decide whether the very low activation rate is intended difficulty or evidence for one isolated balance lever. |
+| Archetype and normal-strategy parity | Automated comparison complete | Both seed blocks include every archetype and normal strategy; validate the weaker Fixer and Command results through guided play. |
+| Activation, premium-ending, and late-game targets | Automated target accepted | The isolated cadence produced 8.02–8.34% activation; validate near-wins, loss fairness, and activation payoff with humans. |
 | Card tempo and defensive-style discoverability | Incomplete | Confirm through guided play whether players notice and enjoy the slower survival path. |
 | Final Phase 2 recommendation | Incomplete | Accept or reject the tested lever, rerun the proportionate baseline, and record the decision without rewriting historical checkpoints. |
 
-**Remaining work:** Finish the six-run guided evidence, run one alternate-seed robustness comparison, then choose at most one balance lever to test. Remain in Phase 2 until strategy viability and the low activation/premium-ending rates have an explicit accept-or-change decision.
+**Remaining work:** Finish the six-run guided evidence without tuning between the first three natural runs. Use the final three for defensive, aggressive, and institution-focused play, asking what the player was building, why the run ended, what they would change, and whether they want another run. Remain in Phase 2 until those human results explicitly accept or reject the cadence.
 
 ## Phase 3: Human playtest build
 

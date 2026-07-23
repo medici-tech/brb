@@ -15,10 +15,10 @@ export type CompletionPressure = {
 };
 
 const CORPORATION_RESPONSE_INTERVALS: Record<CompletionPressureTier, number> = {
-  quiet: 4,
-  watched: 3,
-  contested: 2,
-  severe: 1,
+  quiet: 5,
+  watched: 4,
+  contested: 3,
+  severe: 2,
   critical: 1,
 };
 

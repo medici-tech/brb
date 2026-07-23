@@ -1,6 +1,7 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { SimulationReport } from "../src/game/types.js";
+import type { ActivationFailureReason, EndingId } from "../src/game/types.js";
+import type { BotId, SimulationReport } from "../src/game/simulation-types.js";
 
 export const SIMULATION_LOG_PATH = "docs/BRB_SIMULATION_LOG.md";
 export const DEFAULT_SIMULATION_NOTES = "No additional notes were supplied for this run.";
@@ -14,7 +15,13 @@ type SimulationLogReport = Pick<
   | "outcomeSummary"
   | "cardTempo"
   | "campaignLength"
->;
+> & {
+  activationFailureReasons: Record<ActivationFailureReason, number>;
+  outcomeByStrategy: Partial<Record<BotId, {
+    runs: number;
+    endings: Record<EndingId, number>;
+  }>>;
+};
 
 export type SimulationLogMetadata = {
   timestamp: Date;
@@ -52,6 +59,20 @@ export function formatSimulationLogEntry(
   const gitState = metadata.gitCommit
     ? `\`${metadata.gitCommit}\`${metadata.workingTreeDirty ? " with uncommitted changes" : " (clean)"}`
     : "Unavailable";
+  const activationAttempts =
+    report.activationFailureReasons.activated
+    + report.activationFailureReasons.activation_corporate_capture;
+  const allTracksReady = report.runs - report.activationFailureReasons.tracks_never_ready;
+  const failureReasons = Object.entries(report.activationFailureReasons)
+    .map(([reason, count]) => `| ${reason} | ${count.toLocaleString("en-US")} |`)
+    .join("\n");
+  const strategyActivations = Object.entries(report.outcomeByStrategy)
+    .filter(([, result]) => result.runs > 0)
+    .map(([strategy, result]) => {
+      const activations = result.endings.compromised_activation + result.endings.civic_legacy;
+      return `| ${strategy} | ${result.runs.toLocaleString("en-US")} | ${activations.toLocaleString("en-US")} |`;
+    })
+    .join("\n");
 
   return `## ${timestamp} — ${label}
 
@@ -69,6 +90,20 @@ export function formatSimulationLogEntry(
 | Longest campaign | ${report.campaignLength.max} months |
 | Cards presented / resolved per run | ${report.cardTempo.presentedPerRun} / ${report.cardTempo.activelyResolvedPerRun} |
 | Over 5 / 10 years | ${report.campaignLength.exceeding5Years} / ${report.campaignLength.exceeding10Years} |
+| All tracks ready | ${allTracksReady.toLocaleString("en-US")} |
+| Activation attempts | ${activationAttempts.toLocaleString("en-US")} |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+${failureReasons}
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+${strategyActivations}
 
 ### Notes
 
