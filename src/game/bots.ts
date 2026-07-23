@@ -402,6 +402,25 @@ function advisorForBot(state: GameState, bot: BotId): AdvisorId {
   return matching ?? "fixer";
 }
 
+function shouldFixerConsult(state: GameState): boolean {
+  const containmentIsImmediatelyUseful =
+    !state.archetypeAbilityUsed &&
+    state.activeCardId !== null &&
+    !shouldResolvePresentedCard(state, "fixer");
+  if (containmentIsImmediatelyUseful) return true;
+
+  const affordableCounter = getValidActions(state).some(
+    (action) =>
+      action.type === "counter_corporation" &&
+      action.predictedStrategy === state.corporation.strategy,
+  );
+  return (
+    state.corporation.progress >= 70 &&
+    state.advisors.fixer.leverage <= 45 &&
+    affordableCounter
+  );
+}
+
 export function playBotRun(initialState: GameState, bot: BotId): {
   state: GameState;
   actionCounts: Record<ReturnType<typeof getActionCategory>, number>;
@@ -434,7 +453,8 @@ export function playBotRun(initialState: GameState, bot: BotId): {
       ((bot === "balanced" && state.turn % 3 === 0) ||
         (bot === "long_horizon" && state.turn % 4 === 0) ||
         (bot === "command" && state.advisors.fixer.leverage < 60) ||
-        (["defensive", "fixer", "coalition"].includes(bot) && state.turn % 2 === 0) ||
+        (["defensive", "coalition"].includes(bot) && state.turn % 2 === 0) ||
+        (bot === "fixer" && shouldFixerConsult(state)) ||
         (isOneOf(bot, RUSH_BOTS) && state.turn % 4 === 0) ||
         (["legitimacy_first", "stability_first", "delayed_deposit"].includes(bot) && state.turn % 3 === 0));
     if (shouldConsult) {

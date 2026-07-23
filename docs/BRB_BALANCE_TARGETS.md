@@ -392,3 +392,28 @@ The current implementation and an otherwise identical temporary control snapshot
 | Cards presented / resolved per run | 11.59 / 7.99 | 11.59 / 7.98 |
 
 The automated distribution changes negligibly: State Collapse rises by 0.13 percentage points and activation falls by 0.06 points. This is acceptable evidence that the Loyalty rule does not mathematically destabilize the current bots, but it does not prove that players understand or value Loyalty. Keep the model for the next human playtest and evaluate whether disapproval feels attributable and whether Manage Advisor becomes a meaningful sacrifice. No compensating balance value was changed.
+
+## Fixer consultation policy diagnostic — accepted
+
+> **Accepted bot-policy correction:** This changes only when the Fixer simulation strategy consults. No advisor effect, action cost, threshold, card, pressure, or Corporation value changed.
+
+The previous Fixer strategy consulted every second month. On the Operator archetype, those consultations created twice the normal Leverage while the strategy also raised Leverage through Access deposits. It then spent repeated major commitments managing the Fixer, creating a simulator artifact rather than evidence that the player-facing Fixer needed a buff.
+
+The corrected strategy consults when containment will suppress a Situation Card it is about to ignore, or when an affordable counter-operation needs a forecast at 70 or more Corporation Progress and Fixer Leverage is no higher than 45.
+
+| Metric | Routine consultation | Immediate-value consultation |
+| --- | ---: | ---: |
+| Isolated Operator/Fixer activation | 78 / 3,000 (2.60%) | 351 / 3,000 (11.70%) |
+| Isolated Corporate Capture | 90.53% | 81.40% |
+| Fixer consultations per isolated run | 6.65 | 1.05 |
+| Advisor-management commitments per isolated run | 2.70 | 0.14 |
+| Mixed-strategy Fixer activations | 4 / 250 | 21 / 250 |
+| Overall mixed-strategy activation | 249 / 3,000 (8.30%) | 266 / 3,000 (8.87%) |
+
+The isolated and mixed fixed-seed results both support accepting the policy correction. Fixer no longer appears uniquely nonviable, while the overall activation rate remains inside the 8–12% evaluation band. This corrects automated strategy evidence only; it does not establish player balance or replace human validation.
+
+### Five-seed robustness confirmation
+
+Five distinct 3,000-run blocks used seeds `20260715` through `20260719`. Across 15,000 campaigns, activation was 1,423 (9.49%), State Collapse was 6,075 (40.50%), and Corporate Capture was 7,502 (50.01%). Every block kept activation inside the 8–12% evaluation band, the median at 22 months, and both loss modes credible.
+
+Fixer activated in 155 of 1,250 runs (12.40%), compared with Balanced at 159 (12.72%) and Legitimacy-first at 201 (16.08%). Its individual 250-run blocks ranged from 21 to 41 activations, but the combined result confirms that the corrected policy is viable without owning the distribution. No gameplay or bot value changed during the five-seed audit.
