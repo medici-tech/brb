@@ -10,6 +10,7 @@ type SimulationLogReport = Pick<
   SimulationReport,
   | "runs"
   | "seed"
+  | "legacyDirectiveId"
   | "endings"
   | "averageMonths"
   | "outcomeSummary"
@@ -78,6 +79,7 @@ export function formatSimulationLogEntry(
 
 - Runs: **${report.runs.toLocaleString("en-US")}**
 - Seed: \`${report.seed}\`
+- Legacy Directive: \`${report.legacyDirectiveId ?? "none"}\`
 - Source: ${gitState}
 
 | Outcome | Result |

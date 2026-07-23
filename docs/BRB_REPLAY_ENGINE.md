@@ -14,8 +14,8 @@ The completed Phase 1.5 slice keeps the itch.io prototype compact:
 - 10 Common and 5 Rare cards; rarity means story frequency, not strength
 - Two routes: Labor Coalition and Corporate Exposure
 - Knowledge-only persistence
-- Start, Campaign, Declassified Report, and Archive v0 views
-- No power unlocks, route map, large codex, or report library
+- Start, Campaign, Declassified Report, and Archive v1 views
+- Six bounded Legacy Directive unlocks; no levels, extra equipment slots, route map, large codex, or report library
 
 Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards remain future hooks, not prototype content.
 
@@ -153,14 +153,14 @@ Hint selection first chooses a route closed by the pivotal choice, then an incom
 
 ## Replay actions
 
-- **Test This Theory:** same archetype and seed, new run ID, suggested experiment carried as an objective.
-- **Open a New File:** same archetype, different seed, new run ID, same suggested experiment.
+- **Test This Theory:** same archetype, seed, and Legacy Directive loadout; new run ID; suggested experiment carried as an objective.
+- **Open a New File:** same archetype and Legacy Directive loadout, different seed, new run ID, same suggested experiment.
 
-The objective has no effect on starting resources, draw weights, or valid actions.
+The objective has no effect on starting resources, draw weights, or valid actions. The replay loadout is explicit because a Directive can change the campaign.
 
-## Archive v0
+## Archive v1
 
-Archive v0 stores only discovered knowledge:
+Archive v1 preserves discovered knowledge:
 
 - Aggregate card encounters
 - Witnessed choice labels, including an ignored or contained response when observed
@@ -168,7 +168,9 @@ Archive v0 stores only discovered knowledge:
 - Partial or completed progress for the two routes
 - Processed run IDs for idempotent merging
 
-Only the latest Declassified Report is stored. Undiscovered cards, endings, routes, future requirements, and delayed-echo details render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing. The Archive never changes game creation or starting power.
+It also stores Clearance, the deterministic Directive reward RNG state, unlocked Directive IDs, and at most one pending draft. Completed losses earn 1 Clearance and victories earn 3. At 3 points the Archive spends 3 and draws up to three still-locked Directives without replacement; Common entries receive four weight units and Rare entries one. Claiming one candidate permanently unlocks it.
+
+The player may equip one unlocked Directive or choose no Directive when creating a run. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
 
 ## Browser persistence
 
@@ -176,14 +178,16 @@ The browser adapter uses versioned local-storage keys:
 
 | Key | Content |
 | --- | --- |
-| `brb.active-run.v4` | Current deterministic `GameState` |
-| `brb.active-run.v3` | Legacy active run accepted for migration and removed after the next save |
-| `brb.archive.v0` | Knowledge archive |
-| `brb.latest-report.v3` | Latest report with rules version and final-state snapshot |
-| `brb.latest-report.v2` | Read-only fallback for an older report; retained in place and marked as an older rules build |
-| `brb.replay-intent.v1` | Seed, archetype, and suggested experiment |
+| `brb.active-run.v5` | Current deterministic `GameState`, including equipped Directive and use provenance |
+| `brb.active-run.v4` / `v3` | Legacy active runs accepted for migration and removed after the next save |
+| `brb.archive.v1` | Knowledge, Clearance, unlocks, and pending Directive draft |
+| `brb.archive.v0` | Legacy knowledge archive accepted for migration |
+| `brb.latest-report.v4` | Latest report with rules version, final-state snapshot, and Directive record |
+| `brb.latest-report.v3` / `v2` | Older report fallbacks, retained in place and marked as older rules when applicable |
+| `brb.replay-intent.v2` | Seed, archetype, suggested experiment, and Directive loadout |
+| `brb.replay-intent.v1` | Legacy replay intent accepted with no Directive |
 
-Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 active runs receive only their documented migration defaults; malformed version-4 runs are not repaired. Valid v2 reports are the exception: they load with rules version 0 and no final snapshot, show an older-rules warning, and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
+Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, Directive IDs, reward drafts, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 and version-4 active runs receive documented no-Directive migration defaults; malformed version-5 runs are not repaired. Archive v0 migrates its knowledge with zero Clearance and no unlock. Valid older reports load with a no-Directive record and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
 
 ## Architecture boundary
 

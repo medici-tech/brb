@@ -29,7 +29,7 @@ The player spends five renewable **resources** and permanently deposits some of 
 
 A **Situation Card** may appear each month. Resolving it uses the month's commitment. Ignoring it applies its ignored consequence before the chosen commitment.
 
-The run ends through activation, Corporation capture, state collapse, or the loss of every advisor. A completed run produces a **Declassified Report** and adds discovered knowledge to the **Intelligence Archive**.
+The run ends through activation, Corporation capture, state collapse, or the loss of every advisor. A completed run produces a **Declassified Report**, adds discovered knowledge to the **Intelligence Archive**, and earns **Clearance** toward a **Legacy Directive** reward.
 
 ## Thematic UI language
 
@@ -40,6 +40,8 @@ The run ends through activation, Corporation capture, state collapse, or the los
 | Resume file | Continue the saved active run |
 | Operating doctrine / Doctrine | The selected archetype |
 | Situation file | A Situation Card |
+| Legacy Directive | A permanently unlocked reward card equipped for one use in a campaign |
+| Clearance | Archive progress; 3 points creates a seeded Directive draft |
 | Commitment | The one turn-advancing player action for the month |
 | Corporation posture | The Corporation's current strategy |
 | Counterfactual objective / Next-run theory | The suggested experiment attached to a replay |

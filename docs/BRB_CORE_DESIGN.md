@@ -53,7 +53,9 @@ Choose an archetype, pursue a strategy, build or fail to build the BRB, reach an
 
 ### Meta-progression
 
-The full game may unlock knowledge and options: archetypes, scenarios, modifiers, advisors, and endings. It should favor horizontal progression (new choices) over vertical progression (permanent power).
+Archive v1 unlocks limited power through six Legacy Directives. A completed run earns 1 Clearance and a victory earns 3; every 3 Clearance produces a deterministic draft of up to three locked Directives. The chosen Directive remains permanently unlocked, but the player may equip only one and use it once in a campaign. Each benefit carries a visible political cost. This is a bounded exception to the knowledge-only rule, not an open-ended stat ladder.
+
+Future progression should still favor horizontal options—archetypes, scenarios, modifiers, advisors, and endings—over cumulative numerical power. Directive levels, consumable copies, multiple equipped cards, and starting-stat upgrades remain excluded until the one-card system is validated.
 
 ## Resources
 
@@ -133,9 +135,9 @@ BRB uses a run structure, not traditional roguelike conventions. It does not nee
 
 Each major commitment advances the campaign by one month. Runs have no fixed duration: an exceptional campaign might finish inside a year, while a cautious campaign can span many in-game years. Seeded randomness, a changing Situation Deck, and three archetypes—Technocrat, Populist, and Operator—shape each attempt. Each archetype changes card weights, a consultation interaction, a liability, and a possible ending variation—not only starting numbers.
 
-At the ending, a versioned Declassified Report identifies the ending trigger, final meters and advisor positions, pivotal choices, one unseen-route hint, and one concrete experiment. Archive v0 keeps only discovered knowledge, including witnessed choice labels and encounter counts. It never improves starting resources or power.
+At the ending, a versioned Declassified Report identifies the ending trigger, final meters and advisor positions, pivotal choices, one unseen-route hint, one concrete experiment, and the equipped Legacy Directive. Archive v1 keeps discovered knowledge plus Clearance, unlocked Directives, and one pending deterministic reward draft.
 
-For the full game, optional mutators can include unreliable intelligence, double advisor leverage, a shorter campaign, public-only deposits, or a permanently constrained resource. Persistent progression should primarily reveal knowledge and options—not grant money or other raw power.
+For the full game, optional mutators can include unreliable intelligence, double advisor leverage, a shorter campaign, public-only deposits, or a permanently constrained resource. Persistent progression should primarily reveal knowledge and options; Legacy Directives are the deliberately narrow power exception.
 
 ## Endings
 
@@ -163,17 +165,17 @@ The itch.io prototype is not the full BRB game. It proves only four things:
 ### Presentation
 
 - One desktop-first responsive browser campaign screen
-- Declassified Report and Intelligence Archive v0
+- Declassified Report and Intelligence Archive v1
 - Strong consequence feedback
-- Local active-run save, latest report, replay intent, and knowledge archive
+- Local active-run save, latest report, replay intent, and knowledge-plus-Directive archive
 
 ## Explicit exclusions
 
-Nothing that fails to test the four prototype goals earns admission. Exclusions include Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards; power unlocks; a route map; a large codex or report library; online accounts; cloud saves; analytics; multiplayer; mobile or desktop packaging; achievements; paid DLC; a faction map; procedural AI dialogue; and full voice acting.
+Nothing that fails to test the four prototype goals earns admission. Exclusions include Opportunity, Personal, BRB, Legacy, Legendary, and Black File Situation Cards; Directive levels or extra equipment slots; a route map; a large codex or report library; online accounts; cloud saves; analytics; multiplayer; mobile or desktop packaging; achievements; paid DLC; a faction map; procedural AI dialogue; and full voice acting.
 
 ## Future expansion hooks
 
-Future expansion should widen the game horizontally: additional card families and rarities, political scenarios, advisor sets, Corporation personalities, alternate BRB projects, route maps, historical crisis packs, hard-mode mutators, endings, and archetypes. Avoid resource boosts, easier starts, permanent power, individual card purchases, and consumable currency.
+Future expansion should widen the game horizontally: additional card families and rarities, political scenarios, advisor sets, Corporation personalities, alternate BRB projects, route maps, historical crisis packs, hard-mode mutators, endings, and archetypes. Avoid uncapped resource boosts, easier starts, individual card purchases, and consumable currency.
 
 ## Technical structure
 

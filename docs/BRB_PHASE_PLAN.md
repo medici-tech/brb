@@ -33,7 +33,7 @@ Add the replay engine before changing balance values. Replace Events with the 15
 
 **Goal:** Make a completed run provoke: “I wonder what happens if…”
 
-**Exit criterion:** Identical seeds and choices produce identical histories and reports; changing one choice creates a traceable divergence; all route completions have legal provenance; important card choices receive strategy-dependent use; every ending creates narrative, strategic, and final-turn pivots; Archive v0 stores knowledge without changing starting power.
+**Exit criterion:** Identical seeds, loadouts, and choices produce identical histories and reports; changing one choice creates a traceable divergence; all route completions have legal provenance; important card choices receive strategy-dependent use; every ending creates narrative, strategic, and final-turn pivots; Archive v1 stores knowledge plus bounded Directive progression.
 
 **Delivered:**
 
@@ -42,14 +42,14 @@ Add the replay engine before changing balance values. Replace Events with the 15
 - Four echo types with decision provenance: card, relationship, system, and ending
 - Labor Coalition and Corporate Exposure routes
 - Archetype-specific card weights, consultation abilities, liabilities, and ending variations
-- Deterministic Declassified Report, two replay actions, and knowledge-only Archive v0
+- Deterministic Declassified Report, two replay actions, and Archive v1 with Clearance and six one-use Legacy Directives
 - Versioned local storage with safe fallback for active run, Archive, latest report, and replay intent
 - Static Next.js App Router browser application with Start, Campaign, Report, and Archive views
 - Replay-aware simulator fields and a separate post-replay baseline
 - Explicit route transition history with open, close, reopen, and completion provenance
 - Targeted simulator strategies, ending funnels, card-outcome classifications, and three pivot categories
 
-The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Determinism, route integrity, decision provenance, card coverage, stable reports, knowledge-only persistence, browser tests, and the static build now pass. Difficulty, ending frequency, and strategy viability are balance questions owned by Phase 2.
+The replay rules are documented in [BRB Replay Engine](BRB_REPLAY_ENGINE.md). Determinism, route integrity, decision provenance, card coverage, stable reports, versioned persistence, browser tests, and the static build now pass. Legacy Directive balance is a new Phase 2 question and must remain separate from the accepted no-Directive baseline.
 
 ## Phase 2: Balance prototype — In progress
 

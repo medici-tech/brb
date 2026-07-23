@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { runSimulation } from "../src/game/simulator.js";
+import { LEGACY_DIRECTIVE_IDS, type LegacyDirectiveId } from "../src/game/types.js";
 import {
   appendSimulationLog,
   DEFAULT_SIMULATION_NOTES,
@@ -10,6 +11,7 @@ type CliOptions = {
   seed: number;
   label?: string;
   notes: string;
+  legacyDirectiveId?: LegacyDirectiveId;
 };
 
 function valueForFlag(args: string[], name: string): string | undefined {
@@ -31,7 +33,7 @@ function positionalArguments(args: string[]): string[] {
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (!argument) continue;
-    if (["--notes", "--label"].includes(argument)) {
+    if (["--notes", "--label", "--directive"].includes(argument)) {
       index += 1;
       continue;
     }
@@ -43,10 +45,15 @@ function positionalArguments(args: string[]): string[] {
 export function parseSimulationCli(args: string[]): CliOptions {
   const positionals = positionalArguments(args);
   const label = valueForFlag(args, "--label");
+  const directive = valueForFlag(args, "--directive");
+  if (directive && !LEGACY_DIRECTIVE_IDS.includes(directive as LegacyDirectiveId)) {
+    throw new Error(`Unknown Legacy Directive: ${directive}`);
+  }
   return {
     runs: Number.parseInt(positionals[0] ?? "1000", 10),
     seed: Number.parseInt(positionals[1] ?? "20260715", 10),
     ...(label ? { label } : {}),
+    ...(directive ? { legacyDirectiveId: directive as LegacyDirectiveId } : {}),
     notes: valueForFlag(args, "--notes") ?? process.env.BRB_SIMULATION_NOTES ?? DEFAULT_SIMULATION_NOTES,
   };
 }
@@ -61,7 +68,11 @@ function gitValue(args: string[]): string | undefined {
 
 async function main(): Promise<void> {
   const options = parseSimulationCli(process.argv.slice(2));
-  const report = runSimulation({ runs: options.runs, seed: options.seed });
+  const report = runSimulation({
+    runs: options.runs,
+    seed: options.seed,
+    legacyDirectiveId: options.legacyDirectiveId ?? null,
+  });
   const gitCommit = gitValue(["rev-parse", "--short", "HEAD"]);
   const gitStatus = gitValue(["status", "--porcelain"]);
 

@@ -18,6 +18,7 @@ function reportFixture() {
   return {
     runs: 1000,
     seed: 20260715,
+    legacyDirectiveId: null,
     endings: {
       civic_legacy: 4,
       compromised_activation: 86,
@@ -87,6 +88,7 @@ describe("simulation run log", () => {
     expect(entry).toContain("2026-07-16T15:30:00.000Z — Corporation cadence audit");
     expect(entry).toContain("Runs: **1,000**");
     expect(entry).toContain("`20260715`");
+    expect(entry).toContain("Legacy Directive: `none`");
     expect(entry).toContain("`abc1234` (clean)");
     expect(entry).toContain("| Activations | 90 (9%) |");
     expect(entry).toContain("| All tracks ready | 300 |");
