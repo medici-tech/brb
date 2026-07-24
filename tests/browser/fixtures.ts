@@ -24,6 +24,19 @@ export function createDirectiveRunFixture(): GameState {
   return state;
 }
 
+export function createIgnoredSituationFixture(): GameState {
+  const state = createGame({
+    seed: FIXTURE_SEED,
+    archetypeId: "technocrat",
+    runId: "browser-ignored-situation-run",
+    legacyDirectiveId: "emergency_appropriation",
+  });
+  state.activeCardId = "budget_shortfall";
+  state.resources.money = 12;
+  state.resources.trust = 20;
+  return state;
+}
+
 export function createActivationReadyFixture(): GameState {
   const state = createGame({
     seed: FIXTURE_SEED,

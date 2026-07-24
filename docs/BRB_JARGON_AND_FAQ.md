@@ -432,7 +432,7 @@ Yes. A card choice is the month's major commitment.
 
 ### Can I ignore a Situation Card?
 
-Yes, but only with confirmation. Its ignored outcome resolves first, then the selected non-card commitment resolves in the same month. The engine checks that you can still afford the commitment after that ignored outcome; a Legacy Directive, when selected, applies between those two steps. Activation expires the card instead.
+Yes, but only with confirmation. The dialog shows the exact immediate ignored effects before authorization. Its ignored outcome resolves first, an optional Legacy Directive applies second, and the selected non-card commitment resolves last in the same month. The engine checks affordability in that order, so resources lost to the ignored file cannot also pay the commitment. Fixer containment shows that the immediate ignored damage is suppressed. Activation expires the card instead.
 
 ### Are Rare cards stronger than Common cards?
 

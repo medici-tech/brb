@@ -4,6 +4,7 @@ import type {
   ArchetypeId,
   CorporationStrategy,
   EndingId,
+  LegacyDirectiveId,
   PressurePool,
   ResourcePool,
   TrackPool,
@@ -40,6 +41,7 @@ export type PlaytestMatrixSlot = {
   label: string;
   strategy: string;
   replayRequired: boolean;
+  legacyDirectiveId: LegacyDirectiveId | null;
   status: PlaytestMatrixStatus;
   primaryRunId: string | null;
   replayRunId: string | null;
@@ -86,6 +88,10 @@ export type PlaytestRecap = {
   consequenceClarity: 1 | 2 | 3 | 4 | 5;
   strategyViability: 1 | 2 | 3 | 4 | 5;
   replayInterest: 1 | 2 | 3 | 4 | 5;
+  directiveUseMonth: number | null;
+  directiveTimingReason: string;
+  directiveDrawbackMeaning: 1 | 2 | 3 | 4 | 5;
+  ignoredOrderingClarity: 1 | 2 | 3 | 4 | 5;
   nextExperiment: string;
   recordedAt: string;
 };
@@ -96,6 +102,7 @@ export type PlaytestRunEntry = {
   kind: PlaytestRunKind;
   seed: number;
   archetypeId: ArchetypeId;
+  legacyDirectiveId: LegacyDirectiveId | null;
   experiment: string | null;
   startedAt: string;
   completedAt: string | null;

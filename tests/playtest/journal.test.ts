@@ -38,6 +38,15 @@ function commitOne(state: GameState): GameState {
   return result.state;
 }
 
+function createTechnocratMatrixGame(seed: number, runId: string): GameState {
+  return createGame({
+    seed,
+    archetypeId: "technocrat",
+    runId,
+    legacyDirectiveId: "emergency_appropriation",
+  });
+}
+
 function endedState(state: GameState): GameState {
   const ended = structuredClone(state);
   ended.phase = "ended";
@@ -60,6 +69,10 @@ const recap = {
   consequenceClarity: 4 as const,
   strategyViability: 3 as const,
   replayInterest: 5 as const,
+  directiveUseMonth: 8,
+  directiveTimingReason: "The resource gain made the next commitment affordable.",
+  directiveDrawbackMeaning: 4 as const,
+  ignoredOrderingClarity: 5 as const,
   nextExperiment: "Delay the first deposit.",
 };
 
@@ -69,8 +82,31 @@ describe("solo playtest journal", () => {
     const journal = createEmptyPlaytestJournal("2026-07-16T12:00:00.000Z");
     expect(journal.matrix).toHaveLength(6);
     expect(journal.matrix.slice(0, 3).every((slot) => slot.replayRequired)).toBe(true);
+    expect(journal.matrix.map((slot) => slot.legacyDirectiveId)).toEqual([
+      "emergency_appropriation",
+      "coalition_whip",
+      "protected_channel",
+      "public_confidence_reserve",
+      "industrial_surge",
+      "continuity_freeze_order",
+    ]);
     savePlaytestJournal(storage, journal);
     expect(loadPlaytestJournal(storage)).toEqual(journal);
+
+    const legacy = structuredClone(journal) as unknown as {
+      matrix: Array<Record<string, unknown>>;
+      runs: Array<Record<string, unknown>>;
+    };
+    legacy.matrix.forEach((slot) => { delete slot.legacyDirectiveId; });
+    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify(legacy));
+    expect(loadPlaytestJournal(storage).matrix.every((slot) => slot.legacyDirectiveId === null)).toBe(true);
+
+    const invalidDirective = structuredClone(journal) as unknown as {
+      matrix: Array<Record<string, unknown>>;
+    };
+    invalidDirective.matrix[0]!.legacyDirectiveId = "not-a-directive";
+    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify(invalidDirective));
+    expect(loadPlaytestJournal(storage).matrix.every((slot) => slot.status === "pending")).toBe(true);
 
     storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify({ version: 99 }));
     expect(loadPlaytestJournal(storage, "2026-07-17T12:00:00.000Z").matrix.every((slot) => slot.status === "pending")).toBe(true);
@@ -81,7 +117,7 @@ describe("solo playtest journal", () => {
   });
 
   it("captures accepted commitments and attaches exact state to bookmarks", () => {
-    const state = createGame({ seed: 18, archetypeId: "technocrat", runId: "primary-1" });
+    const state = createTechnocratMatrixGame(18, "primary-1");
     let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
     const nextState = commitOne(state);
     journal = recordPlaytestDecision(journal, nextState, "2026-07-16T12:01:00.000Z").journal;
@@ -96,13 +132,14 @@ describe("solo playtest journal", () => {
     );
 
     expect(journal.runs[0]?.decisions).toHaveLength(1);
+    expect(journal.runs[0]?.legacyDirectiveId).toBe("emergency_appropriation");
     expect(journal.bookmarks[0]).toMatchObject({ id: "bookmark-1", runId: "primary-1", category: "confusion" });
     expect(journal.bookmarks[0]?.snapshot?.turn).toBe(nextState.turn - 1);
     expect(journal.bookmarks[0]?.snapshot?.corporation.progress).toBe(nextState.corporation.progress);
   });
 
   it("captures the current briefing when bookmarked before the first commitment", () => {
-    const state = createGame({ seed: 19, archetypeId: "technocrat", runId: "primary-briefing" });
+    const state = createTechnocratMatrixGame(19, "primary-briefing");
     let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
     journal = addPlaytestBookmark(
       journal,
@@ -133,7 +170,7 @@ describe("solo playtest journal", () => {
   });
 
   it("requires a recap before advancing a natural slot to replay", () => {
-    const state = createGame({ seed: 21, archetypeId: "technocrat", runId: "primary-2" });
+    const state = createTechnocratMatrixGame(21, "primary-2");
     let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
     const completed = endedState(commitOne(state));
     journal = completePlaytestRun(recordPlaytestDecision(journal, completed).journal, completed);
@@ -145,13 +182,19 @@ describe("solo playtest journal", () => {
   });
 
   it("stops a replay after five accepted commitments and ignores consultations", () => {
-    const primaryState = createGame({ seed: 33, archetypeId: "technocrat", runId: "primary-3" });
+    const primaryState = createTechnocratMatrixGame(33, "primary-3");
     let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", primaryState);
     const completed = endedState(commitOne(primaryState));
     journal = completePlaytestRun(recordPlaytestDecision(journal, completed).journal, completed);
     journal = savePlaytestRecap(journal, primaryState.runId, recap);
 
-    let replayState = createGame({ seed: 33, archetypeId: "technocrat", runId: "replay-3", experiment: "Try another path." });
+    let replayState = createGame({
+      seed: 33,
+      archetypeId: "technocrat",
+      runId: "replay-3",
+      experiment: "Try another path.",
+      legacyDirectiveId: "emergency_appropriation",
+    });
     journal = startReplayPlaytestRun(journal, primaryState.runId, replayState);
     let checkpointReached = false;
     for (let index = 0; index < 4; index += 1) {
@@ -179,7 +222,7 @@ describe("solo playtest journal", () => {
   });
 
   it("abandons only the active slot and produces a stable summary/export payload", () => {
-    const state = createGame({ seed: 45, archetypeId: "technocrat", runId: "primary-4" });
+    const state = createTechnocratMatrixGame(45, "primary-4");
     let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
     journal = abandonActivePlaytestRun(journal, "2026-07-16T14:00:00.000Z");
     expect(journal.matrix[0]).toMatchObject({ status: "pending", primaryRunId: null });

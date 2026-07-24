@@ -3,6 +3,7 @@ import { deserializeGame, STORAGE_KEYS } from "../../src/game";
 import {
   createActiveRunFixture,
   createDirectiveRunFixture,
+  createIgnoredSituationFixture,
   FIXTURE_SEED,
   installActiveRun,
   openReportFromReadyRun,
@@ -71,6 +72,22 @@ test("uses an equipped Legacy Directive with one normal commitment", async ({ pa
     equippedId: "emergency_appropriation",
     used: true,
   });
+});
+
+test("explains ignored-Situation ordering and Directive affordability", async ({ page }) => {
+  await installActiveRun(page, createIgnoredSituationFixture());
+  await resumeInstalledRun(page);
+
+  const protect = page.getByRole("button", { name: /^Protect Institutions/ });
+  await expect(protect).toBeEnabled();
+  await protect.click();
+  const confirmation = page.getByRole("dialog");
+  await expect(confirmation).toContainText("Money −7 · Stress +5");
+  await expect(confirmation).toContainText(
+    "ignored Situation effect → optional Legacy Directive → selected commitment",
+  );
+  await expect(confirmation.getByRole("button", { name: "Use Legacy Directive" })).toBeEnabled();
+  await expect(confirmation).not.toContainText("Neglect entered the record");
 });
 
 test("opens a report, starts an exact-seed replay, and gives Archive access", async ({ page }) => {

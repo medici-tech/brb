@@ -1,12 +1,14 @@
 import { ADVISORS } from "../../game/content";
 import { LEGACY_DIRECTIVES } from "../../game/directives";
-import { getActionError } from "../../game/engine";
-import { actionKey, getActionPreview } from "../../game/guidance";
+import { getActionError, getActiveCard } from "../../game/engine";
+import { actionKey, formatStateDelta, getActionPreview } from "../../game/guidance";
 import type {
   AdvisorRecommendation,
   CommitOptions,
+  Effects,
   GameState,
   MajorAction,
+  StateDelta,
 } from "../../game/types";
 import { ConfirmActionDialog } from "./ui/decisions";
 
@@ -21,6 +23,22 @@ type Props = {
   compact?: boolean;
 };
 
+function displayDelta(effects: Effects): StateDelta {
+  return {
+    resources: effects.resources ?? {},
+    pressures: effects.pressures ?? {},
+    tracks: effects.tracks ?? {},
+    advisors: effects.advisors ?? {},
+    ...(effects.institutions !== undefined ? { institutions: effects.institutions } : {}),
+    ...(effects.corporationProgress !== undefined
+      ? { corporationProgress: effects.corporationProgress }
+      : {}),
+    ...(effects.corporationThreat !== undefined
+      ? { corporationThreat: effects.corporationThreat }
+      : {}),
+  };
+}
+
 export function CampaignActionControl({
   state,
   action,
@@ -33,6 +51,10 @@ export function CampaignActionControl({
 }: Props) {
   const preview = getActionPreview(state, action);
   const ignoresActiveCard = Boolean(activeCardTitle && action.type !== "resolve_card");
+  const activeCard = getActiveCard(state);
+  const ignoredChanges = activeCard
+    ? formatStateDelta(displayDelta(activeCard.ignoredOutcome.effects))
+    : [];
   const directiveId = state.legacyDirective.equippedId;
   const directive = directiveId ? LEGACY_DIRECTIVES[directiveId] : null;
   const directiveAvailable = Boolean(
@@ -152,8 +174,16 @@ export function CampaignActionControl({
               <p>
                 {activatesBrb
                   ? `“${activeCardTitle}” expires unresolved when the BRB activates. Its ignored consequence and Delayed Echo do not resolve.`
-                  : `“${activeCardTitle}” resolves as ignored before this commitment.`}
+                  : state.suppressNextIgnoredCard
+                    ? `“${activeCardTitle}” resolves as contained before this commitment. The Fixer prevents its immediate damage; no ignored-file effects apply.`
+                    : `“${activeCardTitle}” resolves as ignored before this commitment. Exact immediate effects: ${ignoredChanges.join(" · ") || "none"}.`}
               </p>
+              {!activatesBrb ? (
+                <p>
+                  Resolution order: ignored Situation effect → optional Legacy Directive →
+                  selected commitment.
+                </p>
+              ) : null}
             </section>
           ) : null}
           {directiveAvailable && directive ? (

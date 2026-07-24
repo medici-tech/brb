@@ -19,11 +19,29 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
   const [consequenceClarity, setConsequenceClarity] = useState<RecapInput["consequenceClarity"]>(existing?.consequenceClarity ?? 3);
   const [strategyViability, setStrategyViability] = useState<RecapInput["strategyViability"]>(existing?.strategyViability ?? 3);
   const [replayInterest, setReplayInterest] = useState<RecapInput["replayInterest"]>(existing?.replayInterest ?? 3);
+  const [directiveUseMonth, setDirectiveUseMonth] = useState(
+    existing?.directiveUseMonth?.toString() ?? "",
+  );
+  const [directiveTimingReason, setDirectiveTimingReason] = useState(existing?.directiveTimingReason ?? "");
+  const [directiveDrawbackMeaning, setDirectiveDrawbackMeaning] = useState<RecapInput["directiveDrawbackMeaning"]>(existing?.directiveDrawbackMeaning ?? 3);
+  const [ignoredOrderingClarity, setIgnoredOrderingClarity] = useState<RecapInput["ignoredOrderingClarity"]>(existing?.ignoredOrderingClarity ?? 3);
   const [nextExperiment, setNextExperiment] = useState(existing?.nextExperiment ?? "");
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    onSave({ fairness, pacing, lateGamePressure, consequenceClarity, strategyViability, replayInterest, nextExperiment });
+    onSave({
+      fairness,
+      pacing,
+      lateGamePressure,
+      consequenceClarity,
+      strategyViability,
+      replayInterest,
+      directiveUseMonth: directiveUseMonth === "" ? null : Number(directiveUseMonth),
+      directiveTimingReason,
+      directiveDrawbackMeaning,
+      ignoredOrderingClarity,
+      nextExperiment,
+    });
   }
 
   function ratingField(
@@ -51,6 +69,8 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
         {ratingField("Consequence clarity", consequenceClarity, setConsequenceClarity)}
         {ratingField("Strategy viability", strategyViability, setStrategyViability)}
         {ratingField("Replay interest", replayInterest, setReplayInterest)}
+        {ratingField("Directive drawback felt meaningful", directiveDrawbackMeaning, setDirectiveDrawbackMeaning)}
+        {ratingField("Ignored-file ordering clarity", ignoredOrderingClarity, setIgnoredOrderingClarity)}
         <label>
           Pacing
           <select value={pacing} onChange={(event) => setPacing(event.target.value as RecapInput["pacing"])}>
@@ -58,6 +78,27 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
             <option value="about_right">About right</option>
             <option value="too_long">Too long</option>
           </select>
+        </label>
+        <label>
+          Directive use month
+          <input
+            min={1}
+            inputMode="numeric"
+            type="number"
+            value={directiveUseMonth}
+            onChange={(event) => setDirectiveUseMonth(event.target.value)}
+            placeholder="Leave blank if held"
+          />
+        </label>
+        <label className="full-field">
+          Directive timing
+          <textarea
+            required
+            rows={3}
+            value={directiveTimingReason}
+            onChange={(event) => setDirectiveTimingReason(event.target.value)}
+            placeholder="Why did you spend it then, or why did you hold it?"
+          />
         </label>
         <label>
           Late-game pressure

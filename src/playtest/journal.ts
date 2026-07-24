@@ -1,4 +1,5 @@
 import type { GameState } from "../game/types";
+import { LEGACY_DIRECTIVE_IDS, type LegacyDirectiveId } from "../game/types";
 import {
   PLAYTEST_BOOKMARK_CATEGORIES,
   PLAYTEST_SEVERITIES,
@@ -25,6 +26,7 @@ const MATRIX_DEFINITIONS = [
     label: "Technocrat · natural play",
     strategy: "Play naturally without targeting a specific ending.",
     replayRequired: true,
+    legacyDirectiveId: "emergency_appropriation",
   },
   {
     id: "populist-natural",
@@ -32,6 +34,7 @@ const MATRIX_DEFINITIONS = [
     label: "Populist · natural play",
     strategy: "Play naturally without targeting a specific ending.",
     replayRequired: true,
+    legacyDirectiveId: "coalition_whip",
   },
   {
     id: "operator-natural",
@@ -39,6 +42,7 @@ const MATRIX_DEFINITIONS = [
     label: "Operator · natural play",
     strategy: "Play naturally without targeting a specific ending.",
     replayRequired: true,
+    legacyDirectiveId: "protected_channel",
   },
   {
     id: "technocrat-defensive",
@@ -46,6 +50,7 @@ const MATRIX_DEFINITIONS = [
     label: "Technocrat · slow defense",
     strategy: "Stabilize the state before accelerating the BRB.",
     replayRequired: false,
+    legacyDirectiveId: "public_confidence_reserve",
   },
   {
     id: "populist-coalition",
@@ -53,6 +58,7 @@ const MATRIX_DEFINITIONS = [
     label: "Populist · coalition legitimacy",
     strategy: "Build public backing before accepting expedient shortcuts.",
     replayRequired: false,
+    legacyDirectiveId: "industrial_surge",
   },
   {
     id: "operator-counter",
@@ -60,6 +66,7 @@ const MATRIX_DEFINITIONS = [
     label: "Operator · access and countering",
     strategy: "Use intelligence and direct counter-operations to control Access.",
     replayRequired: false,
+    legacyDirectiveId: "continuity_freeze_order",
   },
 ] as const;
 
@@ -74,34 +81,40 @@ const GUIDED_CHECKLISTS: Record<string, string[]> = {
     "Choose according to your own judgment; do not target a known ending.",
     "Consult only when the information feels worth its cost.",
     "Record any moment where the result does not match your expectation.",
+    "Record when you use the Directive, why you waited or spent it, and whether its drawback mattered.",
   ],
   "populist-natural": [
     "Choose according to your own judgment; do not target a known ending.",
     "Notice when public promises compete with BRB progress.",
     "Record any moment where the result does not match your expectation.",
+    "Record when you use the Directive, why you waited or spent it, and whether its drawback mattered.",
   ],
   "operator-natural": [
     "Choose according to your own judgment; do not target a known ending.",
     "Use the Fixer only when the dependence feels worthwhile.",
     "Record any moment where the result does not match your expectation.",
+    "Record when you use the Directive, why you waited or spent it, and whether its drawback mattered.",
   ],
   "technocrat-defensive": [
     "Favor Standard Deposits over Large Deposits while pressure is elevated.",
     "Protect Institutions and recover resources before they become dangerously low.",
     "Consult before countering; avoid guessing at Corporation Posture.",
     "Do not rush BRB progress while Panic or Corporation Threat is high.",
+    "Record Directive timing, drawback impact, and whether ignored-file ordering is clear.",
   ],
   "populist-coalition": [
     "Favor coalition actions and Legitimacy Deposits.",
     "Protect Trust and choose public-facing Situation responses.",
     "Avoid opaque shortcuts even when they offer immediate resources.",
     "Watch whether public backing survives late-game pressure.",
+    "Record Directive timing, drawback impact, and whether ignored-file ordering is clear.",
   ],
   "operator-counter": [
     "Favor Access Deposits and direct Corporation counter-operations.",
     "Consult the Fixer when the added Leverage is worth the forecast or containment.",
     "Keep enough Intel and Influence available to counter the predicted Posture.",
     "Record whether rising Fixer Leverage changes your decisions.",
+    "Record Directive timing, drawback impact, and whether ignored-file ordering is clear.",
   ],
 };
 
@@ -143,6 +156,38 @@ export function createEmptyPlaytestJournal(now?: string): PlaytestJournalV1 {
   };
 }
 
+function isLegacyDirectiveId(value: unknown): value is LegacyDirectiveId {
+  return value === null || LEGACY_DIRECTIVE_IDS.includes(value as LegacyDirectiveId);
+}
+
+function normalizeLegacyJournal(value: PlaytestJournalV1): PlaytestJournalV1 {
+  const next = structuredClone(value);
+  next.matrix = next.matrix.map((slot) => ({
+    ...slot,
+    legacyDirectiveId: isLegacyDirectiveId(slot.legacyDirectiveId)
+      ? slot.legacyDirectiveId
+      : null,
+  }));
+  next.runs = next.runs.map((run) => ({
+    ...run,
+    legacyDirectiveId: isLegacyDirectiveId(run.legacyDirectiveId)
+      ? run.legacyDirectiveId
+      : null,
+    recap: run.recap
+      ? {
+          ...run.recap,
+          directiveUseMonth: Number.isInteger(run.recap.directiveUseMonth)
+            ? run.recap.directiveUseMonth
+            : null,
+          directiveTimingReason: run.recap.directiveTimingReason ?? "",
+          directiveDrawbackMeaning: run.recap.directiveDrawbackMeaning ?? 3,
+          ignoredOrderingClarity: run.recap.ignoredOrderingClarity ?? 3,
+        }
+      : null,
+  }));
+  return next;
+}
+
 function isValidJournal(value: unknown): value is PlaytestJournalV1 {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlaytestJournalV1>;
@@ -158,6 +203,7 @@ function isValidJournal(value: unknown): value is PlaytestJournalV1 {
       && matrixStatuses.includes(slot.status)
       && typeof slot.order === "number"
       && typeof slot.replayRequired === "boolean"
+      && (slot.legacyDirectiveId === undefined || isLegacyDirectiveId(slot.legacyDirectiveId))
       && typeof slot.replayCommitments === "number")
     && Array.isArray(candidate.runs)
     && candidate.runs.every((run) => typeof run?.runId === "string"
@@ -165,6 +211,7 @@ function isValidJournal(value: unknown): value is PlaytestJournalV1 {
       && (run.kind === "primary" || run.kind === "replay")
       && runStatuses.includes(run.status)
       && Number.isInteger(run.seed)
+      && (run.legacyDirectiveId === undefined || isLegacyDirectiveId(run.legacyDirectiveId))
       && Array.isArray(run.decisions))
     && Array.isArray(candidate.bookmarks)
     && candidate.bookmarks.every((bookmark) => typeof bookmark?.id === "string"
@@ -179,7 +226,7 @@ export function loadPlaytestJournal(storage: Storage, now?: string): PlaytestJou
     const raw = storage.getItem(PLAYTEST_STORAGE_KEY);
     if (!raw) return createEmptyPlaytestJournal(now);
     const value = JSON.parse(raw) as unknown;
-    return isValidJournal(value) ? value : createEmptyPlaytestJournal(now);
+    return isValidJournal(value) ? normalizeLegacyJournal(value) : createEmptyPlaytestJournal(now);
   } catch {
     return createEmptyPlaytestJournal(now);
   }
@@ -264,6 +311,7 @@ function newRunEntry(
     kind,
     seed: state.seed,
     archetypeId: state.archetypeId,
+    legacyDirectiveId: state.legacyDirective.equippedId,
     experiment: state.experiment,
     startedAt: timestamp(now),
     completedAt: null,
@@ -287,6 +335,9 @@ export function startPrimaryPlaytestRun(
   if (!slot) throw new Error(`Unknown playtest matrix slot: ${slotId}`);
   if (slot.status !== "pending") throw new Error("This playtest slot has already started.");
   if (slot.archetypeId !== state.archetypeId) throw new Error("Run archetype does not match the playtest slot.");
+  if (slot.legacyDirectiveId !== state.legacyDirective.equippedId) {
+    throw new Error("Run Directive does not match the playtest slot.");
+  }
   slot.status = "active";
   slot.primaryRunId = state.runId;
   next.runs.push(newRunEntry(slot, state, "primary", now));
@@ -306,6 +357,9 @@ export function startReplayPlaytestRun(
   }
   if (state.seed !== next.runs.find((run) => run.runId === primaryRunId)?.seed) {
     throw new Error("Replay sample must use the original seed.");
+  }
+  if (state.legacyDirective.equippedId !== slot.legacyDirectiveId) {
+    throw new Error("Replay sample must preserve the original Directive.");
   }
   slot.status = "replay_active";
   slot.replayRunId = state.runId;

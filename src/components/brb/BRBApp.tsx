@@ -132,7 +132,12 @@ export function BRBApp() {
   function startGuidedRun(slotId: string): void {
     const slot = journal.matrix.find((candidate) => candidate.id === slotId);
     if (!slot) return;
-    const next = createGame({ seed: randomSeed(), archetypeId: slot.archetypeId, runId: newRunId() });
+    const next = createGame({
+      seed: randomSeed(),
+      archetypeId: slot.archetypeId,
+      runId: newRunId(),
+      legacyDirectiveId: slot.legacyDirectiveId,
+    });
     openGame(next, startPrimaryPlaytestRun(journal, slotId, next));
   }
 

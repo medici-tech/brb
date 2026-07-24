@@ -1,6 +1,7 @@
 "use client";
 
 import { ARCHETYPES, ENDING_COPY } from "../../game/content";
+import { LEGACY_DIRECTIVES } from "../../game/directives";
 import { serializePlaytestJournal, summarizePlaytestJournal } from "../../playtest/journal";
 import type { PlaytestJournalV1 } from "../../playtest/types";
 import { ConfirmActionDialog } from "./ui/decisions";
@@ -92,6 +93,11 @@ export function PlaytestJournalView({
                 <p className="file-label">{ARCHETYPES[slot.archetypeId].name} · {STATUS_LABELS[slot.status]}</p>
                 <h3>{slot.label}</h3>
                 <p>{slot.strategy}</p>
+                <small>
+                  Directive: {slot.legacyDirectiveId
+                    ? LEGACY_DIRECTIVES[slot.legacyDirectiveId].title
+                    : "No Directive (legacy matrix)"}
+                </small>
                 {slot.replayRequired ? <small>Includes a five-commitment same-seed replay · {slot.replayCommitments} / 5 recorded</small> : null}
               </div>
               <div className="journal-slot-action">

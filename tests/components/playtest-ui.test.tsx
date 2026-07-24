@@ -209,11 +209,17 @@ describe("guided playtest UI", () => {
   it("saves the structured end-of-run recap", () => {
     const onSave = vi.fn();
     render(<PlaytestRecapForm existing={null} onSave={onSave} />);
+    fireEvent.change(screen.getByLabelText(/directive use month/i), { target: { value: "8" } });
+    fireEvent.change(screen.getByLabelText(/directive timing/i), { target: { value: "It unlocked the commitment I needed." } });
     fireEvent.change(screen.getByLabelText(/next experiment/i), { target: { value: "Protect institutions earlier." } });
     fireEvent.click(screen.getByRole("button", { name: /save recap/i }));
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       fairness: 3,
       pacing: "about_right",
+      directiveUseMonth: 8,
+      directiveTimingReason: "It unlocked the commitment I needed.",
+      directiveDrawbackMeaning: 3,
+      ignoredOrderingClarity: 3,
       nextExperiment: "Protect institutions earlier.",
     }));
   });
@@ -238,6 +244,8 @@ describe("guided playtest UI", () => {
       />,
     );
     expect(screen.getByText(/0 \/ 6 matrix runs complete/i)).toBeInTheDocument();
+    expect(screen.getByText(/Directive: Emergency Appropriation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Directive: Continuity Freeze Order/i)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /complete prior run/i })).toHaveLength(5);
     const exportButton = screen.getByRole("button", { name: /export playtest journal/i });
     fireEvent.click(exportButton);

@@ -185,6 +185,25 @@ The first 3,000-run no-Directive block used seed `20260715`. The subsequent bot 
 
 The sequential-affordability correction moves activation down 0.37 percentage points but remains inside the 8–12% evaluation band. It also increases active card resolution, which is consistent with bots no longer abandoning a file for a commitment they cannot afford after the ignored penalty. Treat the new 255-activation block as the current seed-`20260715` no-Directive checkpoint. Do not compensate with another balance lever before human playtests establish whether the change improves cost comprehension.
 
+### Corrected Legacy Directive revalidation — 2026-07-23
+
+The required fresh 5,000-run seed-`20260715` baseline uses sequential ignored-Situation
+affordability and Directive-aware bot candidate validation. Emergency Appropriation is
+the first completed isolated comparison:
+
+| Loadout | Activations | Rate | State Collapse | Corporate Capture | Median months | Cards presented / resolved | All tracks ready |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| No Directive | 428 | 8.56% | 2,039 (40.78%) | 2,533 (50.66%) | 22 | 12.52 / 8.77 | 1,368 |
+| Emergency Appropriation | 524 | 10.48% | 1,971 (39.42%) | 2,505 (50.10%) | 22 | 12.45 / 8.74 | 1,531 |
+
+Emergency Appropriation remains inside the 8–12% automated evaluation band. The other
+five corrected Directive blocks are still required before any cross-Directive decision.
+The environment stopped the batch after these two blocks when its command-approval
+service reached its usage limit; this is an incomplete evidence checkpoint, not approval
+of the remaining cards. Each 417/416-run strategy slice is diagnostic only and does not
+prove archetype or strategy dominance. If parity becomes the next decision, use multiple
+documented seed blocks.
+
 ## Endings
 
 The prototype targets 3–4 endings. Track occurrence rate, activation rate, track quality at resolution, panic, stability, advisor relationships, Corporation status, and major decision flags.

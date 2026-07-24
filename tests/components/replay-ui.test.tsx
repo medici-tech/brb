@@ -96,6 +96,11 @@ describe("campaign replay UI", () => {
     expect(screen.getByRole("dialog")).toHaveTextContent(/stress \+7/i);
     expect(screen.getByRole("dialog")).toHaveTextContent(/corporation progress \+3/i);
     expect(screen.getByRole("dialog")).toHaveTextContent(/resolves as ignored before this commitment/i);
+    expect(screen.getByRole("dialog")).toHaveTextContent(/money −7 · stress \+5/i);
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      /ignored situation effect → optional legacy directive → selected commitment/i,
+    );
+    expect(screen.getByRole("dialog")).not.toHaveTextContent(/neglect entered the record/i);
     expect(onCommit).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: /return to briefing/i }));
@@ -107,6 +112,50 @@ describe("campaign replay UI", () => {
       { type: "recover_resource", resource: "money" },
       { confirmCardAbandonment: true },
     );
+  });
+
+  it("shows containment instead of ignored damage", () => {
+    const state = createGame(12);
+    state.activeCardId = "budget_shortfall";
+    state.suppressNextIgnoredCard = true;
+    render(<CampaignScreen state={state} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /recover money/i }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(/fixer prevents its immediate damage/i);
+    expect(dialog).toHaveTextContent(/no ignored-file effects apply/i);
+    expect(dialog).not.toHaveTextContent(/money −7/i);
+  });
+
+  it("shows when ignored damage blocks a commitment and a Directive restores it", () => {
+    const blocked = createGame(75);
+    blocked.activeCardId = "budget_shortfall";
+    blocked.resources.money = 12;
+    blocked.resources.trust = 20;
+    const { unmount } = render(
+      <CampaignScreen state={blocked} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />,
+    );
+
+    const blockedButton = screen.getByRole("button", { name: /protect institutions/i });
+    expect(blockedButton).toBeDisabled();
+    expect(blockedButton).toHaveTextContent(/requires 6 Money and 4 Trust/i);
+    unmount();
+
+    const restored = createGame({
+      seed: 75,
+      legacyDirectiveId: "emergency_appropriation",
+    });
+    restored.activeCardId = "budget_shortfall";
+    restored.resources.money = 12;
+    restored.resources.trust = 20;
+    render(<CampaignScreen state={restored} error={null} onCommit={vi.fn()} onConsult={vi.fn()} onOpenArchive={vi.fn()} />);
+
+    const restoredButton = screen.getByRole("button", { name: /protect institutions/i });
+    expect(restoredButton).toBeEnabled();
+    fireEvent.click(restoredButton);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent(/money −7 · stress \+5/i);
+    expect(screen.getByRole("button", { name: /use legacy directive/i })).toBeEnabled();
   });
 
   it("explains that activation expires an active card without resolving its ignored outcome", () => {

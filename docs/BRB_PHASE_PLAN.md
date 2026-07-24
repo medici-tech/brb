@@ -72,7 +72,7 @@ Use 3,000-run simulations for routine comparisons of common outcomes, duration, 
 | Deterministic rules, replay, storage, and route provenance | Complete | Preserve the green gate while tuning. |
 | Current fixed-seed automated baseline | Complete for reachability | The current 3,000/5,000 checkpoints are not precise enough to approve rare endings. |
 | Loyalty departure experiment | Automated safety accepted | Validate whether players understand disapproval, Loyalty loss, departure risk, and Manage Advisor. |
-| Six-run guided matrix and three five-commitment replays | Unverified | No completed journal export and cross-run synthesis is stored in the repository. Finish the first three without tuning, then complete the three targeted strategy runs. |
+| Six-run guided matrix and three five-commitment replays | Unverified | The matrix now assigns one Legacy Directive to each primary run, preserves it for required same-seed replays, and records timing, drawback meaning, and ignored-file ordering clarity. No completed journal export or cross-run synthesis is stored in the repository. Finish the first three without tuning, then complete the three targeted strategy runs. |
 | Archetype and normal-strategy parity | Automated comparison complete | Both seed blocks include every archetype and normal strategy; validate the weaker Fixer and Command results through guided play. |
 | Activation, premium-ending, and late-game targets | Automated target accepted | The isolated cadence produced 8.02–8.34% activation; validate near-wins, loss fairness, and activation payoff with humans. |
 | Card tempo and defensive-style discoverability | Incomplete | Confirm through guided play whether players notice and enjoy the slower survival path. |

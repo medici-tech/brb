@@ -1390,3 +1390,113 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Same seed block and no-Directive loadout as the post-rules-audit baseline. Bot candidate validation now accounts for an intended equipped Directive; no no-Directive policy values or gameplay balance levers changed.
 
+## 2026-07-23T23:30:46.039Z — Corrected Directive-aware baseline
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `5afd35ba3` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 428 (8.56%) |
+| Civic Legacy | 38 |
+| State collapse | 2,039 (40.78%) |
+| Corporate capture | 2,533 (50.66%) |
+| Average / median months | 22.83 / 22 |
+| Longest campaign | 54 months |
+| Cards presented / resolved per run | 12.52 / 8.77 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,368 |
+| Activation attempts | 428 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 428 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,632 |
+| panic_before_activation | 349 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 591 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 55 |
+| rush | 417 | 31 |
+| defensive | 417 | 29 |
+| fixer | 417 | 41 |
+| institutionalist | 417 | 52 |
+| command | 417 | 27 |
+| coalition | 417 | 17 |
+| engineering_first | 417 | 25 |
+| legitimacy_first | 416 | 52 |
+| stability_first | 416 | 42 |
+| access_first | 416 | 25 |
+| delayed_deposit | 416 | 32 |
+
+### Notes
+
+> No Legacy Directive equipped. Fresh isolated baseline after ignored-Situation sequential affordability and Directive-aware bot candidate validation; individual 250-run strategy rates are diagnostic only.
+
+## 2026-07-23T23:31:19.868Z — Emergency Appropriation corrected comparison
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `emergency_appropriation`
+- Source: `5afd35ba3` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 524 (10.48%) |
+| Civic Legacy | 65 |
+| State collapse | 1,971 (39.42%) |
+| Corporate capture | 2,505 (50.1%) |
+| Average / median months | 22.72 / 22 |
+| Longest campaign | 59 months |
+| Cards presented / resolved per run | 12.45 / 8.74 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,531 |
+| Activation attempts | 526 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 524 |
+| activation_corporate_capture | 2 |
+| tracks_never_ready | 3,469 |
+| panic_before_activation | 363 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 642 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 63 |
+| rush | 417 | 35 |
+| defensive | 417 | 32 |
+| fixer | 417 | 40 |
+| institutionalist | 417 | 83 |
+| command | 417 | 27 |
+| coalition | 417 | 29 |
+| engineering_first | 417 | 43 |
+| legitimacy_first | 416 | 68 |
+| stability_first | 416 | 47 |
+| access_first | 416 | 22 |
+| delayed_deposit | 416 | 35 |
+
+### Notes
+
+> Changed only the equipped Legacy Directive against the corrected no-Directive baseline. Directive-aware bot candidate validation is active; individual 250-run strategy rates are diagnostic only.
+
