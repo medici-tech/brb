@@ -53,7 +53,7 @@ export function HowToPlayDialog() {
         <div className="glossary-grid" aria-label="BRB field glossary">
           <section>
             <strong>Corporation Watch</strong>
-            <p><b>Progress</b> reaches defeat at 100. <b>Posture</b> names the move being prepared. <b>Threat</b> controls how soon and how severely the Corporation responds.</p>
+            <p><b>Progress</b> reaches defeat at 100. <b>Posture</b> is the hidden move being prepared—consult an advisor to forecast it before you counter. <b>Threat</b> controls how soon and how severely the Corporation responds.</p>
           </section>
           <section>
             <strong>State pressure</strong>

@@ -128,11 +128,15 @@ Target behavior: an advisor is valuable enough to consider, but reliance on them
 
 ## Corporation pressure
 
-The prototype uses four Corporation move types. Measure which visible strategy state is inferred by players, response frequency, successful counterplay, and whether moves feel connected to player vulnerabilities.
+The prototype uses four Corporation move types. The prepared posture is **hidden**; measure how often players consult to forecast it, the forecast follow-and-success rate, successful counterplay, and whether moves feel connected to player vulnerabilities. Because a counter-operation targets a *forecast* and blocks only on a correct guess, countering is a bet whose odds are the forecast accuracy.
 
-Target behavior: the Corporation changes plans in ways a player can read and adapt to. It should not feel like a random progress bar or unavoidable punishment.
+Target behavior: the Corporation changes plans in ways a player can read *through the forecast* and adapt to. It should not feel like a random progress bar or unavoidable punishment, and the paid forecast must stay worth its cost.
 
-The Threat clarity experiment gives Corporation Watch three distinct jobs: Progress measures proximity to defeat, Posture communicates the incoming move family, and Threat communicates how frequently and severely the Corporation can respond. Threat does not multiply its own increase. Run fixed-seed comparisons before adjusting any unrelated balance value.
+The Threat clarity experiment gives Corporation Watch three distinct jobs: Progress measures proximity to defeat, Posture is the concealed incoming move family surfaced only by an advisor forecast (the panel shows the last observed move as a tell), and Threat communicates how frequently and severely the Corporation can respond. Threat does not multiply its own increase. Run fixed-seed comparisons before adjusting any unrelated balance value.
+
+### Hidden-posture baseline (seed `20260715`, 5,000 runs)
+
+Concealing the posture and making the counter a forecast-gated bet — bots no longer read the true strategy — establishes a new no-Directive checkpoint: 507 activations (10.14%, inside the 8–12% band), 1,316 State Collapses (26.32%), 3,177 Corporate Captures (63.54%), 21-month median. Versus the prior corrected Directive-aware baseline (8.56% / 40.78% / 50.66%), losses shift markedly from collapse toward capture because disciplined counterplay now requires a correct forecast rather than free knowledge. This supersedes earlier counter-related checkpoints; treat prior "successful counterplay" figures as measured under visible-posture rules.
 
 ## Situation Deck
 

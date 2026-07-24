@@ -8,12 +8,15 @@ import {
   getActionPreview,
   getAdvisorForecastAccuracy,
   getAdvisorRecommendation,
+  getBriefing,
   getConsultationCost,
   getConsultationError,
   getCorporationPressure,
+  getKnownActionDelta,
   getTurnEchoTypes,
   getValidActions,
 } from "../../src/game/index.js";
+import { ADVISOR_IDS, CORPORATION_STRATEGIES } from "../../src/game/types.js";
 
 describe("cause-and-effect guidance", () => {
   it("shows exact costs without exposing classified delayed content", () => {
@@ -119,6 +122,42 @@ describe("cause-and-effect guidance", () => {
     const error = getConsultationError(state, "fixer");
     expect(error).toBe("Consultation requires 2 Intelligence.");
     expect(consultAdvisor(state, "fixer").error).toBe(error);
+  });
+
+  it("keeps the Corporation counter a bet: outcome is never previewable", () => {
+    const state = createGame(31, "technocrat");
+    state.activeCardId = null;
+    state.corporation.strategy = "infiltrating";
+    for (const predictedStrategy of CORPORATION_STRATEGIES) {
+      const counter = { type: "counter_corporation", predictedStrategy } as const;
+      // The block-or-waste result depends on the hidden posture, so neither the
+      // raw delta nor the preview's known changes may reveal which target is right.
+      expect(getKnownActionDelta(state, counter)).toBeNull();
+      expect(getActionPreview(state, counter).knownChanges).toBeNull();
+    }
+  });
+
+  it("does not surface the prepared posture in the briefing", () => {
+    const state = createGame(32, "technocrat");
+    state.corporation.strategy = "discrediting";
+    const briefing = getBriefing(state).join(" ");
+    expect(briefing).not.toMatch(/Posture: discrediting/i);
+    expect(briefing.toLowerCase()).toContain("hidden");
+    expect(briefing.toLowerCase()).toContain("consult");
+  });
+
+  it("never recommends a blind counter when no forecast has been taken", () => {
+    const state = createGame(33, "operator");
+    state.activeCardId = null;
+    // Make a counter attractive on paper (high Corporation progress) but with no
+    // consultation, so the recommender must not steer into a blind guess.
+    state.corporation.progress = 92;
+    state.corporation.threat = 80;
+    expect(state.consultation).toBeNull();
+    for (const advisorId of ADVISOR_IDS) {
+      const recommendation = getAdvisorRecommendation(state, advisorId);
+      expect(recommendation?.action.type).not.toBe("counter_corporation");
+    }
   });
 
   it("produces deterministic, legal, personality-specific advice", () => {

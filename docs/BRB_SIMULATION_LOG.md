@@ -1500,3 +1500,58 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Changed only the equipped Legacy Directive against the corrected no-Directive baseline. Directive-aware bot candidate validation is active; individual 250-run strategy rates are diagnostic only.
 
+## 2026-07-24T02:58:44.969Z — Hidden posture bet
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `95125a1a2` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 507 (10.14%) |
+| Civic Legacy | 38 |
+| State collapse | 1,316 (26.32%) |
+| Corporate capture | 3,177 (63.54%) |
+| Average / median months | 21.44 / 21 |
+| Longest campaign | 46 months |
+| Cards presented / resolved per run | 11.78 / 8.29 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,817 |
+| Activation attempts | 508 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 507 |
+| activation_corporate_capture | 1 |
+| tracks_never_ready | 3,183 |
+| panic_before_activation | 345 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 964 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 65 |
+| rush | 417 | 31 |
+| defensive | 417 | 36 |
+| fixer | 417 | 42 |
+| institutionalist | 417 | 52 |
+| command | 417 | 20 |
+| coalition | 417 | 23 |
+| engineering_first | 417 | 22 |
+| legitimacy_first | 416 | 92 |
+| stability_first | 416 | 61 |
+| access_first | 416 | 21 |
+| delayed_deposit | 416 | 42 |
+
+### Notes
+
+> Hidden Corporation posture; counter is now a forecast-gated bet (bots no longer read the true strategy)
+

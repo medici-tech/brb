@@ -60,12 +60,14 @@ function chooseLongHorizonAction(state: GameState, valid: MajorAction[]): MajorA
   const activation = valid.find((action) => action.type === "activate_brb");
   if (activation && state.turn >= 97 && state.corporation.progress < 80) return activation;
 
-  const predictedStrategy = state.consultation?.predictedStrategy ?? state.corporation.strategy;
-  const counter = valid.find(
-    (action) =>
-      action.type === "counter_corporation" &&
-      action.predictedStrategy === predictedStrategy,
-  );
+  const predictedStrategy = state.consultation?.predictedStrategy ?? null;
+  const counter = predictedStrategy
+    ? valid.find(
+        (action) =>
+          action.type === "counter_corporation" &&
+          action.predictedStrategy === predictedStrategy,
+      )
+    : undefined;
   if (counter && state.corporation.progress >= 18) return counter;
 
   const protect = valid.find((action) => action.type === "protect_institutions");
@@ -245,8 +247,9 @@ function scoreAction(state: GameState, action: MajorAction, bot: BotId): number 
     return style + catchesUp + size;
   }
   if (action.type === "counter_corporation") {
-    const prediction = state.consultation?.predictedStrategy ?? state.corporation.strategy;
-    const correctTarget = action.predictedStrategy === prediction ? 22 : -40;
+    const prediction = state.consultation?.predictedStrategy ?? null;
+    const correctTarget =
+      prediction === null ? -60 : action.predictedStrategy === prediction ? 22 : -40;
     const danger = state.corporation.progress >= 70 ? 55 : state.corporation.progress * 0.28;
     const style = bot === "defensive" ? 18 : bot === "balanced" ? 10 : -5;
     return style + correctTarget + danger;
@@ -319,14 +322,16 @@ export function chooseBotAction(
       (bot === "institutionalist" && state.institutions < 30 && state.turn % 3 === 2))
   ) return targetedProtection;
 
-  const predictedStrategy = state.consultation?.predictedStrategy ?? state.corporation.strategy;
+  const predictedStrategy = state.consultation?.predictedStrategy ?? null;
   const counterThreshold =
     bot === "institutionalist" ? 85 : isOneOf(bot, RUSH_BOTS) ? 66 : bot === "balanced" ? 58 : 48;
-  const counter = valid.find(
-    (action) =>
-      action.type === "counter_corporation" &&
-      action.predictedStrategy === predictedStrategy,
-  );
+  const counter = predictedStrategy
+    ? valid.find(
+        (action) =>
+          action.type === "counter_corporation" &&
+          action.predictedStrategy === predictedStrategy,
+      )
+    : undefined;
   if (activation && counter) return counter;
   if (counter && state.corporation.progress >= counterThreshold) return counter;
 
@@ -404,8 +409,10 @@ function advisorForBot(state: GameState, bot: BotId): AdvisorId {
     return "steward";
   }
   if (["rush", "engineering_first", "access_first"].includes(bot)) return "analyst";
+  // The prepared posture is hidden; steer the advisor choice off the last
+  // observed move rather than peeking at the concealed strategy.
   const matching = ADVISOR_IDS.find(
-    (id) => ADVISORS[id].crisisSpecialty === state.corporation.strategy && state.advisors[id].active,
+    (id) => ADVISORS[id].crisisSpecialty === state.corporation.lastMove && state.advisors[id].active,
   );
   return matching ?? "fixer";
 }
@@ -418,9 +425,7 @@ function shouldFixerConsult(state: GameState): boolean {
   if (containmentIsImmediatelyUseful) return true;
 
   const affordableCounter = getValidActions(state).some(
-    (action) =>
-      action.type === "counter_corporation" &&
-      action.predictedStrategy === state.corporation.strategy,
+    (action) => action.type === "counter_corporation",
   );
   return (
     state.corporation.progress >= 70 &&

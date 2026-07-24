@@ -65,11 +65,13 @@ export type PressurePool = {
 
 export type AdvisorId = (typeof ADVISOR_IDS)[number];
 export type ArchetypeId = "technocrat" | "populist" | "operator";
-export type CorporationStrategy =
-  | "expanding"
-  | "infiltrating"
-  | "discrediting"
-  | "buying_influence";
+export const CORPORATION_STRATEGIES = [
+  "expanding",
+  "infiltrating",
+  "discrediting",
+  "buying_influence",
+] as const;
+export type CorporationStrategy = (typeof CORPORATION_STRATEGIES)[number];
 
 export type ActionCategory =
   | "deposit"

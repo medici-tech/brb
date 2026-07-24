@@ -1,7 +1,4 @@
-import {
-  describeCorporationPosture,
-  describeCorporationPressure,
-} from "../../game/guidance";
+import { describeCorporationPressure } from "../../game/guidance";
 import {
   describeCompletionPressure,
   getCompletionPressure,
@@ -31,9 +28,16 @@ export function CorporationWatchPanel({ state }: Props) {
         <p>{describeCorporationPressure(state)}</p>
       </div>
       <div className="watch-section">
-        <span>Posture · move being prepared</span>
-        <strong>{state.corporation.strategy.replaceAll("_", " ")}</strong>
-        <p>{describeCorporationPosture(state.corporation.strategy)}</p>
+        <span>Posture · being prepared (hidden)</span>
+        <strong>
+          {state.corporation.lastMove
+            ? `Last observed move: ${state.corporation.lastMove.replaceAll("_", " ")}`
+            : "No move observed yet"}
+        </strong>
+        <p>
+          The move the Corporation is preparing is concealed. Consult an advisor to
+          forecast the posture before committing a counter-operation.
+        </p>
       </div>
       <div className="watch-section">
         <span>Response clock · when the move happens</span>

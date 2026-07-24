@@ -112,9 +112,9 @@ The Corporation is a visible rival with a strategy, not a random attack meter. T
 - Discrediting
 - Buying influence
 
-Players should infer the current state and adapt. Corporation moves respond to player choices and vulnerabilities rather than firing without context. Each candidate posture receives its own small seeded jitter, so close strategic scores can diverge without sacrificing replay determinism.
+Players should infer the current state and adapt. The **prepared posture is hidden**: the player sees only the Corporation's last executed move as a tell and must pay an advisor consultation to forecast the posture being prepared. A counter-operation therefore targets a *predicted* posture and is a genuine bet—it blocks the move only if the forecast is correct, and a wrong guess wastes the operation and raises Threat. This makes the paid forecast load-bearing (the technocrat/analyst precise forecast is a real archetype advantage) rather than redundant. Corporation moves respond to player choices and vulnerabilities rather than firing without context. Each candidate posture receives its own small seeded jitter, so close strategic scores can diverge without sacrificing replay determinism.
 
-Corporation Watch separates three related signals. **Progress** is the rival victory meter and ends the campaign at 100. **Posture** identifies the kind of move being prepared. **Threat** controls response cadence and move severity: Monitored (0–24) is 100% severity, Mobilized (25–49) is 110%, Aggressive (50–74) is 125% and one month faster, and Critical (75–100) is 150% and two months faster. Threat modifies the existing BRB-completion cadence with a one-month minimum.
+Corporation Watch separates three related signals. **Progress** is the rival victory meter and ends the campaign at 100. **Posture** is the concealed move being prepared, surfaced only through an advisor forecast; the panel shows the last observed move as a tell. **Threat** controls response cadence and move severity: Monitored (0–24) is 100% severity, Mobilized (25–49) is 110%, Aggressive (50–74) is 125% and one month faster, and Critical (75–100) is 150% and two months faster. Threat modifies the existing BRB-completion cadence with a one-month minimum.
 
 ## Situation Deck
 
