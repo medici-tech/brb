@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --webpack",
+    "prebuild": "tsx scripts/inject-art.ts",
     "build": "next build --webpack",
     "start": "next start",
+    "art:contact-sheets": "tsx scripts/contact-sheet.ts",
+    "art:curate": "tsx scripts/curate-art.ts",
     "test": "vitest run",
     "test:browser": "playwright test",
     "test:browser:install": "playwright install chromium",

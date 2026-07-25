@@ -543,6 +543,18 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
   .journal-danger-zone > div { flex-direction: column; }
   .outcome-next-step { border-top: 4px solid var(--red); border-left: 0; }
 }
+/* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).
+ * Integer-scale sprite sheets only; `pixelated` keeps upscaled pixels crisp with a
+ * `-webkit-optimize-contrast` fallback for engines lacking `pixelated`. */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -webkit-optimize-contrast;
+}
+@keyframes brb-pixel-sprite {
+  from { background-position-x: 0; }
+  to { background-position-x: var(--pixel-sprite-travel, 0px); }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .paper-panel { animation: file-in .45s ease-out both; }
   .turn-beat-milestone { animation: milestone-signal .55s ease-out both; }

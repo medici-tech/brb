@@ -1,0 +1,47 @@
+/* PixelSprite primitive styles.
+ *
+ * The animation keyframe (`brb-pixel-sprite`) and the `.pixelated` rendering
+ * utility live in globals.css so the keyframe name is stable (CSS-module scoping
+ * would hash it, and the animation string is built in JS). */
+
+.root {
+  display: inline-block;
+  position: relative;
+  /* Concrete box size + background geometry are supplied inline per instance. */
+  background-repeat: no-repeat;
+  background-position-y: 0;
+  /* Keep pixels crisp when integer-scaled. */
+  image-rendering: pixelated;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.animated {
+  animation-name: brb-pixel-sprite;
+  animation-timing-function: steps(1); /* overridden inline with the real step count */
+  animation-iteration-count: infinite;
+}
+
+/* Offscreen probe <img> used only to detect a 404 on the sheet. It must never
+ * be visible (a broken sheet would otherwise show a broken-image glyph). */
+.probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* When a data-motion="reduced" ancestor is present, belt-and-suspenders freeze
+ * the animation even if the inline animation string somehow slipped through. */
+:global([data-motion="reduced"]) .animated {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated {
+    animation: none !important;
+  }
+}
