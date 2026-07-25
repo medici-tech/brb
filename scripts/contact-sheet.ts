@@ -188,6 +188,17 @@ function sliceSheets(
   return cells.sort();
 }
 
+// Homebrew ImageMagick on macOS ships without a configured default font, so
+// `montage -label` aborts with "unable to read font". Pick the first system font
+// that exists and pass it explicitly; if none is found, labels are dropped rather
+// than failing the whole sheet.
+const LABEL_FONT = [
+  "/System/Library/Fonts/Monaco.ttf",
+  "/System/Library/Fonts/Menlo.ttc",
+  "/System/Library/Fonts/Supplemental/Arial.ttf",
+  "/Library/Fonts/Arial.ttf",
+].find((candidate) => existsSync(candidate));
+
 function buildGroup(group: ContactSheetGroup): void {
   const sourceDir = resolveSource(group.source);
   const montageCmd = imageMagick("montage");
@@ -219,6 +230,7 @@ function buildGroup(group: ContactSheetGroup): void {
     "none",
     "-filter",
     "point",
+    ...(LABEL_FONT ? ["-font", LABEL_FONT] : []),
     "-label",
     "%f",
     "-tile",
