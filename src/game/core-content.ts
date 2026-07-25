@@ -189,7 +189,7 @@ export const ADVISOR_TAKEOVER_RULES = {
   // state is structurally dependent on them: weakened Institutions or no other
   // active advisor remaining.
   coupLeverageMinimum: 90,
-  coupInstitutionsMaximum: 40,
+  coupInstitutionsMaximum: 55,
   // Two or more active advisors at or above this Leverage jointly dominate.
-  cabalMemberLeverageMinimum: 70,
+  cabalMemberLeverageMinimum: 60,
 } as const;

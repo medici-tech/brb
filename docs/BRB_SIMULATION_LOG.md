@@ -1729,3 +1729,63 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Added advisor_dependent and civic_seeker bot profiles (14-strategy matrix; per-strategy runs drop to ~357). Dependent profile exercises the takeover endings; civic seeker plays toward all nine Civic Legacy conditions. Natural landing, no rule changes.
 
+## 2026-07-25T02:14:19.246Z — Takeover thresholds tightened
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `5dec771` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 482 (9.64%) |
+| — Civic Legacy | 68 (1.36%) |
+| — Compromised activation | 414 (8.28%) |
+| State collapse | 1,991 (39.82%) |
+| Corporate capture | 2,516 (50.32%) |
+| Advisor coup | 10 (0.2%) |
+| Advisor cabal | 1 (0.02%) |
+| Average / median months | 22.75 / 22 |
+| Longest campaign | 53 months |
+| Cards presented / resolved per run | 12.45 / 8.79 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,398 |
+| Activation attempts | 483 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 482 |
+| activation_corporate_capture | 1 |
+| tracks_never_ready | 3,602 |
+| panic_before_activation | 309 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 606 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 358 | 45 |
+| rush | 358 | 28 |
+| defensive | 357 | 17 |
+| fixer | 357 | 41 |
+| institutionalist | 357 | 54 |
+| command | 357 | 13 |
+| coalition | 357 | 21 |
+| engineering_first | 357 | 25 |
+| legitimacy_first | 357 | 55 |
+| stability_first | 357 | 34 |
+| access_first | 357 | 17 |
+| delayed_deposit | 357 | 21 |
+| advisor_dependent | 357 | 0 |
+| civic_seeker | 357 | 111 |
+
+### Notes
+
+> Takeovers more present: coup Institutions dependence bar 40->55, cabal member Leverage bar 70->60. Same 14-strategy matrix.
+

@@ -826,7 +826,7 @@ describe("advisor takeover endings", () => {
   it("keeps the Leverage-90 departure when the state is not dependent", () => {
     const state = createGame(503);
     state.advisors.fixer.leverage = 90;
-    state.institutions = 41;
+    state.institutions = 60;
 
     const result = monthOfRecovery(state);
 
@@ -849,8 +849,8 @@ describe("advisor takeover endings", () => {
 
   it("does not form a cabal below the joint bar", () => {
     const state = createGame(505);
-    state.advisors.analyst.leverage = 69;
-    state.advisors.steward.leverage = 69;
+    state.advisors.analyst.leverage = 59;
+    state.advisors.steward.leverage = 59;
 
     const result = monthOfRecovery(state);
 
