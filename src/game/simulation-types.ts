@@ -33,6 +33,8 @@ export type BotId =
   | "stability_first"
   | "access_first"
   | "delayed_deposit"
+  | "advisor_dependent"
+  | "civic_seeker"
   | "long_horizon";
 
 export type CivicRequirementId =

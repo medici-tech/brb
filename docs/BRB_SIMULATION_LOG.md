@@ -1669,3 +1669,63 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Advisor coup + cabal loss endings: coup at Leverage 90 with dependence (Institutions <= 40 or last advisor); cabal at two active advisors >= 70 Leverage. Natural landing, no balance retune.
 
+## 2026-07-25T01:58:52.671Z — Advisor-dependent + civic-seeker profiles
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `14dd76f` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 482 (9.64%) |
+| — Civic Legacy | 68 (1.36%) |
+| — Compromised activation | 414 (8.28%) |
+| State collapse | 1,995 (39.9%) |
+| Corporate capture | 2,521 (50.42%) |
+| Advisor coup | 2 (0.04%) |
+| Advisor cabal | 0 (0%) |
+| Average / median months | 22.77 / 22 |
+| Longest campaign | 54 months |
+| Cards presented / resolved per run | 12.46 / 8.8 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,398 |
+| Activation attempts | 483 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 482 |
+| activation_corporate_capture | 1 |
+| tracks_never_ready | 3,602 |
+| panic_before_activation | 309 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 606 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 358 | 45 |
+| rush | 358 | 28 |
+| defensive | 357 | 17 |
+| fixer | 357 | 41 |
+| institutionalist | 357 | 54 |
+| command | 357 | 13 |
+| coalition | 357 | 21 |
+| engineering_first | 357 | 25 |
+| legitimacy_first | 357 | 55 |
+| stability_first | 357 | 34 |
+| access_first | 357 | 17 |
+| delayed_deposit | 357 | 21 |
+| advisor_dependent | 357 | 0 |
+| civic_seeker | 357 | 111 |
+
+### Notes
+
+> Added advisor_dependent and civic_seeker bot profiles (14-strategy matrix; per-strategy runs drop to ~357). Dependent profile exercises the takeover endings; civic seeker plays toward all nine Civic Legacy conditions. Natural landing, no rule changes.
+

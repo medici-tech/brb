@@ -131,6 +131,8 @@ const DEFAULT_BOTS: BotId[] = [
   "stability_first",
   "access_first",
   "delayed_deposit",
+  "advisor_dependent",
+  "civic_seeker",
 ];
 const ALL_BOTS: BotId[] = [...DEFAULT_BOTS, "long_horizon"];
 const ALL_ARCHETYPES: ArchetypeId[] = ["technocrat", "populist", "operator"];
@@ -143,6 +145,8 @@ const PREFERRED_ARCHETYPES: Partial<Record<BotId, ArchetypeId>> = {
   legitimacy_first: "populist",
   stability_first: "technocrat",
   access_first: "operator",
+  advisor_dependent: "operator",
+  civic_seeker: "populist",
   long_horizon: "technocrat",
 };
 const ALL_ENDINGS: EndingId[] = [
