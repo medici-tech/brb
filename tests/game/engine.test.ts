@@ -166,6 +166,9 @@ describe("major commitments", () => {
       trust: 100,
       capacity: 100,
     };
+    // Institutions above the coup dependence bar so the cap resolves as a
+    // departure rather than a coup.
+    state.institutions = 70;
     state.advisors.analyst.leverage = 89;
     state.advisors.fixer.leverage = 90;
 
@@ -176,6 +179,7 @@ describe("major commitments", () => {
 
     expect(result.advisors.analyst.active).toBe(true);
     expect(result.advisors.fixer.active).toBe(false);
+    expect(result.ending).toBeNull();
   });
 
   it("changes Alignment and Loyalty according to approval without using low Alignment to remove an advisor", () => {
@@ -826,13 +830,24 @@ describe("advisor takeover endings", () => {
   it("keeps the Leverage-90 departure when the state is not dependent", () => {
     const state = createGame(503);
     state.advisors.fixer.leverage = 90;
-    state.institutions = 60;
+    state.institutions = 70;
 
     const result = monthOfRecovery(state);
 
     expect(result.advisors.fixer.active).toBe(false);
     expect(result.ending).toBeNull();
     expect(result.phase).not.toBe("ended");
+  });
+
+  it("ends in a coup below Leverage 90 when the state is dependent", () => {
+    const state = createGame(508);
+    state.advisors.fixer.leverage = 80;
+    state.institutions = 55;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending?.id).toBe("advisor_coup");
+    expect(result.advisors.fixer.active).toBe(true);
   });
 
   it("ends in a cabal when two active advisors reach the joint bar", () => {
@@ -849,8 +864,8 @@ describe("advisor takeover endings", () => {
 
   it("does not form a cabal below the joint bar", () => {
     const state = createGame(505);
-    state.advisors.analyst.leverage = 59;
-    state.advisors.steward.leverage = 59;
+    state.advisors.analyst.leverage = 49;
+    state.advisors.steward.leverage = 49;
 
     const result = monthOfRecovery(state);
 

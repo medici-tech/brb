@@ -65,25 +65,25 @@ export function applyAdvisorReactions(
       advisor.loyalty = clamp(advisor.loyalty - 2);
     }
 
+    // A coup-level advisor the state depends on does not resign or leave — they
+    // stay, and the takeover resolves as an ending during the terminal check.
+    if (isCoupCondition(state, advisorId)) {
+      addHistory(
+        state,
+        "advisor",
+        `${definition.name} no longer needs permission to stay.`,
+      );
+      continue;
+    }
     if (
       advisor.loyalty < definition.loyaltyBreakingPoint
-      || advisor.leverage >= ADVISOR_TAKEOVER_RULES.coupLeverageMinimum
+      || advisor.leverage >= ADVISOR_TAKEOVER_RULES.departureLeverageMinimum
     ) {
-      // A capped advisor the state depends on does not resign — they stay, and
-      // the takeover resolves as an ending during the terminal check.
-      if (isCoupCondition(state, advisorId)) {
-        addHistory(
-          state,
-          "advisor",
-          `${definition.name} no longer needs permission to stay.`,
-        );
-        continue;
-      }
       advisor.active = false;
       addHistory(
         state,
         "advisor",
-        advisor.leverage >= ADVISOR_TAKEOVER_RULES.coupLeverageMinimum
+        advisor.leverage >= ADVISOR_TAKEOVER_RULES.departureLeverageMinimum
           ? `${definition.name} used accumulated leverage to leave on their own terms.`
           : `${definition.name} resigned after Loyalty fell below ${definition.loyaltyBreakingPoint}.`,
       );

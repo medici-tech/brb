@@ -185,11 +185,14 @@ export const ENDING_COPY: Record<
 // these bars decide when leverage becomes seizure instead of resignation.
 // Tuned against the fixed-seed baseline — see BRB Balance Targets.
 export const ADVISOR_TAKEOVER_RULES = {
-  // A capped advisor (Leverage >= 90) seizes power instead of leaving when the
-  // state is structurally dependent on them: weakened Institutions or no other
-  // active advisor remaining.
-  coupLeverageMinimum: 90,
-  coupInstitutionsMaximum: 55,
+  // An advisor still leaves on their own terms at this Leverage when the state
+  // is NOT dependent on them — unchanged resignation behavior.
+  departureLeverageMinimum: 90,
+  // A dependent state loses control below the departure bar: an advisor at this
+  // Leverage seizes power (rather than eventually resigning at 90) while the
+  // state depends on them — weakened Institutions or no other active advisor.
+  coupLeverageMinimum: 80,
+  coupInstitutionsMaximum: 65,
   // Two or more active advisors at or above this Leverage jointly dominate.
-  cabalMemberLeverageMinimum: 60,
+  cabalMemberLeverageMinimum: 50,
 } as const;

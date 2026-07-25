@@ -24,6 +24,9 @@ import {
 } from "./types";
 
 const RUSH_BOTS: BotId[] = ["rush", "engineering_first", "access_first"];
+// Profiles that lean on advisors on purpose: they consult every month, never
+// discipline Leverage, and exist to exercise the advisor-takeover endings.
+const ADVISOR_HEAVY_BOTS: BotId[] = ["advisor_dependent", "advisor_cabal"];
 const BOT_NON_TERMINATION_GUARD_MONTHS = 1_200;
 const PUBLIC_BOTS: BotId[] = [
   "defensive",
@@ -207,7 +210,7 @@ function effectScore(
       (changes.loyalty ?? 0) * 0.2 +
       (changes.alignment ?? 0) * 0.2 -
       (changes.leverage ?? 0) *
-        (bot === "fixer" || bot === "command" || bot === "advisor_dependent"
+        (bot === "fixer" || bot === "command" || isOneOf(bot, ADVISOR_HEAVY_BOTS)
           ? 0.1
           : isOneOf(bot, PUBLIC_BOTS) ? 0.8 : 0.5),
     0,
@@ -375,7 +378,7 @@ export function chooseBotAction(
   // The advisor-dependent bot never disciplines its advisors — accumulated
   // Leverage is the whole point of the profile — so it skips managing entirely.
   const leverageLimit =
-    bot === "advisor_dependent" ? Number.POSITIVE_INFINITY
+    isOneOf(bot, ADVISOR_HEAVY_BOTS) ? Number.POSITIVE_INFINITY
     : bot === "fixer" ? 55
     : bot === "civic_seeker" ? 55
     : bot === "command" ? 86
@@ -394,10 +397,9 @@ export function chooseBotAction(
     bot === "civic_seeker" ? 50 : bot === "defensive" ? 38 : 25;
   if (protect && state.institutions <= protectThreshold) return protect;
 
-  // The dependent profile guards its consultation habit above all else: when
-  // Intelligence runs low, it spends the month restocking so the monthly
-  // consult never lapses.
-  if (bot === "advisor_dependent" && state.resources.intelligence < 6) {
+  // The advisor-heavy profiles guard their consultation habit above all else:
+  // when Intelligence runs low they restock so the monthly consult never lapses.
+  if (isOneOf(bot, ADVISOR_HEAVY_BOTS) && state.resources.intelligence < 6) {
     const intelRecovery = valid.find(
       (action) => action.type === "recover_resource" && action.resource === "intelligence",
     );
@@ -469,13 +471,27 @@ function advisorForBot(state: GameState, bot: BotId): AdvisorId {
   }
   if (["rush", "engineering_first", "access_first"].includes(bot)) return "analyst";
   // The dependent profile leans hardest on whoever already has the most hold
-  // over them — dependence concentrates, which is exactly how Leverage compounds.
+  // over them — dependence concentrates, which is exactly how Leverage compounds
+  // toward a single-advisor coup.
   if (bot === "advisor_dependent") {
     const active = ADVISOR_IDS.filter((id) => state.advisors[id].active);
     const primary = [...active].sort(
       (a, b) => state.advisors[b].leverage - state.advisors[a].leverage,
     )[0];
     if (primary) return primary;
+  }
+  // The cabal profile spreads reliance: it consults the lower of its two most
+  // leveraged advisors, keeping a pair climbing in step toward the joint bar
+  // without letting either run away into single-advisor coup territory.
+  if (bot === "advisor_cabal") {
+    const topTwo = ADVISOR_IDS
+      .filter((id) => state.advisors[id].active)
+      .sort((a, b) => state.advisors[b].leverage - state.advisors[a].leverage)
+      .slice(0, 2);
+    const laggard = [...topTwo].sort(
+      (a, b) => state.advisors[a].leverage - state.advisors[b].leverage,
+    )[0];
+    if (laggard) return laggard;
   }
   // The prepared posture is hidden; steer the advisor choice off the last
   // observed move rather than peeking at the concealed strategy.
@@ -533,7 +549,7 @@ export function playBotRun(initialState: GameState, bot: BotId): {
     const shouldConsult =
       state.resources.intelligence >= 2 &&
       (wantsCounter ||
-        bot === "advisor_dependent" ||
+        isOneOf(bot, ADVISOR_HEAVY_BOTS) ||
         (bot === "balanced" && state.turn % 3 === 0) ||
         (bot === "long_horizon" && state.turn % 4 === 0) ||
         (bot === "command" && state.advisors.fixer.leverage < 60) ||
@@ -547,7 +563,7 @@ export function playBotRun(initialState: GameState, bot: BotId): {
       // bot already consults the Fixer to counter (shouldFixerConsult), and the
       // dependent profile keeps its rotation — reliance is the point.
       const advisorId =
-        wantsCounter && !["fixer", "advisor_dependent"].includes(bot) && state.advisors.analyst.active
+        wantsCounter && bot !== "fixer" && !isOneOf(bot, ADVISOR_HEAVY_BOTS) && state.advisors.analyst.active
           ? "analyst"
           : advisorForBot(state, bot);
       if (state.advisors[advisorId].active) {

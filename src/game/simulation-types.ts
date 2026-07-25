@@ -34,6 +34,7 @@ export type BotId =
   | "access_first"
   | "delayed_deposit"
   | "advisor_dependent"
+  | "advisor_cabal"
   | "civic_seeker"
   | "long_horizon";
 

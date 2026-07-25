@@ -1789,3 +1789,64 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Takeovers more present: coup Institutions dependence bar 40->55, cabal member Leverage bar 70->60. Same 14-strategy matrix.
 
+## 2026-07-25T23:38:55.805Z — Takeovers more frequent
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `08facea` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 424 (8.48%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 372 (7.44%) |
+| State collapse | 1,853 (37.06%) |
+| Corporate capture | 2,239 (44.78%) |
+| Advisor coup | 150 (3%) |
+| Advisor cabal | 334 (6.68%) |
+| Average / median months | 22.01 / 22 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 12.07 / 8.56 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,255 |
+| Activation attempts | 424 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 424 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,745 |
+| panic_before_activation | 293 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 538 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 34 |
+| institutionalist | 334 | 37 |
+| command | 333 | 15 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 3 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Takeovers much more present: coup Leverage bar decoupled from departure (coup 80, departure 90), coup Institutions bar 55->65, cabal bar 60->50. Added advisor_cabal spreader profile (15-strategy matrix, ~333 runs/strategy).
+
