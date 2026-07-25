@@ -137,6 +137,8 @@ export type SimulationReport = {
   outcomeSummary: {
     activations: number;
     activationRate: number;
+    civicLegacyRate: number;
+    compromisedActivationRate: number;
     collapseRate: number;
     corporateCaptureRate: number;
     premiumEndings: number;

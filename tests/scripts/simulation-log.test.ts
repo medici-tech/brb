@@ -29,6 +29,8 @@ function reportFixture() {
     outcomeSummary: {
       activations: 90,
       activationRate: 9,
+      civicLegacyRate: 0.4,
+      compromisedActivationRate: 8.6,
       collapseRate: 46,
       corporateCaptureRate: 45,
       premiumEndings: 50,
@@ -91,6 +93,8 @@ describe("simulation run log", () => {
     expect(entry).toContain("Legacy Directive: `none`");
     expect(entry).toContain("`abc1234` (clean)");
     expect(entry).toContain("| Activations | 90 (9%) |");
+    expect(entry).toContain("| — Civic Legacy | 4 (0.4%) |");
+    expect(entry).toContain("| — Compromised activation | 86 (8.6%) |");
     expect(entry).toContain("| All tracks ready | 300 |");
     expect(entry).toContain("| Activation attempts | 100 |");
     expect(entry).toContain("| tracks_never_ready | 700 |");

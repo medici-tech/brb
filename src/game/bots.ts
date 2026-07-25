@@ -5,6 +5,7 @@ import {
   consultAdvisor,
   getActionCategory,
   getActionCost,
+  getConsultationCost,
   getValidActions,
 } from "./engine";
 import {
@@ -33,6 +34,28 @@ const PUBLIC_BOTS: BotId[] = [
 
 function isOneOf(bot: BotId, bots: BotId[]): boolean {
   return bots.includes(bot);
+}
+
+function counterProgressThreshold(bot: BotId): number {
+  if (bot === "long_horizon") return 18;
+  return bot === "institutionalist" ? 85 : isOneOf(bot, RUSH_BOTS) ? 66 : bot === "balanced" ? 58 : 48;
+}
+
+// Whether this bot would commit a counter-operation this month if it held a
+// forecast. Posture is hidden, so a counter requires a consultation first; this
+// predicate lets the bot consult *in order to* counter rather than only on a
+// coincidental scheduled consult-turn. It fires only when the bot can afford
+// both the consultation and the counter, so a consult is never wasted.
+function botIntendsToCounter(state: GameState, bot: BotId): boolean {
+  const counterCost = getActionCost(state, {
+    type: "counter_corporation",
+    predictedStrategy: "expanding",
+  });
+  const consultIntel = getConsultationCost(state).intelligence;
+  const affordsBoth =
+    state.resources.intelligence >= (counterCost.intelligence ?? 0) + consultIntel &&
+    state.resources.influence >= (counterCost.influence ?? 0);
+  return affordsBoth && state.corporation.progress >= counterProgressThreshold(bot);
 }
 
 function shouldResolvePresentedCard(state: GameState, bot: BotId): boolean {
@@ -68,7 +91,7 @@ function chooseLongHorizonAction(state: GameState, valid: MajorAction[]): MajorA
           action.predictedStrategy === predictedStrategy,
       )
     : undefined;
-  if (counter && state.corporation.progress >= 18) return counter;
+  if (counter && state.corporation.progress >= counterProgressThreshold("long_horizon")) return counter;
 
   const protect = valid.find((action) => action.type === "protect_institutions");
   if (
@@ -323,8 +346,7 @@ export function chooseBotAction(
   ) return targetedProtection;
 
   const predictedStrategy = state.consultation?.predictedStrategy ?? null;
-  const counterThreshold =
-    bot === "institutionalist" ? 85 : isOneOf(bot, RUSH_BOTS) ? 66 : bot === "balanced" ? 58 : 48;
+  const counterThreshold = counterProgressThreshold(bot);
   const counter = predictedStrategy
     ? valid.find(
         (action) =>
@@ -461,9 +483,11 @@ export function playBotRun(initialState: GameState, bot: BotId): {
       throw new Error("Bot exceeded the 100-year simulation safety guard without reaching an ending.");
     }
     let consultationAdvisorId: keyof typeof ADVISORS | null = null;
+    const wantsCounter = botIntendsToCounter(state, bot);
     const shouldConsult =
       state.resources.intelligence >= 2 &&
-      ((bot === "balanced" && state.turn % 3 === 0) ||
+      (wantsCounter ||
+        (bot === "balanced" && state.turn % 3 === 0) ||
         (bot === "long_horizon" && state.turn % 4 === 0) ||
         (bot === "command" && state.advisors.fixer.leverage < 60) ||
         (["defensive", "coalition"].includes(bot) && state.turn % 2 === 0) ||
@@ -471,7 +495,14 @@ export function playBotRun(initialState: GameState, bot: BotId): {
         (isOneOf(bot, RUSH_BOTS) && state.turn % 4 === 0) ||
         (["legitimacy_first", "stability_first", "delayed_deposit"].includes(bot) && state.turn % 3 === 0));
     if (shouldConsult) {
-      const advisorId = advisorForBot(state, bot);
+      // When consulting to enable a counter, prefer the Analyst's more accurate
+      // forecast; otherwise keep the bot's usual advisor personality. The Fixer
+      // bot already consults the Fixer to counter (shouldFixerConsult), so leave
+      // its identity intact.
+      const advisorId =
+        wantsCounter && bot !== "fixer" && state.advisors.analyst.active
+          ? "analyst"
+          : advisorForBot(state, bot);
       if (state.advisors[advisorId].active) {
         const result = consultAdvisor(
           state,

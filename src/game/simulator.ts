@@ -575,6 +575,8 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
     outcomeSummary: {
       activations: victories,
       activationRate: percent(victories, options.runs),
+      civicLegacyRate: percent(endings.civic_legacy, options.runs),
+      compromisedActivationRate: percent(endings.compromised_activation, options.runs),
       collapseRate: percent(endings.state_collapse, options.runs),
       corporateCaptureRate: percent(endings.corporate_capture, options.runs),
       premiumEndings,

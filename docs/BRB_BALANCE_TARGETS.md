@@ -136,7 +136,12 @@ The Threat clarity experiment gives Corporation Watch three distinct jobs: Progr
 
 ### Hidden-posture baseline (seed `20260715`, 5,000 runs)
 
-Concealing the posture and making the counter a forecast-gated bet — bots no longer read the true strategy — establishes a new no-Directive checkpoint: 507 activations (10.14%, inside the 8–12% band), 1,316 State Collapses (26.32%), 3,177 Corporate Captures (63.54%), 21-month median. Versus the prior corrected Directive-aware baseline (8.56% / 40.78% / 50.66%), losses shift markedly from collapse toward capture because disciplined counterplay now requires a correct forecast rather than free knowledge. This supersedes earlier counter-related checkpoints; treat prior "successful counterplay" figures as measured under visible-posture rules.
+Concealing the posture and making the counter a forecast-gated bet restores the forecast subsystem's purpose (the technocrat/analyst precise forecast is now a real advantage) without meaningfully handing the game to the Corporation. Two checkpoints matter:
+
+- **First re-baseline — bot-fidelity artifact.** With bots that still consulted on a fixed schedule rather than in order to counter, the result was 507 activations (10.14%), 1,316 State Collapses (26.32%), 3,177 Corporate Captures (63.54%). The apparent capture spike was misleading: 11 of 12 strategies could only counter on a coincidental consult-turn, so they under-countered and the Corporation ran unchecked.
+- **Corrected re-baseline — consult-to-counter bots (current checkpoint).** After making bots consult *in order to* counter (preferring the Analyst's more accurate forecast), the no-Directive checkpoint is **408 activations (8.16%: 37 Civic Legacy 0.74%, 371 Compromised 7.42%), 1,929 State Collapses (38.58%), 2,663 Corporate Captures (53.26%), 22-month median.** This is close to the prior visible-posture baseline (8.56% / 40.78% / 50.66%): capture is only ~2.6 points higher, activations ~0.4 lower, collapse ~2.2 lower.
+
+Read together: the hidden-posture change is roughly outcome-neutral versus visible posture once counterplay is exercised competently; the residual +2.6-point capture is the honest cost of countering now being a forecast bet (accuracy < 100% means some counters miss) rather than a free, guaranteed hit. The 63.54% figure was measurement error, not a balance regression. Countering more also trades deposit tempo for Corporation suppression, which is why collapse rises a little relative to the artifact run. This supersedes earlier counter-related checkpoints; treat prior "successful counterplay" figures as measured under visible-posture rules.
 
 ## Situation Deck
 
