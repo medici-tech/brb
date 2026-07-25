@@ -263,7 +263,9 @@ export type EndingId =
   | "civic_legacy"
   | "compromised_activation"
   | "corporate_capture"
-  | "state_collapse";
+  | "state_collapse"
+  | "advisor_coup"
+  | "advisor_cabal";
 
 export type EndingVariationId =
   | "perfect_machine_empty_state"

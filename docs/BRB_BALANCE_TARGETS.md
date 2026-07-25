@@ -126,6 +126,12 @@ The prototype has three advisors. For each, measure consultation frequency, advi
 
 Target behavior: an advisor is valuable enough to consider, but reliance on them creates a strategic cost. A brilliant rival and an incompetent loyalist should both create viable dilemmas.
 
+### Advisor takeover thresholds (seed `20260715`, 5,000 runs)
+
+Over-reliance now has two dedicated loss endings driven by `ADVISOR_TAKEOVER_RULES`: an **Advisor Coup** (one advisor at Leverage 90 while Institutions are at 40 or below, or while no other advisor remains active — otherwise the Leverage-90 departure still fires) and an **Advisor Cabal** (two or more active advisors each at Leverage 70 or above). Both outrank the all-advisors-gone State Collapse but yield to Corporation victory and Panic/Institutions collapse in the same month.
+
+Natural-landing checkpoint: the first post-endings baseline recorded **0 coups and 0 cabals in 5,000 runs**, with every other figure identical to the prior consult-to-counter baseline (8.16% activation, 38.58% collapse, 53.26% capture). Existing bots proactively manage advisors at Leverage 55–86 and so never enter takeover territory; the endings are engine-verified (unit tests fire both through `commitAction`) but unexercised by the current bot population. Measuring their real frequency needs either human playtests or a deliberately advisor-dependent bot profile; treat the thresholds as provisional until one of those exists. Do not loosen the thresholds just to force nonzero simulation counts.
+
 ## Corporation pressure
 
 The prototype uses four Corporation move types. The prepared posture is **hidden**; measure how often players consult to forecast it, the forecast follow-and-success rate, successful counterplay, and whether moves feel connected to player vulnerabilities. Because a counter-operation targets a *forecast* and blocks only on a correct guess, countering is a bet whose odds are the forecast accuracy.

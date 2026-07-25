@@ -141,6 +141,8 @@ export type SimulationReport = {
     compromisedActivationRate: number;
     collapseRate: number;
     corporateCaptureRate: number;
+    advisorCoupRate: number;
+    advisorCabalRate: number;
     premiumEndings: number;
     premiumEndingRate: number;
   };

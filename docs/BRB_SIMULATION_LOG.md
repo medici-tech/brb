@@ -1611,3 +1611,61 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Bot fidelity: consult-to-counter; truer capture rate under competent counter-play
 
+## 2026-07-25T01:38:41.651Z — Advisor takeover endings
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `b250281` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 408 (8.16%) |
+| — Civic Legacy | 37 (0.74%) |
+| — Compromised activation | 371 (7.42%) |
+| State collapse | 1,929 (38.58%) |
+| Corporate capture | 2,663 (53.26%) |
+| Advisor coup | 0 (0%) |
+| Advisor cabal | 0 (0%) |
+| Average / median months | 22.45 / 22 |
+| Longest campaign | 56 months |
+| Cards presented / resolved per run | 12.3 / 8.62 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,376 |
+| Activation attempts | 408 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 408 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,624 |
+| panic_before_activation | 324 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 644 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 48 |
+| rush | 417 | 33 |
+| defensive | 417 | 24 |
+| fixer | 417 | 37 |
+| institutionalist | 417 | 52 |
+| command | 417 | 19 |
+| coalition | 417 | 16 |
+| engineering_first | 417 | 23 |
+| legitimacy_first | 416 | 62 |
+| stability_first | 416 | 45 |
+| access_first | 416 | 24 |
+| delayed_deposit | 416 | 25 |
+
+### Notes
+
+> Advisor coup + cabal loss endings: coup at Leverage 90 with dependence (Institutions <= 40 or last advisor); cabal at two active advisors >= 70 Leverage. Natural landing, no balance retune.
+

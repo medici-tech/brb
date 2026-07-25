@@ -150,6 +150,8 @@ const ALL_ENDINGS: EndingId[] = [
   "compromised_activation",
   "corporate_capture",
   "state_collapse",
+  "advisor_coup",
+  "advisor_cabal",
 ];
 const ALL_ACTIONS: ActionCategory[] = [
   "deposit",
@@ -579,6 +581,8 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
       compromisedActivationRate: percent(endings.compromised_activation, options.runs),
       collapseRate: percent(endings.state_collapse, options.runs),
       corporateCaptureRate: percent(endings.corporate_capture, options.runs),
+      advisorCoupRate: percent(endings.advisor_coup, options.runs),
+      advisorCabalRate: percent(endings.advisor_cabal, options.runs),
       premiumEndings,
       premiumEndingRate: percent(premiumEndings, options.runs),
     },

@@ -141,7 +141,16 @@ For the full game, optional mutators can include unreliable intelligence, double
 
 ## Endings
 
-There are 3–4 prototype endings. Endings emerge from BRB activation, track quality, panic, institutional stability, advisor relationships, Corporation status, and major choices.
+The prototype has six endings. Endings emerge from BRB activation, track quality, panic, institutional stability, advisor relationships, Corporation status, and major choices.
+
+- **Civic Legacy** (win): activation under durable public control — all nine civic conditions hold.
+- **Compromised Activation** (win): activation with access safe but at least one civic condition failed.
+- **Corporate Capture** (loss): Corporation Progress reaches 100, or activation occurs while the Corporation holds the decisive access point.
+- **State Collapse** (loss): Panic reaches 100, Institutions reach 0, or every advisor leaves.
+- **Advisor Coup** (loss): one advisor reaches decisive Leverage (90) while the state depends on them — Institutions at 40 or below, or no other active advisor — and takes control instead of resigning. When the state is not dependent, the Leverage-90 departure still fires as before.
+- **Advisor Cabal** (loss): two or more active advisors each hold cabal-level Leverage (70) and jointly govern without the player.
+
+The two advisor losses make over-reliance on consultation and advisor shortcuts a distinct failure mode rather than a slow slide into State Collapse: leaning on advisors builds the Leverage that eventually lets them win. They reinforce the Civic Legacy requirement that no advisor holds decisive Leverage.
 
 Victory is not binary. Possible outcomes include preserving democracy, authoritarian control, illegitimate activation, advisor capture, finishing too late, stopping the Corporation while abandoning BRB, or mutual catastrophe.
 
@@ -159,7 +168,7 @@ The itch.io prototype is not the full BRB game. It proves only four things:
 - 3 advisors and 3 archetypes
 - 5 active resources and 4 BRB tracks (pending validation)
 - Open-ended monthly campaigns, 15 interactive Situation Cards, and 2 connected chains
-- 4 Corporation move types and 3–4 endings
+- 4 Corporation move types and 6 endings
 - One difficulty level, local saves, seeded runs, run summary, and basic simulation tools
 
 ### Presentation

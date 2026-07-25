@@ -25,6 +25,10 @@ const OUTCOME_RULES: Record<DeclassifiedReport["ending"]["id"], string> = {
     "Corporation Progress reached 100, or the Corporation controlled the decisive access point when you activated.",
   state_collapse:
     "State Collapse occurs when Panic reaches 100, Institutions falls to 0, or every advisor leaves.",
+  advisor_coup:
+    "An advisor reached decisive Leverage while the government depended on them — weakened Institutions or no other active advisor — and took control.",
+  advisor_cabal:
+    "Two or more active advisors each held cabal-level Leverage and jointly governed without you.",
 };
 
 type Props = {

@@ -89,6 +89,8 @@ export function formatSimulationLogEntry(
 | — Compromised activation | ${report.endings.compromised_activation.toLocaleString("en-US")} (${report.outcomeSummary.compromisedActivationRate}%) |
 | State collapse | ${report.endings.state_collapse.toLocaleString("en-US")} (${report.outcomeSummary.collapseRate}%) |
 | Corporate capture | ${report.endings.corporate_capture.toLocaleString("en-US")} (${report.outcomeSummary.corporateCaptureRate}%) |
+| Advisor coup | ${report.endings.advisor_coup.toLocaleString("en-US")} (${report.outcomeSummary.advisorCoupRate}%) |
+| Advisor cabal | ${report.endings.advisor_cabal.toLocaleString("en-US")} (${report.outcomeSummary.advisorCabalRate}%) |
 | Average / median months | ${report.averageMonths} / ${report.campaignLength.median} |
 | Longest campaign | ${report.campaignLength.max} months |
 | Cards presented / resolved per run | ${report.cardTempo.presentedPerRun} / ${report.cardTempo.activelyResolvedPerRun} |
