@@ -9,3 +9,8 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
+
+# Purchased art source packs — full-version LimeZu, redistribution-restricted. Keep local only.
+/BRB Assets/
+# Curated runtime art — injected at deploy from private storage, never committed (public repo).
+/public/assets/brb/
