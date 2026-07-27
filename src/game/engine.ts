@@ -1,5 +1,6 @@
 import {
   ADVISORS,
+  ADVISOR_TAKEOVER_RULES,
   ARCHETYPES,
   BASE_RESOURCES,
   CORPORATION_MOVES,
@@ -472,6 +473,15 @@ function applyPressure(state: GameState): void {
     );
   }
   if (state.systemModifiers.includes("emergency_rule")) state.institutions = clamp(state.institutions - 1);
+  // Reliance compounds: an advisor who already holds real sway accrues a little
+  // more Leverage each month. Only advisors at or above the floor drift, so early
+  // relationships are untouched; over-reliance is what trends toward takeover.
+  for (const advisorId of ADVISOR_IDS) {
+    const advisor = state.advisors[advisorId];
+    if (advisor.active && advisor.leverage >= ADVISOR_TAKEOVER_RULES.relianceCreepFloor) {
+      advisor.leverage = clamp(advisor.leverage + ADVISOR_TAKEOVER_RULES.relianceCreepPerMonth);
+    }
+  }
 }
 
 type AuditSnapshot = {

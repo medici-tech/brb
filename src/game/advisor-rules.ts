@@ -9,19 +9,12 @@ import {
 } from "./types";
 
 /**
- * A capped advisor (Leverage at or above the departure bar) seizes power rather
- * than resigning when the state is structurally dependent on them: Institutions
- * have weakened, or no other advisor remains active.
+ * An advisor at or above the coup Leverage bar seizes power. High Leverage alone
+ * is decisive — there is no dependence gate.
  */
 export function isCoupCondition(state: GameState, advisorId: AdvisorId): boolean {
   const advisor = state.advisors[advisorId];
-  if (!advisor.active || advisor.leverage < ADVISOR_TAKEOVER_RULES.coupLeverageMinimum) {
-    return false;
-  }
-  const dependent =
-    state.institutions <= ADVISOR_TAKEOVER_RULES.coupInstitutionsMaximum
-    || ADVISOR_IDS.every((otherId) => otherId === advisorId || !state.advisors[otherId].active);
-  return dependent;
+  return advisor.active && advisor.leverage >= ADVISOR_TAKEOVER_RULES.coupLeverageMinimum;
 }
 
 /** Two or more active advisors at cabal-level Leverage jointly dominate. */
@@ -65,8 +58,8 @@ export function applyAdvisorReactions(
       advisor.loyalty = clamp(advisor.loyalty - 2);
     }
 
-    // A coup-level advisor the state depends on does not resign or leave — they
-    // stay, and the takeover resolves as an ending during the terminal check.
+    // A coup-level advisor does not resign — they stay, and the takeover resolves
+    // as an ending during the terminal check.
     if (isCoupCondition(state, advisorId)) {
       addHistory(
         state,
@@ -75,17 +68,12 @@ export function applyAdvisorReactions(
       );
       continue;
     }
-    if (
-      advisor.loyalty < definition.loyaltyBreakingPoint
-      || advisor.leverage >= ADVISOR_TAKEOVER_RULES.departureLeverageMinimum
-    ) {
+    if (advisor.loyalty < definition.loyaltyBreakingPoint) {
       advisor.active = false;
       addHistory(
         state,
         "advisor",
-        advisor.leverage >= ADVISOR_TAKEOVER_RULES.departureLeverageMinimum
-          ? `${definition.name} used accumulated leverage to leave on their own terms.`
-          : `${definition.name} resigned after Loyalty fell below ${definition.loyaltyBreakingPoint}.`,
+        `${definition.name} resigned after Loyalty fell below ${definition.loyaltyBreakingPoint}.`,
       );
     }
   }

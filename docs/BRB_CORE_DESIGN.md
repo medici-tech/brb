@@ -147,8 +147,10 @@ The prototype has six endings. Endings emerge from BRB activation, track quality
 - **Compromised Activation** (win): activation with access safe but at least one civic condition failed.
 - **Corporate Capture** (loss): Corporation Progress reaches 100, or activation occurs while the Corporation holds the decisive access point.
 - **State Collapse** (loss): Panic reaches 100, Institutions reach 0, or every advisor leaves.
-- **Advisor Coup** (loss): one advisor reaches Leverage 80 while the state depends on them — Institutions at 65 or below, or no other active advisor — and seizes control below the resignation bar. When the state is not dependent, the advisor instead departs at Leverage 90 as before.
+- **Advisor Coup** (loss): one advisor reaches Leverage 85 and seizes control. High Leverage alone is decisive — there is no dependence gate, and there is no graceful high-Leverage departure; leaning too hard on one advisor hands them the state.
 - **Advisor Cabal** (loss): two or more active advisors each hold cabal-level Leverage (50) and jointly govern without the player.
+
+**Reliance compounds.** Each month, an active advisor already at or above Leverage 50 gains a little more Leverage. Because the player can only discipline one advisor per month (`manage_advisor`), leaning on advisors drifts them toward takeover unless actively checked — so over-reliance is a pervasive threat in normal play, not only an extreme strategy. Only Leverage at or above the floor compounds, so early relationships are untouched. An advisor still resigns when Loyalty falls below their breaking point.
 
 The two advisor losses make over-reliance on consultation and advisor shortcuts a distinct failure mode rather than a slow slide into State Collapse: leaning on advisors builds the Leverage that eventually lets them win. They reinforce the Civic Legacy requirement that no advisor holds decisive Leverage.
 

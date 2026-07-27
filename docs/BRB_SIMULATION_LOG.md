@@ -1850,3 +1850,64 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Takeovers much more present: coup Leverage bar decoupled from departure (coup 80, departure 90), coup Institutions bar 55->65, cabal bar 60->50. Added advisor_cabal spreader profile (15-strategy matrix, ~333 runs/strategy).
 
+## 2026-07-27T16:20:59.941Z — Organic reliance creep
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `1e5a244` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 417 (8.34%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 365 (7.3%) |
+| State collapse | 1,780 (35.6%) |
+| Corporate capture | 2,046 (40.92%) |
+| Advisor coup | 424 (8.48%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.33 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.71 / 8.33 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,226 |
+| Activation attempts | 417 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 417 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,774 |
+| panic_before_activation | 290 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 515 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 29 |
+| institutionalist | 334 | 37 |
+| command | 333 | 16 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Raise takeovers to ~15% organically: dropped coup dependence gate (coup=Leverage 85 alone), retired the Leverage-90 departure, added monthly reliance-Leverage creep (+1/month at/above 50). Takeovers now reach normal bots (command over-reliance), not just demonstrators.
+

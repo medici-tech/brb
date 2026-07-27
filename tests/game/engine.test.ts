@@ -156,7 +156,7 @@ describe("major commitments", () => {
     },
   );
 
-  it("uses Leverage 90, but not 89, as an advisor departure threshold", () => {
+  it("resigns an advisor only when Loyalty falls below the breaking point", () => {
     const state = createGame(302);
     state.activeCardId = null;
     state.resources = {
@@ -166,11 +166,9 @@ describe("major commitments", () => {
       trust: 100,
       capacity: 100,
     };
-    // Institutions above the coup dependence bar so the cap resolves as a
-    // departure rather than a coup.
-    state.institutions = 70;
-    state.advisors.analyst.leverage = 89;
-    state.advisors.fixer.leverage = 90;
+    // Low Loyalty resigns; leverage stays low so no takeover competes.
+    state.advisors.analyst.loyalty = ADVISORS.analyst.loyaltyBreakingPoint + 6;
+    state.advisors.fixer.loyalty = ADVISORS.fixer.loyaltyBreakingPoint - 5;
 
     const result = commitAction(
       state,
@@ -827,27 +825,38 @@ describe("advisor takeover endings", () => {
     expect(result.ending?.reason).toContain(ADVISORS.analyst.name);
   });
 
-  it("keeps the Leverage-90 departure when the state is not dependent", () => {
+  it("coups on high Leverage alone, regardless of Institutions", () => {
     const state = createGame(503);
-    state.advisors.fixer.leverage = 90;
-    state.institutions = 70;
-
-    const result = monthOfRecovery(state);
-
-    expect(result.advisors.fixer.active).toBe(false);
-    expect(result.ending).toBeNull();
-    expect(result.phase).not.toBe("ended");
-  });
-
-  it("ends in a coup below Leverage 90 when the state is dependent", () => {
-    const state = createGame(508);
-    state.advisors.fixer.leverage = 80;
-    state.institutions = 55;
+    state.advisors.fixer.leverage = 85;
+    state.institutions = 90;
 
     const result = monthOfRecovery(state);
 
     expect(result.ending?.id).toBe("advisor_coup");
     expect(result.advisors.fixer.active).toBe(true);
+  });
+
+  it("does not coup just below the Leverage bar", () => {
+    const state = createGame(508);
+    state.advisors.fixer.leverage = 82;
+    state.institutions = 55;
+
+    const result = monthOfRecovery(state);
+
+    // 82 + one month of reliance creep (+1) = 83, still below the 85 coup bar.
+    expect(result.ending).toBeNull();
+  });
+
+  it("compounds reliance Leverage monthly above the floor but not below it", () => {
+    const state = createGame(509);
+    state.advisors.fixer.leverage = 60;
+    state.advisors.steward.leverage = 40;
+
+    const result = monthOfRecovery(state);
+
+    // Fixer is above the reliance floor and gains a point; Steward is below it.
+    expect(result.advisors.fixer.leverage).toBe(61);
+    expect(result.advisors.steward.leverage).toBe(40);
   });
 
   it("ends in a cabal when two active advisors reach the joint bar", () => {
