@@ -101,7 +101,7 @@ Each advisor has:
 - **Competence:** effectiveness at their work.
 - **Agenda, relationship tags, crisis specialty, and a visible Loyalty breaking point.**
 
-An approved commitment adds 4 Alignment and 1 Loyalty. A disapproved commitment removes 2 Alignment and 2 Loyalty. Competence, Alignment, Loyalty, Leverage, remembered treatment, and false-plan doctrine all shape consultation accuracy. An advisor leaves when Loyalty falls below their individual breaking point or Leverage reaches 90. An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence. Each consultation produces one legal, specific recommendation shaped by that advisor's agenda; it is explicitly advice, not an optimality claim.
+An approved commitment adds 4 Alignment and 1 Loyalty. A disapproved commitment removes 2 Alignment and 2 Loyalty. Competence, Alignment, Loyalty, Leverage, remembered treatment, and false-plan doctrine all shape consultation accuracy. An advisor leaves when Loyalty falls below their individual breaking point. High Leverage no longer produces a graceful exit: an advisor who reaches the coup bar seizes control instead of departing (see [Endings](#endings)). An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence. Each consultation produces one legal, specific recommendation shaped by that advisor's agenda; it is explicitly advice, not an optimality claim.
 
 ## Corporation
 

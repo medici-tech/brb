@@ -172,7 +172,9 @@ Deposits cannot be refunded. Track points can exceed the 50 needed for ordinary 
 | Agenda | Commitment categories the advisor approves: +4 Alignment and +1 Loyalty; disapproved commitments apply -2 Alignment and -2 Loyalty |
 | Advisor memory | A persistent record that a card choice created in the current run |
 
-An advisor leaves when Loyalty falls below their breaking point or Leverage reaches 90. Alignment still changes consultation quality but does not directly cause departure. The run collapses if every advisor becomes inactive.
+An advisor leaves when Loyalty falls below their breaking point. Alignment still changes consultation quality but does not directly cause departure. The run collapses if every advisor becomes inactive.
+
+High Leverage no longer causes a departure — it causes a takeover. One advisor at Leverage 85 ends the run as an **Advisor Coup**, and two or more active advisors at Leverage 50 or above end it as an **Advisor Cabal**. Reliance also compounds: each month, an active advisor already at or above Leverage 50 gains 1 more Leverage, and only one advisor can be managed per month.
 
 ### Consultation
 

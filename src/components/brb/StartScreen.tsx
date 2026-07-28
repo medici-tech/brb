@@ -68,8 +68,10 @@ export function StartScreen({
           <p>Raise Engineering, Access, Legitimacy, and Stability to 50, then activate the BRB.</p>
           <small>
             The campaign ends if Corporation Progress reaches 100, Panic reaches 100,
-            Institutions reaches 0, or every advisor leaves. Stress drains Trust at 80
-            but never directly ends the run.
+            Institutions reaches 0, or every advisor leaves. It also ends if your
+            advisors take over: one at Leverage 85 seizes control, or two at 50 or
+            more govern without you. Stress drains Trust at 80 but never directly
+            ends the run.
           </small>
         </aside>
         {!savedRun ? (
