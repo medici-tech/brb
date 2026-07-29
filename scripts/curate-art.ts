@@ -18,8 +18,9 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { ART, type ArtKey } from "../src/game-art/manifest.js";
 
 const PROJECT_ROOT = process.cwd();
@@ -30,7 +31,7 @@ const INTERIORS_PACK = "moderninteriors-win";
 /** Pixel rectangle to crop out of the source sheet. */
 type Crop = { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
 
-type CurationStep = {
+export type CurationStep = {
   /** Source file, relative to `BRB Assets/` (INTERIORS_PACK prefix optional). */
   readonly source: string;
   /** Optional crop; omit to copy the source through unchanged. */
@@ -40,24 +41,20 @@ type CurationStep = {
 };
 
 /**
- * Curation table — one entry PER MANIFEST KEY. Sources are best-guess placeholders
- * a maintainer confirms against the pack (and against
- * `2_Characters/Character_Generator/Spritesheet_animations_GUIDE.png` for character
- * frame geometry). Crops assume the manifest geometry: character strips are 96x32
+ * Curation table — one entry per manifest key. These selections and crops were
+ * verified against the supplied pack on 2026-07-29. Character strips are 96x32
  * (16x32 × 6 frames) cut from a wider premade sheet.
  */
-const CURATION: Record<ArtKey, CurationStep> = {
-  // Wall of monitors — first 4 frames of an animated screen loop.
+export const CURATION: Record<ArtKey, CurationStep> = {
+  // Wall of monitors — complete 11-frame, 64×48-per-frame strip.
   monitorScreens: {
-    source: "3_Animated_objects/16x16/spritesheets/Screen_animation.png",
-    crop: { width: 128, height: 32, x: 0, y: 0 },
-    note: "Animated screens loop → 4×(32×32) frames.",
+    source: "3_Animated_objects/16x16/spritesheets/animated_control_room_screens.png",
+    note: "Control-room screen wall → 11×(64×48) frames.",
   },
-  // Server rack blink — first 4 frames of a tower/rack animation.
+  // Server rack blink — complete 3-frame, 16×48-per-frame strip.
   monitorServer: {
-    source: "3_Animated_objects/16x16/spritesheets/Computer_animation.png",
-    crop: { width: 64, height: 32, x: 0, y: 0 },
-    note: "Server/computer blink → 4×(16×32) frames.",
+    source: "3_Animated_objects/16x16/spritesheets/animated_control_room_server.png",
+    note: "Control-room server rack → 3×(16×48) frames.",
   },
   // Analyst — single-facing idle strip (96×32) from the first premade character.
   staffAnalystIdle: {
@@ -85,33 +82,45 @@ const CURATION: Record<ArtKey, CurationStep> = {
   },
   // Security camera — panning CCTV animation, first 4 frames.
   envSecurityCamera: {
-    source: "3_Animated_objects/16x16/spritesheets/Security_camera_animation.png",
-    crop: { width: 64, height: 16, x: 0, y: 0 },
-    note: "CCTV pan → 4×(16×16) frames.",
+    source: "3_Animated_objects/16x16/spritesheets/animated_security_camera_right.png",
+    note: "Right-facing CCTV pan → 10×(16×16) frames.",
   },
-  // Conference desk — static prop from the conference-hall singles.
+  // Conference desk/lectern — static prop from the conference-hall singles.
   envConferenceDesk: {
-    source: "1_Interiors/16x16/Theme_Sorter_Singles/13_Conference_Hall_Singles/Conference_table.png",
-    note: "Conference table single (static, ~48×32).",
+    // NOT _25: that file is the left END-CAP of a conference-table run — the desk is
+    // cut flush at the right edge with dead space on the left, so used as a
+    // standalone prop it renders as a truncated fragment. _32 is a complete
+    // free-standing lectern (mic + neutral grey screen), which also reads as a
+    // briefing station rather than furniture.
+    source: "1_Interiors/16x16/Theme_Sorter_Singles/13_Conference_Hall_Singles/Conference_Hall_Singles_32.png",
+    note: "Conference lectern single, mic + grey screen (static, 16×32).",
   },
   // Floor tile — single tileable floor from the room builder set.
   envFloor: {
     source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png",
-    crop: { width: 16, height: 16, x: 0, y: 0 },
-    note: "Room builder floor → one 16×16 tile.",
+    crop: { width: 16, height: 16, x: 192, y: 256 },
+    note: "Neutral dark stone floor → one opaque 16×16 tile.",
   },
   // Wall tile — single tileable wall from the room builder set.
   envWall: {
     source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
-    crop: { width: 16, height: 16, x: 0, y: 0 },
-    note: "Room builder wall → one 16×16 tile.",
+    // NOT the 16px-wide single at x=80: that block's outermost columns are painted
+    // navy (#3A3A50) borders — verified x=80 and x=95 — so cropping it bakes a
+    // separator into the tile and repeats a hard dark bar every 16px. Take the
+    // interior of the 64px-wide run of the same wall on the same row instead.
+    crop: { width: 16, height: 16, x: 16, y: 492 },
+    note: "Neutral institutional wall panel, gutter-free interior → one opaque 16×16 tile.",
   },
 };
 
 class UsageError extends Error {}
 
 function imageMagick(subcommand: "convert" | "identify"): string[] {
-  for (const candidate of [["magick", subcommand], [subcommand]]) {
+  const candidates =
+    subcommand === "convert"
+      ? [["magick"], ["convert"]]
+      : [["magick", "identify"], ["identify"]];
+  for (const candidate of candidates) {
     try {
       execFileSync(candidate[0]!, [...candidate.slice(1), "--version"], { stdio: "ignore" });
       return candidate;
@@ -146,23 +155,24 @@ function curate(key: ArtKey, convertCmd: string[]): void {
   const dest = outputPath(key);
   mkdirSync(path.dirname(dest), { recursive: true });
 
-  if (step.crop) {
-    const { width, height, x, y } = step.crop;
-    execFileSync(
-      convertCmd[0]!,
-      [
-        ...convertCmd.slice(1),
-        source,
+  const cropArgs = step.crop
+    ? [
         "-crop",
-        `${width}x${height}+${x}+${y}`,
+        `${step.crop.width}x${step.crop.height}+${step.crop.x}+${step.crop.y}`,
         "+repage",
-        dest,
-      ],
-      { stdio: "inherit" },
-    );
-  } else {
-    copyFileSync(source, dest);
-  }
+      ]
+    : [];
+  execFileSync(
+    convertCmd[0]!,
+    [
+      ...convertCmd.slice(1),
+      source,
+      ...cropArgs,
+      "-strip",
+      dest,
+    ],
+    { stdio: "inherit" },
+  );
 
   console.error(
     `✓ ${key}: ${path.relative(PROJECT_ROOT, source)} → ${path.relative(PROJECT_ROOT, dest)}  (${step.note})`,
@@ -208,12 +218,18 @@ function main(): void {
   if (failures > 0) process.exitCode = 1;
 }
 
-try {
-  main();
-} catch (error) {
-  if (error instanceof UsageError) {
-    console.error(`\n${error.message}\n`);
-    process.exit(1);
+const isMainModule =
+  typeof process.argv[1] === "string"
+  && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
+  try {
+    main();
+  } catch (error) {
+    if (error instanceof UsageError) {
+      console.error(`\n${error.message}\n`);
+      process.exit(1);
+    }
+    throw error;
   }
-  throw error;
 }

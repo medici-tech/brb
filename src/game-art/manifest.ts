@@ -12,18 +12,15 @@
  * compile and the app must build even when none of those files exist on disk; the
  * `PixelSprite` primitive renders a fallback when a sheet 404s.
  *
- * Frame geometry conventions (confirm against
- * `moderninteriors-win/2_Characters/Character_Generator/Spritesheet_animations_GUIDE.png`
- * once the LimeZu pack is available locally):
+ * Frame geometry conventions (verified against the supplied LimeZu pack):
  *   - Character sprites are 16w x 32h px, 6 frames per direction.
  *     A single-direction idle/walk strip is therefore 96x32 →
  *     frameWidth 16, frameHeight 32, frameCount 6.
  *   - Static environment tiles use frameCount 1 (no animation).
  *
- * All numeric values that are not dictated by the character convention above are
- * best-guess PLACEHOLDERS; they will be tuned when the assets are curated. Each
- * entry is commented with its intended LimeZu source path (relative to the
- * `BRB Assets/` pack root).
+ * Each entry is commented with its selected LimeZu source path (relative to the
+ * `BRB Assets/` pack root). `expectedWidth` and `expectedHeight` describe the
+ * complete curated PNG and are checked by the private build-time injector.
  */
 
 /** Public base path for all curated runtime art. */
@@ -45,6 +42,10 @@ export type ArtEntry = {
   readonly fps: number;
   /** Integer upscale factor applied when rendered (pixel art must scale by whole numbers). */
   readonly scale: number;
+  /** Expected width of the complete curated PNG. */
+  readonly expectedWidth: number;
+  /** Expected height of the complete curated PNG. */
+  readonly expectedHeight: number;
 };
 
 // Character convention: 16w x 32h, 6 frames per direction.
@@ -60,25 +61,29 @@ const CHARACTER_FRAME_COUNT = 6;
  */
 export const ART = {
   // ── Monitors ──────────────────────────────────────────────────────────────
-  // Intended source: 3_Animated_objects/16x16/spritesheets (wall of screens / CRT loop).
+  // Source: 3_Animated_objects/16x16/spritesheets/animated_control_room_screens.png.
   monitorScreens: {
     key: "monitorScreens",
     src: `${ART_BASE_PATH}/monitors/control-room-screens.png`,
-    frameWidth: 32,
-    frameHeight: 32,
-    frameCount: 4,
-    fps: 4,
-    scale: 3,
+    frameWidth: 64,
+    frameHeight: 48,
+    frameCount: 11,
+    fps: 10,
+    scale: 4,
+    expectedWidth: 704,
+    expectedHeight: 48,
   },
-  // Intended source: 3_Animated_objects/16x16/spritesheets (blinking server rack).
+  // Source: 3_Animated_objects/16x16/spritesheets/animated_control_room_server.png.
   monitorServer: {
     key: "monitorServer",
     src: `${ART_BASE_PATH}/monitors/control-room-server.png`,
     frameWidth: 16,
-    frameHeight: 32,
-    frameCount: 4,
-    fps: 3,
+    frameHeight: 48,
+    frameCount: 3,
+    fps: 2,
     scale: 3,
+    expectedWidth: 48,
+    expectedHeight: 48,
   },
 
   // ── Staff (characters) ────────────────────────────────────────────────────
@@ -92,6 +97,8 @@ export const ART = {
     frameCount: CHARACTER_FRAME_COUNT,
     fps: 6,
     scale: 3,
+    expectedWidth: 96,
+    expectedHeight: 32,
   },
   // Intended source: 2_Characters/Character_Generator/0_Premade_Characters/16x16
   //   → a second premade operator, idle strip cropped to 96x32.
@@ -103,6 +110,8 @@ export const ART = {
     frameCount: CHARACTER_FRAME_COUNT,
     fps: 6,
     scale: 3,
+    expectedWidth: 96,
+    expectedHeight: 32,
   },
   // Intended source: 2_Characters/Character_Generator/0_Premade_Characters/16x16
   //   → seated variant (confirm frame count; some seated sets are 1–6 frames).
@@ -114,6 +123,8 @@ export const ART = {
     frameCount: CHARACTER_FRAME_COUNT,
     fps: 4,
     scale: 3,
+    expectedWidth: 96,
+    expectedHeight: 32,
   },
   // Intended source: 2_Characters/Character_Generator/0_Premade_Characters/16x16
   //   → walk cycle, single facing cropped to 96x32.
@@ -125,30 +136,35 @@ export const ART = {
     frameCount: CHARACTER_FRAME_COUNT,
     fps: 8,
     scale: 3,
+    expectedWidth: 96,
+    expectedHeight: 32,
   },
 
   // ── Environment (mostly static tiles / props) ─────────────────────────────
-  // Intended source: 3_Animated_objects/16x16/spritesheets (panning CCTV camera),
-  //   or a static prop from 1_Interiors if no animation is desired.
+  // Source: 3_Animated_objects/16x16/spritesheets/animated_security_camera_right.png.
   envSecurityCamera: {
     key: "envSecurityCamera",
     src: `${ART_BASE_PATH}/environment/security-camera.png`,
     frameWidth: 16,
     frameHeight: 16,
-    frameCount: 4,
+    frameCount: 10,
     fps: 2,
     scale: 3,
+    expectedWidth: 160,
+    expectedHeight: 16,
   },
-  // Intended source: 1_Interiors/16x16/Theme_Sorter_Singles/13_Conference_Hall_Singles
-  //   (conference desk prop; static).
+  // Source: 1_Interiors/16x16/Theme_Sorter_Singles/13_Conference_Hall_Singles/
+  //   Conference_Hall_Singles_32.png (free-standing lectern: mic + grey screen).
   envConferenceDesk: {
     key: "envConferenceDesk",
     src: `${ART_BASE_PATH}/environment/conference-desk.png`,
-    frameWidth: 48,
+    frameWidth: 16,
     frameHeight: 32,
     frameCount: 1,
     fps: 0,
     scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 32,
   },
   // Intended source: 1_Interiors/16x16/Room_Builder_subfiles (floor tile; static, tileable).
   envFloor: {
@@ -159,6 +175,8 @@ export const ART = {
     frameCount: 1,
     fps: 0,
     scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
   },
   // Intended source: 1_Interiors/16x16/Room_Builder_subfiles (wall tile; static, tileable).
   envWall: {
@@ -169,6 +187,8 @@ export const ART = {
     frameCount: 1,
     fps: 0,
     scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
   },
 } satisfies Record<string, ArtEntry>;
 

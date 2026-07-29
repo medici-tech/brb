@@ -62,9 +62,11 @@ tsx scripts/curate-art.ts staffAnalystIdle staffOperatorIdle
 ```
 
 Copies/crops the selected sources into `public/assets/brb/...` under the manifest's stable
-filenames (e.g. crops a 96×32 single-facing strip out of a wider premade sheet). Idempotent
-and provenance-logged. The `CURATION` table in `scripts/curate-art.ts` mirrors the manifest
-keys one-for-one.
+filenames (e.g. crops a 96×32 single-facing strip out of a wider premade sheet). It strips
+metadata without resizing or recoloring pixels. The command is idempotent and
+provenance-logged. The `CURATION` table in `scripts/curate-art.ts` mirrors the manifest
+keys one-for-one. See `BRB_ART_INVENTORY.md` for final selections, dimensions, hashes,
+screen usage, and missing states.
 
 ### 3. Deploy injection (option 2 — private storage, not committed)
 
@@ -74,14 +76,18 @@ For deploys, `public/assets/brb/` is **injected from private storage** rather th
 - **`BRB_ART_SOURCE` unset (default / public CI):** no-op. Logs and exits 0. The build
   proceeds with no assets and the CSS/`PixelSprite` fallbacks render. This is the condition
   verified in CI (`npm run build` with `public/assets/brb/` absent).
-- **`BRB_ART_SOURCE` set (deploy):** the intended place to fetch the curated tree from a
-  private **Vercel Blob** bucket (or copy from a local path) into `public/assets/brb/` before
-  `next build`. Auth uses a build-only token env var that is never committed.
+- **`BRB_ART_SOURCE` set to a local directory:** the directory must contain the curated
+  `control-room/...` tree. Relative paths resolve from the project root; absolute paths are
+  also accepted.
+- **`BRB_ART_SOURCE` set to an HTTPS base URL:** each manifest-relative path is fetched
+  below that URL. Plain HTTP is rejected.
+- **`BRB_ART_TOKEN` set:** the optional secret is sent as an HTTPS bearer token. Keep it
+  build-only and never expose it through a `NEXT_PUBLIC_` variable.
 
-> **Status:** the injector is wired and safe (guaranteed no-op unless the env flag is set),
-> but the actual private fetch/copy is a **TODO** in `scripts/inject-art.ts`. It is left as a
-> stub so the default build carries **zero** network/storage dependencies. Implement the Blob
-> fetch (or local copy) there when the private bucket is provisioned.
+Configured injection fails closed: every manifest file must exist, be a PNG, have the
+declared dimensions, and have a distinct SHA-256 payload. Files are staged and validated
+before replacing `public/assets/brb/`, so an incomplete private source cannot silently
+ship the fallback presentation.
 
 ## Fallback guarantee
 
@@ -105,10 +111,11 @@ npm run dev
 
 ## Frame-geometry note for curators
 
-Character sprite geometry in the manifest assumes **16w × 32h px, 6 frames per direction**
+Character sprite geometry in the manifest uses **16w × 32h px, 6 frames per direction**
 (a single-direction idle/walk strip is 96×32). Confirm this — and the seated/walk row offsets
 used by the crops in `scripts/curate-art.ts` — against
 `moderninteriors-win/2_Characters/Character_Generator/Spritesheet_animations_GUIDE.png`
-before trusting the placeholder crops. Monitor/animated-object frame counts and the
-security-camera geometry are best-guess placeholders to tune during curation.
+when changing character sources. The current environment selections were verified against
+the supplied pack: screens are 11×64×48, server racks are 3×16×48, and the security
+camera is 10×16×16.
 ```
