@@ -377,11 +377,14 @@ export function chooseBotAction(
 
   // The advisor-dependent bot never disciplines its advisors — accumulated
   // Leverage is the whole point of the profile — so it skips managing entirely.
+  // Every managed profile stays below ADVISOR_TAKEOVER_RULES.coupLeverageMinimum
+  // so it disciplines before an advisor can seize control; command remains the
+  // most tolerant of the managed profiles.
   const leverageLimit =
     isOneOf(bot, ADVISOR_HEAVY_BOTS) ? Number.POSITIVE_INFINITY
     : bot === "fixer" ? 55
     : bot === "civic_seeker" ? 55
-    : bot === "command" ? 86
+    : bot === "command" ? 80
     : state.archetypeId === "operator" ? 72
     : 65;
   const riskyAdvisor = ADVISOR_IDS.find(

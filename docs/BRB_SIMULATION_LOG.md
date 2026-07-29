@@ -1972,3 +1972,64 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Phase C verification: coup gate dropped (Leverage 85 alone), high-Leverage departure retired, reliance creep +1/month at Leverage 50+. Combined coup+cabal 15.14% with 92 organic (non-demonstrator) takeovers.
 
+## 2026-07-29T07:35:03.114Z — Command leverage limit 80
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `3cff638` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 413 (8.26%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 361 (7.22%) |
+| State collapse | 1,780 (35.6%) |
+| Corporate capture | 2,091 (41.82%) |
+| Advisor coup | 383 (7.66%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.38 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.73 / 8.34 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,214 |
+| Activation attempts | 413 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 413 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,786 |
+| panic_before_activation | 289 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 508 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 29 |
+| institutionalist | 334 | 37 |
+| command | 333 | 12 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Lower command bot leverageLimit 86 -> 80 so every managed profile disciplines below the coup bar (85) instead of tolerating advisors past it.
+
