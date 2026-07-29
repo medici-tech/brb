@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { PixelSprite } from "../../src/components/brb/pixel/PixelSprite.js";
 
 describe("PixelSprite", () => {
@@ -57,5 +57,92 @@ describe("PixelSprite", () => {
     fireEvent.error(container.querySelector("img")!);
 
     expect(screen.getByTestId("fallback-explicit")).toBeInTheDocument();
+  });
+
+  it("freezes on the requested frame when reduced motion is enabled", async () => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: () => ({
+        matches: true,
+        media: "(prefers-reduced-motion: reduce)",
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+
+    render(
+      <PixelSprite
+        artKey="envSecurityCamera"
+        frameOffset={4}
+        label="Frozen security camera"
+      />,
+    );
+
+    const sprite = screen.getByRole("img", { name: "Frozen security camera" });
+    await waitFor(() => {
+      expect(sprite).toHaveStyle({ "--sprite-frozen-frame": "4" });
+      expect(sprite.className).not.toContain("animated");
+    });
+  });
+
+  it("reports load state so a parent can choose art-aware framing", async () => {
+    const onLoadStateChange = vi.fn();
+    const { container } = render(
+      <PixelSprite
+        artKey="monitorScreens"
+        onLoadStateChange={onLoadStateChange}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(onLoadStateChange).toHaveBeenCalledWith("pending");
+    });
+    fireEvent.load(container.querySelector("img")!);
+    await waitFor(() => {
+      expect(onLoadStateChange).toHaveBeenCalledWith("loaded");
+    });
+  });
+
+  it("recognizes a cached image that completed before its load event was observed", async () => {
+    const onLoadStateChange = vi.fn();
+    const geometry = {
+      frameWidth: 16,
+      frameHeight: 16,
+      frameCount: 1,
+      fps: 0,
+      scale: 1,
+    };
+    const { container, rerender } = render(
+      <PixelSprite
+        src="/assets/brb/control-room/environment/cache-a.png"
+        {...geometry}
+        onLoadStateChange={onLoadStateChange}
+      />,
+    );
+    const probe = container.querySelector("img")!;
+    Object.defineProperty(probe, "complete", {
+      configurable: true,
+      value: true,
+    });
+    Object.defineProperty(probe, "naturalWidth", {
+      configurable: true,
+      value: 16,
+    });
+
+    rerender(
+      <PixelSprite
+        src="/assets/brb/control-room/environment/cache-b.png"
+        {...geometry}
+        onLoadStateChange={onLoadStateChange}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(onLoadStateChange).toHaveBeenCalledWith("loaded");
+    });
   });
 });

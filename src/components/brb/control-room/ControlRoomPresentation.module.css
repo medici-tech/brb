@@ -144,14 +144,63 @@
   z-index: 3;
   top: 10%;
   left: 50%;
-  display: grid;
   width: min(78%, 730px);
-  grid-template-columns: 1.1fr 1.35fr 1fr 0.8fr;
-  gap: 7px;
+  height: 112px;
   transform: translateX(-50%);
   transition:
     filter 350ms ease,
     transform 350ms ease;
+}
+
+.monitorChannels {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1.1fr 1.35fr 1fr 0.8fr;
+  gap: 7px;
+}
+
+.monitorWallSprite {
+  --sprite-scale-override: 3;
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+  filter:
+    saturate(0.6)
+    sepia(0.12)
+    brightness(0.76)
+    drop-shadow(0 9px 9px rgba(0, 0, 0, 0.48));
+  transform: translate(-50%, -50%);
+  transition: opacity 240ms ease;
+}
+
+/* Pixel mode stacks the art above the channel plates instead of overlaying them.
+   The sprite is 192px tall but `.wallMonitors` is 112px, so the old absolute
+   centring pushed the art's lower row straight under the plates and hid it. */
+.wallMonitors[data-art="pixel"] {
+  display: flex;
+  height: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallMonitors[data-art="pixel"] .monitorWallSprite {
+  position: relative;
+  top: auto;
+  left: auto;
+  opacity: 0.82;
+  transform: none;
+}
+
+.wallMonitors[data-art="pixel"] .monitorChannels {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 31px;
 }
 
 .monitor {
@@ -168,6 +217,26 @@
     #111711;
   background-size: 12px 12px;
   box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
+}
+
+.monitor-plate {
+  min-height: 31px;
+  padding: 6px 8px;
+  border-width: 1px;
+  outline-color: rgba(119, 131, 97, 0.22);
+  background: rgba(12, 15, 11, 0.82);
+  box-shadow: 0 5px 11px rgba(0, 0, 0, 0.32);
+}
+
+.monitor-plate .monitorGrid,
+.monitor-plate .monitorScan,
+.monitor-plate .monitorData {
+  display: none;
+}
+
+.monitor-plate .monitorChannel {
+  right: 6px;
+  bottom: 5px;
 }
 
 .monitor-surveillance {
@@ -264,6 +333,26 @@
   animation-delay: -1s;
 }
 
+/* Floor-standing server rack. Lives on the room's untransformed layer, not in a
+   monitor bezel: at the room scale it is 48x144, taller than a ~104px screen
+   frame, so a bezel clipped a third of it away. */
+.serverRack {
+  position: absolute;
+  z-index: 1;
+  bottom: 6%;
+  left: 6%;
+  opacity: 0.5;
+  filter:
+    saturate(0.58)
+    brightness(0.8)
+    drop-shadow(0 0 5px rgba(166, 180, 133, 0.18))
+    drop-shadow(0 5px 4px rgba(0, 0, 0, 0.42));
+}
+
+.serverRackSprite {
+  display: block;
+}
+
 .roomDepth {
   position: absolute;
   z-index: 0;
@@ -278,7 +367,16 @@
   background:
     linear-gradient(90deg, transparent 24.8%, rgba(207, 192, 157, 0.05) 25%, transparent 25.2%),
     linear-gradient(90deg, transparent 74.8%, rgba(207, 192, 157, 0.05) 75%, transparent 75.2%),
+    linear-gradient(rgba(25, 28, 23, 0.88), rgba(25, 28, 23, 0.88)),
+    var(--room-wall-art),
     #20231d;
+  background-size:
+    auto,
+    auto,
+    auto,
+    32px 32px,
+    auto;
+  image-rendering: pixelated;
 }
 
 .floorGrid {
@@ -290,9 +388,37 @@
   opacity: 0.32;
   background:
     repeating-linear-gradient(90deg, transparent 0 79px, rgba(207, 192, 157, 0.12) 80px 81px),
-    repeating-linear-gradient(0deg, transparent 0 39px, rgba(207, 192, 157, 0.09) 40px 41px);
+    repeating-linear-gradient(0deg, transparent 0 39px, rgba(207, 192, 157, 0.09) 40px 41px),
+    linear-gradient(rgba(16, 18, 15, 0.38), rgba(16, 18, 15, 0.38)),
+    var(--room-floor-art);
+  background-size:
+    auto,
+    auto,
+    auto,
+    32px 32px;
+  image-rendering: pixelated;
   transform: perspective(260px) rotateX(57deg);
   transform-origin: center bottom;
+}
+
+/* Sized by the sprite (16x16 at scale 3 = 48x48), not by a fixed box: a 34x34
+   `overflow: hidden` wrapper silently cropped 14px off the camera. */
+.securityCamera {
+  position: absolute;
+  z-index: 2;
+  top: 3%;
+  right: 7.5%;
+  opacity: 0.46;
+  filter:
+    saturate(0.5)
+    brightness(0.72)
+    drop-shadow(0 3px 3px rgba(0, 0, 0, 0.45));
+}
+
+.securityCameraSprite {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .advisorStations {
@@ -449,6 +575,26 @@
   left: 10px;
   font: 600 7px/1 "IBM Plex Mono", monospace;
   letter-spacing: 0.12em;
+}
+
+/* No fixed width/height and no `inset: 0` on the sprite: the lectern is 16x32 at
+   `--sprite-scale: 3`, so it must be left at its own derived 48x96. Forcing it to
+   fill a fixed box stretches pixel art off the integer grid (it rendered 91x76),
+   which is exactly what `image-rendering: pixelated` cannot rescue. */
+.conferenceDesk {
+  position: absolute;
+  z-index: 1;
+  right: 8%;
+  bottom: 3%;
+  opacity: 0.42;
+  filter:
+    saturate(0.46)
+    brightness(0.78)
+    drop-shadow(0 4px 3px rgba(0, 0, 0, 0.4));
+}
+
+.conferenceDeskSprite {
+  display: block;
 }
 
 .tableMap {
@@ -977,6 +1123,9 @@
 @media (max-width: 900px) {
   .wallMonitors {
     width: 88%;
+  }
+
+  .monitorChannels {
     grid-template-columns: repeat(3, 1fr);
   }
 
@@ -992,6 +1141,19 @@
     width: 48%;
   }
 
+  .monitorWallSprite {
+    --sprite-scale-override: 1;
+  }
+
+  .staffSprite {
+    --sprite-scale-override: 2;
+  }
+
+  .securityCamera,
+  .conferenceDesk {
+    display: none;
+  }
+
   .chamber {
     right: 2%;
     transform: scale(0.88);
@@ -1000,58 +1162,130 @@
 
 }
 
+/* ── Narrow layout ────────────────────────────────────────────────────────────
+ * Phones get a genuinely DIFFERENT presentation, not a shrunken desktop one: a
+ * short cropped band carrying only what still reads at this size — the monitor
+ * wall and two staff — with everything peripheral removed. The Situation text and
+ * its controls sit below and stay dominant.
+ *
+ * This replaces `.presentation { display: none }`, which hid the room outright
+ * and left ~10 child rules underneath it that could never render.
+ *
+ * The band goes into FLOW (`position: relative`) rather than staying absolutely
+ * inset: the workspace collapses to `min-height: 0` here, so an inset-0 layer
+ * would stretch to the full height of the Situation panel and sit behind the text.
+ */
 @media (max-width: 650px) {
+  /* Height is budgeted, not guessed, so nothing in the band overlaps:
+       5   status rail
+       30  → monitor wall block (96 sprite + 5 gap + 31 plates) ends at 162
+       162 → staff (32x64 at scale 2) sit on the floor line, ending at 226
+       caption occupies the bottom-left gutter beside them. */
   .presentation {
+    position: relative;
+    inset: auto;
+    height: 232px;
+    border-bottom: 1px solid rgba(207, 192, 157, 0.16);
+  }
+
+  /* The vignette is tuned for a tall room; on a short band it reads as a smudge. */
+  .presentation::before {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(0, 0, 0, 0.16) 3px 4px
+    );
+  }
+
+  .ceiling,
+  .advisorStations,
+  .paperClutter,
+  .operationsTable,
+  .conferenceDesk,
+  .serverRack,
+  .securityCamera,
+  .corporateOverlay,
+  .chamber,
+  .staff-right,
+  .staff-crossing {
+    display: none;
+  }
+
+  .statusRail {
+    top: 5px;
+  }
+
+  /* Decorative call-sign; dropping it stops the dev-state badge landing on top
+     of it in the band's narrow top-right corner. */
+  .statusRail span:last-child {
     display: none;
   }
 
   .wallMonitors {
-    top: 9%;
-    grid-template-columns: repeat(2, 1fr);
+    top: 30px;
+    width: 94%;
+    height: auto;
   }
 
-  .monitor:nth-child(3) {
+  /* Integer step down (4 → 2): 128x96 instead of 256x192. Never a fractional
+     scale — that resamples the pixels the whole pipeline exists to preserve. */
+  .monitorWallSprite {
+    --sprite-scale-override: 2;
+  }
+
+  .wallMonitors[data-art="pixel"] {
+    gap: 5px;
+  }
+
+  .monitorChannels {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  /* Two channels only; four plates at this width truncate their own labels. */
+  .monitor:nth-child(n + 3) {
     display: none;
   }
 
-  .advisorStations {
-    top: 43%;
+  .staffSprite {
+    --sprite-scale-override: 2;
   }
 
-  .advisorStation {
-    width: 30%;
+  /* Both figures move to the right so the caption owns the bottom-left gutter. */
+  .staff-left,
+  .staff-center {
+    top: auto;
+    bottom: 6px;
   }
 
-  .stationCenter {
-    left: 35%;
+  .staff-left {
+    left: 62%;
   }
 
-  .operationsTable {
-    top: 61%;
-    left: 42%;
-    width: 54%;
+  .staff-center {
+    left: 82%;
   }
 
-  .chamber {
-    bottom: 13%;
-    width: 103px;
-    transform: scale(0.78);
-  }
-
-  .staff-right {
+  .staff small {
     display: none;
   }
 
   .ambientCaption {
-    max-width: 72%;
+    right: auto;
+    bottom: 8px;
+    left: 8px;
+    max-width: 56%;
+  }
+
+  .roomDepth {
+    inset: 44% 0 0;
   }
 
   .developmentLabel {
-    top: 6%;
-    right: 2%;
+    top: 6px;
+    right: 6px;
     bottom: auto;
   }
-
 }
 
 .presentation[data-motion="reduced"],
@@ -1062,7 +1296,7 @@
 .presentation[data-motion="reduced"] *::after {
   animation: none !important;
   scroll-behavior: auto !important;
-  transition-duration: 0.01ms !important;
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1074,6 +1308,6 @@
   .presentation *::after {
     animation: none !important;
     scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+    transition: none !important;
   }
 }

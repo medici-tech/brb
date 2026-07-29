@@ -28,7 +28,16 @@ type CommonProps = {
   frameOffset?: number;
   /** Accessible label; when omitted the sprite is treated as decorative (aria-hidden). */
   label?: string;
+  /**
+   * Notified whenever the sheet's load state settles. Lets a parent lay out
+   * differently when the curated art is present vs absent (e.g. the monitor wall
+   * swaps between one pixel wall and four CSS monitor frames) without duplicating
+   * the probe logic.
+   */
+  onLoadStateChange?: (state: SpriteLoadState) => void;
 };
+
+export type SpriteLoadState = "pending" | "loaded" | "error";
 
 type PixelSpriteProps = CommonProps &
   ({ artKey: ArtKey } | SheetGeometry);
@@ -58,58 +67,112 @@ function resolveGeometry(props: PixelSpriteProps): SheetGeometry {
 /**
  * Reusable pixel-art sprite primitive.
  *
- * Renders a fixed-size box scaled by an integer factor, painting a sprite sheet as
- * its background with `image-rendering: pixelated`. Multi-frame strips animate their
+ * Renders a box scaled by an integer factor, painting a sprite sheet as its
+ * background with `image-rendering: pixelated`. Multi-frame strips animate their
  * `background-position` with a CSS `steps()` keyframe at the sheet's `fps`. If the
  * sheet 404s (the curated assets are gitignored and injected at deploy) the
  * `fallback` is rendered instead of a broken sprite. Animation is frozen when a
- * `data-motion="reduced"` ancestor is present or the user prefers reduced motion.
+ * `data-motion="reduced"` ancestor is present or the user prefers reduced motion,
+ * parking on `frameOffset` so each sprite has a deliberate, legible still pose.
+ *
+ * Sizing is expressed as CSS custom properties rather than computed pixels, so a
+ * consumer stylesheet can retune `--sprite-scale` at a breakpoint (3 → 2 → 1) and
+ * keep the art crisp. The manifest's `scale` is only the default.
  */
 export function PixelSprite(props: PixelSpriteProps) {
-  const { className, fallback, frameOffset = 0, label } = props;
+  const { className, fallback, frameOffset = 0, label, onLoadStateChange } = props;
   const { src, frameWidth, frameHeight, frameCount, fps, scale } =
     resolveGeometry(props);
 
   const rootRef = useRef<HTMLSpanElement>(null);
+  const probeRef = useRef<HTMLImageElement>(null);
+  const mountedRef = useRef(false);
   const prefersReducedMotion = useReducedMotion();
   const [ancestorReduced, setAncestorReduced] = useState(false);
-  const [loadState, setLoadState] = useState<"pending" | "loaded" | "error">(
-    "pending",
-  );
+  const [loadState, setLoadState] = useState<SpriteLoadState>("pending");
 
-  // Detect a `data-motion="reduced"` ancestor after mount (SSR-safe).
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Keep the callback in a ref so a caller passing an inline arrow does not
+  // re-fire the notify effect on every render.
+  const notifyRef = useRef(onLoadStateChange);
+  notifyRef.current = onLoadStateChange;
+  useEffect(() => {
+    notifyRef.current?.(loadState);
+  }, [loadState]);
+
+  // Track the nearest `[data-motion]` ancestor (SSR-safe: after mount only).
+  //
+  // This deliberately watches the attribute rather than reading it once. On the
+  // first client render `useReducedMotion` returns its SERVER snapshot (`true`),
+  // so the presentation renders `data-motion="reduced"`; a one-shot read latches
+  // that value and never sees the flip to `"full"` once hydration settles, which
+  // silently freezes every sprite in the room for the rest of the session. The
+  // observer also makes the runtime toggle (dev preview checkbox, and any future
+  // in-game motion setting) drive sprites immediately.
   useEffect(() => {
     const node = rootRef.current;
     if (!node) return;
-    setAncestorReduced(node.closest('[data-motion="reduced"]') !== null);
+    const host = node.closest("[data-motion]");
+    if (!host) {
+      setAncestorReduced(false);
+      return;
+    }
+
+    const read = () =>
+      setAncestorReduced(host.getAttribute("data-motion") === "reduced");
+    read();
+
+    const observer = new MutationObserver(read);
+    observer.observe(host, {
+      attributes: true,
+      attributeFilter: ["data-motion"],
+    });
+    return () => observer.disconnect();
   }, []);
 
   // Reset load probing whenever the sheet source changes.
   useEffect(() => {
     setLoadState("pending");
+    const probe = probeRef.current;
+    if (probe?.complete && probe.naturalWidth > 0) {
+      setLoadState("loaded");
+    }
   }, [src]);
+
+  function settleLoadState(state: Exclude<SpriteLoadState, "pending">): void {
+    if (mountedRef.current) setLoadState(state);
+  }
 
   const reducedMotion = prefersReducedMotion || ancestorReduced;
   const shouldAnimate =
     frameCount > 1 && fps > 0 && !reducedMotion && loadState !== "error";
 
-  const displayWidth = frameWidth * scale;
-  const displayHeight = frameHeight * scale;
-  const stripWidth = displayWidth * frameCount;
-  // Travel one full strip width to the left across `frameCount` discrete steps.
-  const travel = -stripWidth;
   const durationSeconds = fps > 0 ? frameCount / fps : 0;
   // Frozen frame (static sheets, reduced motion, or picking a facing) is clamped in range.
   const frozenFrame = Math.min(Math.max(frameOffset, 0), Math.max(frameCount - 1, 0));
 
+  // Only the raw SOURCE numbers cross the JS/CSS boundary. Every pixel measurement
+  // (box size, sheet size, frozen offset, animation travel) is derived in the CSS
+  // module from these, so a breakpoint can override `--sprite-scale` with a
+  // different integer and the whole sprite retunes without resampling.
   const style: CSSProperties = {
-    width: displayWidth,
-    height: displayHeight,
     backgroundImage: `url("${src}")`,
-    backgroundSize: `${stripWidth}px ${displayHeight}px`,
-    backgroundPositionX: shouldAnimate ? 0 : -(displayWidth * frozenFrame),
-    // Consumed by the `brb-pixel-sprite` keyframe (globals.css).
-    ["--pixel-sprite-travel" as string]: `${travel}px`,
+    ["--sprite-frame-w" as string]: frameWidth,
+    ["--sprite-frame-h" as string]: frameHeight,
+    ["--sprite-frames" as string]: frameCount,
+    // The manifest scale is only a BASE. It must not be written to
+    // `--sprite-scale` directly: an inline custom property outranks every
+    // stylesheet rule, which would make consumer classes and breakpoints unable
+    // to retune the scale at all. The CSS module resolves
+    // `--sprite-scale-override` first and falls back to this.
+    ["--sprite-scale-base" as string]: scale,
+    ["--sprite-frozen-frame" as string]: frozenFrame,
     ...(shouldAnimate
       ? {
           animationDuration: `${durationSeconds}s`,
@@ -124,12 +187,13 @@ export function PixelSprite(props: PixelSpriteProps) {
     return (
       <>
         <img
+          ref={probeRef}
           src={src}
           alt=""
           aria-hidden="true"
           className={styles.probe}
-          onLoad={() => setLoadState("loaded")}
-          onError={() => setLoadState("error")}
+          onLoad={() => settleLoadState("loaded")}
+          onError={() => settleLoadState("error")}
         />
         {fallback ?? null}
       </>
@@ -147,12 +211,13 @@ export function PixelSprite(props: PixelSpriteProps) {
     >
       {/* Offscreen probe: the sole source of truth for load success/failure. */}
       <img
+        ref={probeRef}
         src={src}
         alt=""
         aria-hidden="true"
         className={styles.probe}
-        onLoad={() => setLoadState("loaded")}
-        onError={() => setLoadState("error")}
+        onLoad={() => settleLoadState("loaded")}
+        onError={() => settleLoadState("error")}
       />
     </span>
   );

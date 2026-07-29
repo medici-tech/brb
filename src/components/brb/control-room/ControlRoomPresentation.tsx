@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AmbientMonitor } from "./AmbientMonitor";
+import {
+  AmbientConferenceDesk,
+  AmbientRoomSurfaces,
+  AmbientServerRack,
+} from "./AmbientEnvironment";
+import { AmbientMonitorWall } from "./AmbientMonitorWall";
 import { AmbientStaff } from "./AmbientStaff";
 import { BRBChamberProgress } from "./BRBChamberProgress";
 import type {
@@ -68,29 +73,9 @@ export function ControlRoomPresentation({
         <span>CHANNEL 04</span>
       </div>
 
-      <div className={styles.wallMonitors}>
-        <AmbientMonitor label="STATE NETWORK" channel="PUB-01" />
-        <AmbientMonitor
-          label="CITY SURVEILLANCE"
-          channel="CIV-12"
-          variant="surveillance"
-        />
-        <AmbientMonitor
-          label="RESOURCE FLOW"
-          channel="ADM-08"
-          variant="public"
-        />
-        <AmbientMonitor
-          label="PRIVATE UPLINK"
-          channel="CORP-X"
-          variant="corporate"
-        />
-      </div>
+      <AmbientMonitorWall />
 
-      <div aria-hidden="true" className={styles.roomDepth}>
-        <span className={styles.backWall} />
-        <span className={styles.floorGrid} />
-      </div>
+      <AmbientRoomSurfaces />
 
       <div aria-hidden="true" className={styles.advisorStations}>
         <div className={`${styles.advisorStation} ${styles.stationLeft}`}>
@@ -122,6 +107,13 @@ export function ControlRoomPresentation({
         <span className={styles.tableSignal} />
         <small>CENTRAL OPERATIONS</small>
       </div>
+
+      {/* Kept OUT of `.operationsTable`: that element carries a 3D perspective
+          transform, and nesting the lectern inside it projected the sprite through
+          `matrix3d` (48x96 became an 85x65 parallelogram), resampling the pixels.
+          Pixel art has to sit on an untransformed layer to stay on the integer grid. */}
+      <AmbientConferenceDesk />
+      <AmbientServerRack />
 
       <BRBChamberProgress
         progress={model.brbProgress}

@@ -4,12 +4,42 @@
  * utility live in globals.css so the keyframe name is stable (CSS-module scoping
  * would hash it, and the animation string is built in JS). */
 
+/* Box size and background geometry are DERIVED from four custom properties that
+ * the component sets inline (`--sprite-frame-w`, `--sprite-frame-h`,
+ * `--sprite-frames`, `--sprite-scale`) plus `--sprite-frozen-frame`.
+ *
+ * Only the raw source numbers come from JS; every pixel measurement is computed
+ * here in CSS. That is what makes responsive art possible without blurring: a
+ * breakpoint (or any consumer class) overrides `--sprite-scale` with a different
+ * INTEGER and the box, the sheet, the frozen-frame offset and the animation
+ * travel all retune together. Never set a fractional scale — pixel art must be
+ * upscaled by whole numbers or it resamples. */
 .root {
   display: inline-block;
   position: relative;
-  /* Concrete box size + background geometry are supplied inline per instance. */
+  /* Resolution order: a consumer/breakpoint `--sprite-scale-override` wins, else
+     the manifest default the component sets inline. Consumers must set the
+     OVERRIDE, never `--sprite-scale` — the component cannot write that one
+     inline without outranking every stylesheet rule. Integers only. */
+  --sprite-scale: var(--sprite-scale-override, var(--sprite-scale-base, 1));
+  --sprite-frozen-frame: 0;
+  /* One rendered frame. */
+  --sprite-w: calc(var(--sprite-frame-w) * var(--sprite-scale) * 1px);
+  --sprite-h: calc(var(--sprite-frame-h) * var(--sprite-scale) * 1px);
+  /* The full strip, which is what `background-size` must span. */
+  --sprite-strip-w: calc(var(--sprite-w) * var(--sprite-frames));
+  /* Consumed by the `brb-pixel-sprite` keyframe (globals.css): travel one whole
+     strip to the left, stepped into `frameCount` discrete jumps. */
+  --pixel-sprite-travel: calc(var(--sprite-strip-w) * -1);
+
+  width: var(--sprite-w);
+  height: var(--sprite-h);
   background-repeat: no-repeat;
+  background-size: var(--sprite-strip-w) var(--sprite-h);
   background-position-y: 0;
+  /* Static / reduced-motion / explicit-pose renders park on one frame. The
+     animated case overrides this with `background-position-x: 0`. */
+  background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
   /* Keep pixels crisp when integer-scaled. `pixelated` last so it wins in modern
      browsers; `-webkit-optimize-contrast` is only a fallback for engines without it. */
   image-rendering: -webkit-optimize-contrast;
@@ -20,6 +50,8 @@
   animation-name: brb-pixel-sprite;
   animation-timing-function: steps(1); /* overridden inline with the real step count */
   animation-iteration-count: infinite;
+  /* An animating strip always plays from frame 0; the keyframe drives position-x. */
+  background-position-x: 0;
 }
 
 /* Offscreen probe <img> used only to detect a 404 on the sheet. It must never
@@ -36,13 +68,18 @@
 }
 
 /* When a data-motion="reduced" ancestor is present, belt-and-suspenders freeze
- * the animation even if the inline animation string somehow slipped through. */
+ * the animation even if the inline animation string somehow slipped through.
+ * The ancestor check runs in an effect, so on the first paint `.animated` may
+ * still be applied — park those renders on the chosen stable pose rather than
+ * whatever frame 0 happens to be. */
 :global([data-motion="reduced"]) .animated {
   animation: none !important;
+  background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animated {
     animation: none !important;
+    background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
   }
 }

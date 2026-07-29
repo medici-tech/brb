@@ -74,9 +74,15 @@
     box-shadow: none;
   }
 
+  /* The room is an in-flow band on narrow screens, so the standby card flows
+     BELOW it instead of floating at 42% — absolute positioning here dropped the
+     card straight on top of the art and buried its own second line. */
   .noActiveFile {
-    top: 42%;
-    width: 58%;
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    margin: 16px 12px;
   }
 
   .activeFile {

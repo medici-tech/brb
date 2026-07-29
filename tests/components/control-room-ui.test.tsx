@@ -50,7 +50,39 @@ describe("Living Control Room UI", () => {
       screen.getByLabelText(/living control room/i),
     ).toHaveAttribute("data-active-situation", "false");
     expect(screen.getByText(/routine channels remain open/i)).toBeInTheDocument();
+    const artSources = [...document.querySelectorAll("img")].map((image) =>
+      image.getAttribute("src"),
+    );
+    expect(artSources).toEqual(
+      expect.arrayContaining([
+        "/assets/brb/control-room/monitors/control-room-screens.png",
+        "/assets/brb/control-room/monitors/control-room-server.png",
+        "/assets/brb/control-room/environment/security-camera.png",
+        "/assets/brb/control-room/environment/conference-desk.png",
+      ]),
+    );
     expect(state).toEqual(before);
+  });
+
+  it("switches the monitor labels to plates when the wall art loads", () => {
+    const { container } = render(
+      <ControlRoomPresentation
+        model={calmModel}
+        turn={1}
+        hasActiveSituation={false}
+      />,
+    );
+
+    const screenProbe = container.querySelector(
+      'img[src="/assets/brb/control-room/monitors/control-room-screens.png"]',
+    );
+    expect(screenProbe).not.toBeNull();
+    fireEvent.load(screenProbe!);
+
+    expect(container.querySelector("[data-art]")).toHaveAttribute(
+      "data-art",
+      "pixel",
+    );
   });
 
   it("keeps active Situation content and interactions available", () => {

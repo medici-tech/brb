@@ -143,13 +143,15 @@
     grid-template-columns: 1fr;
   }
 
+  /* The room is a 168px band here, not a full scene — a 720px stage would just be
+     a void below it. Let the fixture size to its content. */
   .previewStage {
-    min-height: 720px;
+    min-height: 0;
   }
 
   .previewFile {
     width: calc(100% - 24px);
-    margin: 50px 12px;
+    margin: 24px 12px;
     padding: 28px 20px;
   }
 }
