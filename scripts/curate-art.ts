@@ -62,26 +62,26 @@ const CURATION: Record<ArtKey, CurationStep> = {
   // Analyst — single-facing idle strip (96×32) from the first premade character.
   staffAnalystIdle: {
     source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_01.png",
-    crop: { width: 96, height: 32, x: 0, y: 0 },
+    crop: { width: 96, height: 32, x: 0, y: 32 },
     note: "Premade char 01, front-idle strip → 6×(16×32).",
   },
   // Operator — a second premade character's idle strip.
   staffOperatorIdle: {
     source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_02.png",
-    crop: { width: 96, height: 32, x: 0, y: 0 },
+    crop: { width: 96, height: 32, x: 0, y: 32 },
     note: "Premade char 02, front-idle strip → 6×(16×32).",
   },
-  // Steward — seated variant (confirm the seated sub-strip offset/row in the pack).
+  // Steward — front-idle strip (seated variant deferred; true sit rows come later).
   staffStewardSeated: {
     source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_03.png",
-    crop: { width: 96, height: 32, x: 0, y: 0 },
-    note: "Premade char 03, seated strip → 6×(16×32) (confirm row offset).",
+    crop: { width: 96, height: 32, x: 0, y: 32 },
+    note: "Premade char 03, front-idle strip (row y=32) → 6×(16×32).",
   },
   // Crossing pedestrian — a walk cycle strip, single facing.
   staffCrossingWalk: {
     source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_04.png",
-    crop: { width: 96, height: 32, x: 0, y: 32 },
-    note: "Premade char 04, side-walk strip → 6×(16×32) (confirm walk row y).",
+    crop: { width: 96, height: 32, x: 0, y: 64 },
+    note: "Premade char 04, walk-down strip (row y=64) → 6×(16×32).",
   },
   // Security camera — panning CCTV animation, first 4 frames.
   envSecurityCamera: {

@@ -10,9 +10,10 @@
   /* Concrete box size + background geometry are supplied inline per instance. */
   background-repeat: no-repeat;
   background-position-y: 0;
-  /* Keep pixels crisp when integer-scaled. */
-  image-rendering: pixelated;
+  /* Keep pixels crisp when integer-scaled. `pixelated` last so it wins in modern
+     browsers; `-webkit-optimize-contrast` is only a fallback for engines without it. */
   image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
 }
 
 .animated {

@@ -630,10 +630,18 @@
   display: block;
   width: 22px;
   height: 55px;
-  opacity: 0.58;
+  opacity: 0.85;
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.35));
   transform-origin: bottom;
   transition: opacity 500ms ease;
+}
+
+/* Real curated sprite anchors its feet at the box bottom, centered. */
+.staffSprite {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .staff i {

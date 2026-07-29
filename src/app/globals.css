@@ -544,11 +544,12 @@ button:focus-visible, summary:focus-visible { outline: 2px solid var(--red-brigh
   .outcome-next-step { border-top: 4px solid var(--red); border-left: 0; }
 }
 /* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).
- * Integer-scale sprite sheets only; `pixelated` keeps upscaled pixels crisp with a
- * `-webkit-optimize-contrast` fallback for engines lacking `pixelated`. */
+ * Integer-scale sprite sheets only. `pixelated` is declared last so it wins in
+ * modern browsers; `-webkit-optimize-contrast` is only a fallback for engines
+ * that lack `pixelated`. */
 .pixelated {
-  image-rendering: pixelated;
   image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
 }
 @keyframes brb-pixel-sprite {
   from { background-position-x: 0; }
