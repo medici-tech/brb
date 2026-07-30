@@ -118,6 +118,54 @@ runs, with or without the curated art.**
 - **Narrow layout:** an active Situation receives a 120px monitor header. Standby
   keeps a 232px two-staff diorama. Peripheral props never displace decision text.
 
+## Narrative scene architecture
+
+After every major commitment, React presents a player-stepped three-beat scene:
+**Setup → Action → Consequence**. The scene is presentation-only. Plain TypeScript
+derives its script from the existing decision history and final game state; it does
+not add fields to `GameState`, consume RNG, or change a rule.
+
+Six reusable locations provide the top-down RPG vocabulary:
+
+| Location | Typical commitments |
+| --- | --- |
+| Continuity Floor | advisors, consultation, institutional protection, activation |
+| Oversight Chamber | public accountability, legitimacy, faction work |
+| Secure Briefing | intelligence, covert pressure, classified fallout |
+| Infrastructure Site | engineering, capacity, construction consequences |
+| Corporate Suite | Corporation counters, money, private influence |
+| Civic Gate | public disorder, trust, access, emergency consequences |
+
+`sceneTypes.ts` is the renderer-neutral contract. The resolver maps canonical
+`DecisionRecord` data to a semantic script key, `sceneRegistry.ts` owns the complete
+catalog, and `NarrativeAftermath.tsx` owns only the current visual step. All 30 card
+choices, all 15 ignored outcomes, and every other supported major commitment subtype
+have deterministic scripts. If art is absent, the same actors, props, and locations
+remain visible as CSS shapes.
+
+The continuity floor also receives persistent visual marks derived from canonical
+state: pressure, institutional damage, Corporation presence, BRB construction,
+departed advisors, and completed routes. These marks are recalculated on render and
+are never saved separately.
+
+## Renderer gate result
+
+The reference scene was implemented in both React/DOM and Phaser in the ignored
+`output/renderer-bakeoff/` workspace. Both prototypes used the same visual markers.
+Headless Chrome measured a stable ~16.7 ms median DOM frame and found no horizontal
+overflow.
+
+| Gate signal | React/DOM | Phaser |
+| --- | ---: | ---: |
+| Compressed prototype/runtime JavaScript | 1,823 bytes | 318,115 bytes |
+| Semantic scene layers | 5 | Canvas-only |
+| Accessible controls remain native React controls | Yes | Required a parallel DOM layer |
+| Assetless and static-export compatibility | Yes | Qualifies, with extra runtime |
+
+React/DOM won the weighted scorecard and the Phaser prototype and dependency were
+removed from the shipping implementation. Scene scripts therefore remain
+renderer-neutral, while `NarrativeScene.tsx` is the only production renderer.
+
 ## How a dev refreshes local art
 
 ```bash
@@ -148,13 +196,42 @@ The configured build must fail if `./private-art` is incomplete or invalid. Do n
 replace that failure with a fallback: setting `BRB_ART_SOURCE` is an explicit promise
 that the private source is complete.
 
+## Player-visible credits
+
+Start, Campaign, Ending, Report, Archive, and the internal Playtest Journal expose a
+keyboard-accessible **Credits** dialog. The listed LimeZu packs come from
+`src/game-art/credits.ts`, which filters the owned pack catalog to packs that currently
+supply at least one `ART` manifest key. Do not credit unused owned packs from the dialog.
+
+## Control-room CSS ownership
+
+The living control room splits presentation CSS by responsibility:
+
+| Module | Owns |
+| --- | --- |
+| `ControlRoomPresentation.module.css` | Base geometry, ambient loops, reduced-motion kill switch |
+| `roomState.module.css` | `data-*` tokens and presentation-state / shot / focus chrome |
+| `roomLighting.module.css` | Light pools, alert wash, scrim, vignette |
+| `roomProps.module.css` | Depth layers, desk edge, foreground silhouettes |
+
+Cross-module targeting uses `data-room-part` (and monitor `data-monitor-variant`),
+not hashed local class names. Do not duplicate `data-presentation-state` selectors
+back into the base presentation module.
+
 ## Frame-geometry note for curators
 
 Character sprite geometry in the manifest uses **16w × 32h px, 6 frames per direction**
 (a single-direction idle/walk strip is 96×32). Confirm this — and the seated/walk row offsets
 used by the crops in `scripts/curate-art.ts` — against
 `moderninteriors-win/2_Characters/Character_Generator/Spritesheet_animations_GUIDE.png`
-when changing character sources. The current environment selections were verified against
-the supplied pack: screens are 11×64×48, server racks are 3×16×48, and the security
-camera is 10×16×16.
-```
+when changing character sources.
+
+Crossing travel uses distinct **walk-right** (`y=128`) and **walk-left** (`y=160`) strips
+with a one-way CSS exit; do not reverse a front-facing strip to fake direction.
+
+The security camera uses a deterministic `frameSequence` that repeats the first and
+middle frames to reproduce the source GIF's two 0.5-second holds
+(`[0×5,1,2,3,4,5×5,6,7,8,9]` → 18×16×16 at 10 fps). Prefer `frameSequence` over
+hand-edited strips whenever curated playback must preserve source timing.
+
+Screens remain 11×64×48 and server racks 3×16×48.
