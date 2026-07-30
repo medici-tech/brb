@@ -103,6 +103,31 @@ describe("narrative scene registry", () => {
     }
   });
 
+  it("keeps every resolved three-beat script on its fixed 14×10 tile grid", () => {
+    for (const script of Object.values(NARRATIVE_SCENE_REGISTRY)) {
+      expect(script.beats.map((beat) => beat.id)).toEqual([
+        "setup",
+        "action",
+        "consequence",
+      ]);
+      for (const beat of script.beats) {
+        const positions = [
+          beat.focus,
+          ...beat.actors.map((actor) => actor.position),
+          ...beat.props.map((prop) => prop.position),
+        ];
+        for (const position of positions) {
+          expect(Number.isInteger(position.x)).toBe(true);
+          expect(Number.isInteger(position.y)).toBe(true);
+          expect(position.x).toBeGreaterThanOrEqual(0);
+          expect(position.x).toBeLessThan(14);
+          expect(position.y).toBeGreaterThanOrEqual(0);
+          expect(position.y).toBeLessThan(10);
+        }
+      }
+    }
+  });
+
   it("covers every non-card commitment subtype and consultation", () => {
     const expected = [
       ...getDepositSceneKeys(),

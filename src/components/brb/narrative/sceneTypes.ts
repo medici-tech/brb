@@ -1,4 +1,5 @@
 import type { GameState } from "@/game/types";
+import type { GridPoint } from "@/components/brb/pixel-room/roomTypes";
 
 export const NARRATIVE_SCENE_IDS = [
   "continuity-floor",
@@ -56,10 +57,11 @@ export type ScenePropKind =
   | "brb-chamber"
   | "warning-beacon";
 
-export type ScenePosition = {
-  readonly x: number;
-  readonly y: number;
-};
+/**
+ * Integer tile coordinate on BRB's shared 16px orthographic grid.
+ * Aftermath rooms are 14×10; values are not CSS percentages.
+ */
+export type ScenePosition = GridPoint;
 
 export type SceneActor = {
   readonly id: string;

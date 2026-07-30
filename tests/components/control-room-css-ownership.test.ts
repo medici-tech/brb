@@ -73,4 +73,23 @@ describe("orthographic control-room CSS contract", () => {
     expect(workspace).not.toMatch(/margin:\s*-\d/);
     expect(workspace).not.toMatch(/max-height:\s*120px/);
   });
+
+  it("keeps narrative rooms orthographic and free of actor labels", () => {
+    const narrativeRoot = path.join(
+      process.cwd(),
+      "src/components/brb/narrative",
+    );
+    const narrativeCss = read(
+      path.join(narrativeRoot, "NarrativeScene.module.css"),
+    );
+    const narrativeComponent = read(
+      path.join(narrativeRoot, "NarrativeScene.tsx"),
+    );
+
+    expect(narrativeCss).not.toMatch(/\bperspective\s*\(/i);
+    expect(narrativeCss).not.toMatch(/\brotate[XY]\s*\(/i);
+    expect(narrativeCss).not.toMatch(/--sprite-scale-override:\s*[2-9]/);
+    expect(narrativeComponent).not.toMatch(/<small>\{actor\.label\}<\/small>/);
+    expect(narrativeComponent).toContain("<PixelRoom");
+  });
 });

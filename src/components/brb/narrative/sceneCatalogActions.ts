@@ -32,7 +32,7 @@ function cast(
     role: actor,
     label,
     position: { x, y },
-    facing: x < 50 ? "right" : "left",
+    facing: x < 7 ? "right" : "left",
     motion,
   };
 }
@@ -42,7 +42,7 @@ function actionScript(details: ScriptDetails): NarrativeSceneScript {
   const prop: SceneProp = {
     id: `${details.key}-prop`,
     kind: details.prop,
-    position: { x: 52, y: 53 },
+    position: { x: 7, y: 5 },
   };
   return {
     id: sourceKey.replaceAll(":", "-"),
@@ -56,10 +56,10 @@ function actionScript(details: ScriptDetails): NarrativeSceneScript {
         title: "The room assembles around the choice",
         description: details.setup,
         tone: details.tone,
-        focus: { x: 44, y: 48 },
+        focus: { x: 6, y: 4 },
         actors: [
-          cast("director", "enter", 34, 67, "Director", `${details.key}-director`),
-          cast(details.actor, "observe", 63, 60, "Responsible desk", `${details.key}-lead`),
+          cast("director", "enter", 5, 6, "Director", `${details.key}-director`),
+          cast(details.actor, "observe", 8, 5, "Responsible desk", `${details.key}-lead`),
         ],
         props: [prop],
       },
@@ -69,11 +69,11 @@ function actionScript(details: ScriptDetails): NarrativeSceneScript {
         title: details.title,
         description: details.action,
         tone: details.tone,
-        focus: { x: 53, y: 52 },
+        focus: { x: 7, y: 5 },
         actors: [
-          cast("director", "address", 43, 62, "Director", `${details.key}-director`),
-          cast(details.actor, "work", 60, 57, "Responsible desk", `${details.key}-lead`),
-          cast("staff", "cross", 24, 70, "Operations staff", `${details.key}-staff`),
+          cast("director", "address", 6, 5, "Director", `${details.key}-director`),
+          cast(details.actor, "work", 8, 5, "Responsible desk", `${details.key}-lead`),
+          cast("staff", "cross", 4, 6, "Operations staff", `${details.key}-staff`),
         ],
         props: [{ ...prop, state: "active" }],
       },
@@ -83,10 +83,10 @@ function actionScript(details: ScriptDetails): NarrativeSceneScript {
         title: "The physical record remains",
         description: details.consequence,
         tone: details.tone,
-        focus: { x: 60, y: 54 },
+        focus: { x: 8, y: 5 },
         actors: [
-          cast("director", "observe", 39, 63, "Director", `${details.key}-director`),
-          cast(details.actor, "idle", 65, 58, "Responsible desk", `${details.key}-lead`),
+          cast("director", "observe", 5, 5, "Director", `${details.key}-director`),
+          cast(details.actor, "idle", 8, 5, "Responsible desk", `${details.key}-lead`),
         ],
         props: [{ ...prop, state: details.tone === "crisis" ? "damaged" : "secured" }],
       },

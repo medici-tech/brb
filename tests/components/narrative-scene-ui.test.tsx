@@ -56,6 +56,12 @@ describe("Narrative aftermath UI", () => {
         name: /continuity floor: the room assembles around the choice/i,
       }),
     ).toHaveAttribute("data-beat", "setup");
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/rooms/aftermath-continuity.png"]',
+      ),
+    ).not.toBeNull();
+    expect(screen.queryByText("Responsible desk")).toBeNull();
     expect(screen.getByText("Institutions recovered")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /next beat/i }));
