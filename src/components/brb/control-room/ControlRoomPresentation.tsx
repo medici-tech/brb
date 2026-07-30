@@ -75,6 +75,21 @@ export function ControlRoomPresentation({
       data-focus={focus}
       data-lit-station={model.litStation ?? "none"}
       data-motion={reducedMotion ? "reduced" : "full"}
+      data-departed-advisors={
+        model.persistentRoomMarks?.departedAdvisors.join(" ") || "none"
+      }
+      data-completed-routes={
+        model.persistentRoomMarks?.completedRouteCount ?? 0
+      }
+      data-emergency-level={
+        model.persistentRoomMarks?.emergencyLevel ?? "routine"
+      }
+      data-institutional-condition={
+        model.persistentRoomMarks?.institutionalCondition ?? "secure"
+      }
+      data-corporation-presence={
+        model.persistentRoomMarks?.corporationPresence ?? "distant"
+      }
       data-paper-load={model.paperLoad}
       data-presentation-state={model.state}
       data-shot={model.shot}
@@ -141,7 +156,7 @@ export function ControlRoomPresentation({
 
         <div className={styles.operationsTable} data-room-part="operations-table">
           <span className={styles.tableMap} />
-          <span className={styles.tableSignal} />
+          <span className={styles.tableSignal} data-room-part="table-signal" />
           <small>CENTRAL OPERATIONS</small>
         </div>
 
@@ -156,11 +171,15 @@ export function ControlRoomPresentation({
         />
 
         <div className={styles.staffLayer} data-room-part="staff-layer">
-          <AmbientStaff label="Analyst" position="left" />
-          <AmbientStaff label="Operator" position="center" />
-          <AmbientStaff label="Steward" position="right" />
+          <AmbientStaff label="Analysis" position="left" />
+          <AmbientStaff label="Operations" position="center" />
+          <AmbientStaff label="Institutions" position="right" />
           {model.staffLayout.crossingVisible ? (
-            <AmbientStaff label="Staff" position="crossing" />
+            <AmbientStaff
+              crossingDirection={model.staffLayout.crossingDirection}
+              label="Courier"
+              position="crossing"
+            />
           ) : null}
         </div>
       </div>

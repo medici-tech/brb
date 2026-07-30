@@ -1,4 +1,8 @@
-/* Self-contained placeholder scene; safe to remove after the playtest. */
+/* Self-contained control-room base chrome.
+ * State-driven reactions live in roomState.module.css; lighting pools in
+ * roomLighting.module.css; depth layers and desk occlusion in roomProps.
+ * Integer --sprite-scale / --sprite-scale-override values only.
+ */
 .presentation {
   --room-key: #d69a3a;
   --room-key-level: 0.1;
@@ -67,24 +71,6 @@
   opacity: 0;
   background: rgba(166, 58, 50, 0.16);
   transition: opacity 350ms ease;
-}
-
-.presentation[data-focus="investigate"] .wallMonitors {
-  opacity: 1;
-}
-
-.presentation[data-focus="investigate"] .stationCenter {
-  box-shadow: 0 0 22px rgba(214, 154, 58, 0.12);
-}
-
-.presentation[data-focus="commit"]::after {
-  opacity: 0.2;
-  animation: commit-focus 350ms ease-out both;
-}
-
-.presentation[data-focus="commit"] .tableSignal {
-  transform: scale(1.45);
-  background: var(--room-warning);
 }
 
 .ceiling {
@@ -595,7 +581,8 @@
    which is exactly what `image-rendering: pixelated` cannot rescue. */
 .conferenceDesk {
   position: absolute;
-  z-index: 1;
+  /* Above the staff layer so the lectern occludes the one-way courier. */
+  z-index: 5;
   right: 8%;
   bottom: 3%;
   opacity: 0.42;
@@ -854,8 +841,10 @@
 .staff-crossing {
   bottom: 13%;
   left: 8%;
-  opacity: 0.34;
-  animation: staff-crossing var(--staff-speed) ease-in-out 1 both;
+  z-index: 2;
+  opacity: 0;
+  /* One-way exit; reverse direction via data-staff-direction on the room root. */
+  animation: staff-crossing-one-way var(--staff-speed) linear 1 both;
 }
 
 .corporateOverlay {
@@ -940,86 +929,6 @@
   transition: opacity 300ms ease;
 }
 
-.presentation[data-presentation-state="strained"] .paperClutter span {
-  opacity: 0.4;
-}
-
-.presentation[data-presentation-state="strained"] .monitor {
-  outline-color: rgba(214, 154, 58, 0.38);
-}
-
-.presentation[data-presentation-state="strained"] .statusRail i {
-  background: #d69a3a;
-}
-
-.presentation[data-presentation-state="crisis"]::after {
-  opacity: 0.13;
-  animation: alert-wash 6s ease-in-out infinite;
-}
-
-.presentation[data-presentation-state="crisis"] .staff-crossing,
-.presentation[data-presentation-state="crisis"] .staff-right {
-  opacity: 0.06;
-  animation: none;
-}
-
-.presentation[data-presentation-state="crisis"] .monitor {
-  color: #d2b38b;
-  outline-color: rgba(193, 58, 50, 0.55);
-}
-
-.presentation[data-presentation-state="crisis"] .paperClutter span {
-  opacity: 0.55;
-}
-
-.presentation[data-presentation-state="institutional-failure"] .monitor:nth-child(1),
-.presentation[data-presentation-state="institutional-failure"] .monitor:nth-child(3) {
-  animation: monitor-outage 7s steps(1, end) infinite;
-}
-
-.presentation[data-presentation-state="institutional-failure"] .advisorStation:nth-child(2) i,
-.presentation[data-presentation-state="institutional-failure"] .advisorStation:nth-child(3) i {
-  opacity: 0.08;
-}
-
-.presentation[data-presentation-state="institutional-failure"] .staff-left,
-.presentation[data-presentation-state="institutional-failure"] .staff-center,
-.presentation[data-presentation-state="institutional-failure"] .staff-crossing {
-  opacity: 0;
-  animation: none;
-}
-
-.presentation[data-presentation-state="institutional-failure"] .paperClutter span {
-  opacity: 0.7;
-}
-
-.presentation[data-presentation-state="institutional-failure"] .paperClutter span:nth-child(2) {
-  transform: translateY(30px) rotate(22deg);
-}
-
-.presentation[data-presentation-state="corporate-encroachment"] .monitor-corporate {
-  opacity: 1;
-  outline-color: rgba(214, 154, 58, 0.8);
-}
-
-.presentation[data-presentation-state="corporate-encroachment"] .monitor:first-child {
-  opacity: 0.36;
-}
-
-.presentation[data-presentation-state="corporate-encroachment"] .corporateOverlay {
-  opacity: 0.88;
-  transform: translateX(0);
-}
-
-.presentation[data-presentation-state="corporate-encroachment"] .statusRail span:first-child {
-  opacity: 0.22;
-  text-decoration: line-through;
-}
-
-.presentation[data-presentation-state="corporate-encroachment"] .stationCenter {
-  border-color: rgba(214, 154, 58, 0.65);
-}
-
 @keyframes monitor-scan {
   from {
     transform: translateY(0);
@@ -1038,17 +947,20 @@
   }
 }
 
-@keyframes staff-crossing {
-  0%,
-  16% {
+@keyframes staff-crossing-one-way {
+  0% {
     transform: translateX(0);
+    opacity: 0;
   }
-  48%,
-  68% {
-    transform: translateX(38vw);
+  10% {
+    opacity: 0.34;
+  }
+  82% {
+    opacity: 0.34;
   }
   100% {
-    transform: translateX(0);
+    transform: translateX(72vw);
+    opacity: 0;
   }
 }
 
@@ -1060,40 +972,6 @@
   }
   86% {
     opacity: 1;
-  }
-}
-
-@keyframes alert-wash {
-  0%,
-  70%,
-  100% {
-    opacity: 0.04;
-  }
-  74%,
-  82% {
-    opacity: 0.2;
-  }
-}
-
-@keyframes monitor-outage {
-  0%,
-  43%,
-  49%,
-  100% {
-    opacity: 0.72;
-  }
-  44%,
-  48% {
-    opacity: 0.04;
-  }
-}
-
-@keyframes commit-focus {
-  0% {
-    opacity: 0.28;
-  }
-  100% {
-    opacity: 0;
   }
 }
 

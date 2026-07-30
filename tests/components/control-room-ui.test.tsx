@@ -112,8 +112,12 @@ describe("Living Control Room UI", () => {
     );
 
     const workspace = screen.getByRole("region", { name: /situation workspace/i });
+    expect(workspace.querySelector("[data-room-stage]")).not.toBeNull();
     expect(
       within(workspace).getByRole("heading", { name: /the missing appropriation/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(workspace).getByRole("button", { name: /cut public programs/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/living control room/i),

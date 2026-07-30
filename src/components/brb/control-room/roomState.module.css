@@ -1,6 +1,15 @@
 /*
  * State cascade order is deliberate: base presentation state, BRB stage,
  * shot, then focus. Data attributes are the cross-module selector surface.
+ *
+ * Ownership:
+ *   roomState.module.css      → data-* driven tokens and state chrome
+ *   roomLighting.module.css   → light pools, scrim, vignette
+ *   roomProps.module.css      → depth layers, desk edge, foreground figures
+ *   ControlRoomPresentation   → base geometry, ambient loops, reduced motion
+ *
+ * Do not reintroduce `.presentation[data-presentation-state=…]` selectors in
+ * ControlRoomPresentation.module.css; keep those reactions here.
  */
 .stateSurface {
   --room-exposure: 1;
@@ -277,5 +286,173 @@
 
   .stateSurface[data-shot="situation"] :global([data-room-part="monitor-wall"]) > :global(div) {
     display: none;
+  }
+}
+
+/* 5. Focus and presentation-state chrome (owns data-* visual reactions). */
+.stateSurface[data-focus="investigate"] :global([data-room-part="monitor-wall"]) {
+  opacity: 1;
+}
+
+.stateSurface[data-focus="investigate"] :global([data-room-part="station-operations"]) {
+  box-shadow: 0 0 22px rgba(214, 154, 58, 0.12);
+}
+
+.stateSurface[data-focus="commit"]::after {
+  opacity: 0.2;
+  animation: commit-focus 350ms ease-out both;
+}
+
+.stateSurface[data-focus="commit"] :global([data-room-part="table-signal"]) {
+  transform: scale(1.45);
+  background: var(--room-warning);
+}
+
+.stateSurface[data-presentation-state="strained"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.4;
+}
+
+.stateSurface[data-presentation-state="strained"] :global([data-room-part="monitor"]) {
+  outline-color: rgba(214, 154, 58, 0.38);
+}
+
+.stateSurface[data-presentation-state="strained"] :global([data-room-part="status-rail"]) i {
+  background: #d69a3a;
+}
+
+.stateSurface[data-presentation-state="crisis"]::after {
+  opacity: 0.13;
+  animation: alert-wash 6s ease-in-out infinite;
+}
+
+.stateSurface[data-presentation-state="crisis"] :global([data-room-part="staff-crossing"]),
+.stateSurface[data-presentation-state="crisis"] :global([data-room-part="staff-right"]) {
+  opacity: 0.06;
+  animation: none;
+}
+
+.stateSurface[data-presentation-state="crisis"] :global([data-room-part="monitor"]) {
+  color: #d2b38b;
+  outline-color: rgba(193, 58, 50, 0.55);
+}
+
+.stateSurface[data-presentation-state="crisis"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.55;
+}
+
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="monitor"]:nth-child(1)),
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="monitor"]:nth-child(3)) {
+  animation: monitor-outage 7s steps(1, end) infinite;
+}
+
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="station-operations"]) i,
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="station-institutions"]) i {
+  opacity: 0.08;
+}
+
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="staff-left"]),
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="staff-center"]),
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="staff-crossing"]) {
+  opacity: 0;
+  animation: none;
+}
+
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.7;
+}
+
+.stateSurface[data-presentation-state="institutional-failure"] :global([data-room-part="paper-clutter"]) span:nth-child(2) {
+  transform: translateY(30px) rotate(22deg);
+}
+
+.stateSurface[data-presentation-state="corporate-encroachment"] :global([data-room-part="monitor"][data-monitor-variant="corporate"]) {
+  opacity: 1;
+  outline-color: rgba(214, 154, 58, 0.8);
+}
+
+.stateSurface[data-presentation-state="corporate-encroachment"] :global([data-room-part="monitor"]:first-child) {
+  opacity: 0.36;
+}
+
+.stateSurface[data-presentation-state="corporate-encroachment"] :global([data-room-part="corporate-overlay"]) {
+  opacity: 0.88;
+  transform: translateX(0);
+}
+
+.stateSurface[data-presentation-state="corporate-encroachment"] :global([data-room-part="status-rail"]) span:first-child {
+  opacity: 0.22;
+  text-decoration: line-through;
+}
+
+.stateSurface[data-presentation-state="corporate-encroachment"] :global([data-room-part="station-operations"]) {
+  border-color: rgba(214, 154, 58, 0.65);
+}
+
+/* Major campaign consequences stay visible after an aftermath closes. These
+   selectors consume canonical-state-derived attributes and never change rules. */
+.stateSurface[data-departed-advisors~="analyst"] :global([data-room-part="staff-left"]),
+.stateSurface[data-departed-advisors~="fixer"] :global([data-room-part="staff-center"]),
+.stateSurface[data-departed-advisors~="steward"] :global([data-room-part="staff-right"]) {
+  opacity: 0.14;
+  filter: grayscale(1);
+}
+
+.stateSurface[data-institutional-condition="worn"] :global([data-room-part="operations-table"]) {
+  filter: saturate(0.72);
+}
+
+.stateSurface[data-institutional-condition="breached"] :global([data-room-part="operations-table"]) {
+  filter: saturate(0.35) brightness(0.72);
+}
+
+.stateSurface[data-corporation-presence="visible"] :global([data-room-part="corporate-overlay"]) {
+  opacity: 0.42;
+  transform: translateX(0);
+}
+
+.stateSurface[data-corporation-presence="embedded"] :global([data-room-part="corporate-overlay"]) {
+  opacity: 0.9;
+  transform: translateX(0);
+}
+
+.stateSurface[data-emergency-level="critical"] :global([data-room-part="status-rail"]) {
+  color: var(--room-alert, #ef6a56);
+}
+
+.stateSurface:not([data-completed-routes="0"]) :global([data-room-part="status-rail"]) {
+  box-shadow: inset 0 -2px 0 var(--room-signal, #dca14b);
+}
+
+@keyframes alert-wash {
+  0%,
+  70%,
+  100% {
+    opacity: 0.04;
+  }
+  74%,
+  82% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes monitor-outage {
+  0%,
+  43%,
+  49%,
+  100% {
+    opacity: 0.72;
+  }
+  44%,
+  48% {
+    opacity: 0.04;
+  }
+}
+
+@keyframes commit-focus {
+  0% {
+    opacity: 0.28;
+  }
+  100% {
+    opacity: 0;
   }
 }

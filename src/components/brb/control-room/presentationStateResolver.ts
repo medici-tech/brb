@@ -9,6 +9,8 @@ import {
   PRESENTATION_THRESHOLDS,
   type PresentationThresholds,
 } from "./presentationThresholds";
+import { derivePersistentRoomMarks } from "../narrative/sceneResolver";
+import type { PersistentRoomMarks } from "../narrative/sceneTypes";
 
 export const PRESENTATION_STATES = [
   "calm",
@@ -65,6 +67,7 @@ export type PresentationInputs = {
   pendingCommitment: boolean;
   pendingMilestone: boolean;
   ending: EndingId | null;
+  persistentRoomMarks?: PersistentRoomMarks;
 };
 
 export type PresentationModel = {
@@ -80,6 +83,7 @@ export type PresentationModel = {
   paperLoad: PaperLoad;
   endingId: EndingId | null;
   staffLayout: StaffLayout;
+  persistentRoomMarks?: PersistentRoomMarks;
 };
 
 export const PRESENTATION_STATE_COPY: Record<
@@ -132,6 +136,7 @@ export function derivePresentationInputs(
     pendingCommitment: intent.pendingCommitment ?? false,
     pendingMilestone: intent.pendingMilestone ?? false,
     ending: intent.ending ?? state.ending?.id ?? null,
+    persistentRoomMarks: derivePersistentRoomMarks(state),
   };
 }
 
@@ -281,5 +286,8 @@ export function resolvePresentationModel(
     paperLoad: resolvePaperLoad(inputs.turn, thresholds),
     endingId: inputs.ending,
     staffLayout: resolveStaffLayout(inputs, state, shot, thresholds),
+    ...(inputs.persistentRoomMarks
+      ? { persistentRoomMarks: inputs.persistentRoomMarks }
+      : {}),
   };
 }

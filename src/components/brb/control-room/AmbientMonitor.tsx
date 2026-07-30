@@ -45,6 +45,8 @@ export function AmbientMonitor({
       ]
         .filter(Boolean)
         .join(" ")}
+      data-monitor-variant={variant}
+      data-room-part="monitor"
     >
       <span className={styles.monitorLabel}>{label}</span>
       <span className={styles.monitorChannel}>{channel}</span>
