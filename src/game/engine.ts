@@ -384,7 +384,7 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
       summary = `The ${action.predictedStrategy.replace("_", " ")} move was countered.`;
     } else {
       state.corporation.threat = clamp(state.corporation.threat + 5);
-      summary = "The counter-operation targeted the wrong strategy.";
+      summary = `The ${action.predictedStrategy.replace("_", " ")} counter-operation targeted the wrong strategy.`;
     }
   } else if (action.type === "strengthen_faction") {
     spendResources(state, getActionCost(state, action));
