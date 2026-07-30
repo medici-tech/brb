@@ -543,14 +543,6 @@ button { font: inherit; }
 .directive-draft article small { color: #7d302b; }
 .experiment-panel small { color: #67635a; }
 .primary-button:disabled, .secondary-button:disabled { opacity: .48; cursor: not-allowed; }
-.playtest-recap { margin-top: 42px; padding: 28px; color: var(--ink); border: 2px dashed #8d806c; background: rgba(72,60,43,.05); }
-.playtest-recap h2 { margin: 9px 0 20px; font-size: clamp(26px,4vw,40px); }
-.playtest-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
-.playtest-form label { display: grid; gap: 7px; color: inherit; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.playtest-form select, .playtest-form textarea { width: 100%; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 0; padding: 11px; font: 400 14px/1.45 var(--font-brb-body), sans-serif; text-transform: none; }
-.playtest-form option { color: var(--ink); background: var(--paper); }
-.playtest-form textarea { resize: vertical; }
-.playtest-form .full-field { grid-column: 1 / -1; }
 
 .directive-loadout { margin: 24px 0 40px; padding: clamp(24px,4vw,40px); }
 .directive-loadout h2 { margin: 8px 0; font-size: clamp(26px,4vw,42px); }
@@ -565,35 +557,6 @@ button { font: inherit; }
 .campaign-directive.used { opacity: .62; border-left-color: #6f756a; }
 
 .journal-shell { max-width: 1180px; }
-.journal-intro { padding: clamp(34px,6vw,72px); }
-.journal-intro h1 { max-width: 850px; margin: 14px 0; font-size: clamp(44px,6.6vw,84px); line-height: .95; letter-spacing: -.012em; }
-.journal-intro > p:not(.file-label) { max-width: 720px; color: #555149; font-size: 18px; line-height: 1.55; }
-.journal-intro .primary-button { margin-top: 18px; }
-.journal-next-step { margin-top: 24px; padding: 18px 20px; color: var(--ink); border-left: 5px solid var(--red); background: var(--paper-deep); }
-.journal-next-step strong { display: block; margin-top: 6px; font-size: 18px; }
-.journal-next-step p:last-child { margin-bottom: 0; color: #555149; line-height: 1.5; }
-.journal-matrix { margin-top: 50px; }
-.journal-slot { display: grid; grid-template-columns: 58px minmax(0,1fr) auto; align-items: center; gap: 22px; min-height: 150px; padding: 22px; border-top: 1px solid #444640; background: #202320; }
-.journal-slot:last-child { border-bottom: 1px solid #444640; }
-.journal-order { color: #686a64; font: 700 28px var(--font-brb-mono), monospace; }
-.journal-slot h3 { margin: 8px 0; font-size: 25px; }
-.journal-slot p:not(.file-label), .journal-slot small { color: #9e9d94; line-height: 1.45; }
-.journal-slot small { display: block; }
-.journal-slot-action { min-width: 180px; text-align: right; }
-.complete-mark { color: var(--green); font-family: var(--font-brb-mono), monospace; }
-.journal-summary { margin-top: 55px; }
-.summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: #444640; border: 1px solid #444640; }
-.summary-grid article { padding: 22px; background: #202320; }
-.summary-grid span { display: block; color: #92928a; font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
-.summary-grid strong { display: block; margin-top: 12px; font-size: 22px; }
-.summary-columns { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 18px; }
-.summary-columns article { padding: 22px; background: #202320; border: 1px solid #444640; }
-.summary-columns h3 { margin-top: 0; }
-.summary-columns p { color: #aaa99f; }
-.journal-danger-zone { margin-top: 55px; padding: 22px; border: 1px solid #5d403e; }
-.journal-danger-zone > div { display: flex; gap: 10px; margin-top: 18px; }
-.journal-danger-zone .secondary-button { color: var(--cream); border-color: #77766d; }
-.rating-guide { grid-column: 1 / -1; margin: 0; padding: 10px 12px; color: #5d5a52; border-left: 3px solid #77766d; background: rgba(87,73,49,.06); font-size: 12px; line-height: 1.5; }
 
 @media (max-width: 980px) {
   .archetype-grid, .directive-options, .directive-draft { grid-template-columns: 1fr 1fr; }
@@ -603,9 +566,6 @@ button { font: inherit; }
   .first-turn-guide { grid-template-columns: 1fr; }
   .final-danger-grid { grid-template-columns: repeat(2,1fr); }
   .final-state-columns { grid-template-columns: 1fr 1fr; }
-  .journal-slot { grid-template-columns: 50px 1fr; }
-  .journal-slot-action { grid-column: 2; text-align: left; }
-  .summary-columns { grid-template-columns: 1fr; }
   .guided-objective { grid-template-columns: 1fr; }
 }
 @media (max-width: 650px) {
@@ -659,15 +619,11 @@ button { font: inherit; }
   .lower-grid { grid-template-columns: 1fr; }
   .report-actions { flex-direction: column; }
   .button-grid { grid-template-columns: 1fr; }
-  .guide-grid, .glossary-grid, .playtest-form, .summary-grid, .final-danger-grid, .final-state-columns { grid-template-columns: 1fr; }
-  .playtest-form .full-field, .rating-guide { grid-column: auto; }
+  .guide-grid, .glossary-grid, .final-danger-grid, .final-state-columns { grid-template-columns: 1fr; }
   .result-groups { grid-template-columns: 1fr; }
   .advisor { grid-template-columns: 1fr; }
   .advisor-actions { grid-template-columns: 1fr 1fr; }
   .report-final-state { padding: 20px; }
-  .journal-slot { grid-template-columns: 1fr; }
-  .journal-slot-action { grid-column: auto; }
-  .journal-danger-zone > div { flex-direction: column; }
   .outcome-next-step { border-top: 4px solid var(--red); border-left: 0; }
 }
 /* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).

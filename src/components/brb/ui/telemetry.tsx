@@ -49,9 +49,23 @@ export function MetricReadout({ stat, className }: MetricReadoutProps) {
   );
 }
 
-export function MetricStrip({ stats, className }: { stats: BrbStat[]; className?: string }) {
+const metricColumns = {
+  3: "md:grid-cols-3 xl:grid-cols-3",
+  4: "md:grid-cols-2 xl:grid-cols-4",
+  5: "md:grid-cols-3 xl:grid-cols-5",
+} as const;
+
+export function MetricStrip({
+  stats,
+  columns = 5,
+  className,
+}: {
+  stats: BrbStat[];
+  columns?: keyof typeof metricColumns;
+  className?: string;
+}) {
   return (
-    <section aria-label="Operational metrics" className={cn("grid grid-cols-2 gap-px border border-border bg-border md:grid-cols-3 xl:grid-cols-5", className)}>
+    <section aria-label="Operational metrics" className={cn("grid grid-cols-1 gap-px border border-border bg-border sm:grid-cols-2", metricColumns[columns], className)}>
       {stats.map((stat) => <MetricReadout key={stat.label} stat={stat} className="border-0" />)}
     </section>
   );

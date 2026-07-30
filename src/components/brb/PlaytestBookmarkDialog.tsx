@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { Button } from "../ui/button";
 import {
   PLAYTEST_BOOKMARK_CATEGORIES,
   PLAYTEST_SEVERITIES,
@@ -30,6 +31,9 @@ const CATEGORY_LABELS: Record<PlaytestBookmarkCategory, string> = {
 type Props = {
   onSave: (input: BookmarkInput) => void;
 };
+
+const fieldClassName = "grid gap-2 text-xs font-bold tracking-[0.04em] uppercase";
+const controlClassName = "w-full rounded-none border border-border bg-raised p-3 font-sans text-sm leading-5 font-normal text-foreground normal-case [&>option]:bg-raised";
 
 export function PlaytestBookmarkDialog({ onSave }: Props) {
   const [open, setOpen] = useState(false);
@@ -58,24 +62,24 @@ export function PlaytestBookmarkDialog({ onSave }: Props) {
             The journal automatically attaches the current seed, turn, meters, card, and latest commitment.
           </DialogDescription>
         </DialogHeader>
-        <form className="playtest-form" onSubmit={submit}>
-          <label>
+        <form className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2" onSubmit={submit}>
+          <label className={fieldClassName}>
             Category
-            <select value={category} onChange={(event) => setCategory(event.target.value as PlaytestBookmarkCategory)}>
+            <select className={controlClassName} value={category} onChange={(event) => setCategory(event.target.value as PlaytestBookmarkCategory)}>
               {PLAYTEST_BOOKMARK_CATEGORIES.map((value) => <option key={value} value={value}>{CATEGORY_LABELS[value]}</option>)}
             </select>
           </label>
-          <label>
+          <label className={fieldClassName}>
             Severity
-            <select value={severity} onChange={(event) => setSeverity(event.target.value as PlaytestSeverity)}>
+            <select className={controlClassName} value={severity} onChange={(event) => setSeverity(event.target.value as PlaytestSeverity)}>
               {PLAYTEST_SEVERITIES.map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
-          <label className="full-field">
+          <label className={`${fieldClassName} sm:col-span-2`}>
             Short note
-            <textarea required rows={4} value={note} onChange={(event) => setNote(event.target.value)} placeholder="What felt wrong, surprising, or worth repeating?" />
+            <textarea className={`${controlClassName} resize-y`} required rows={4} value={note} onChange={(event) => setNote(event.target.value)} placeholder="What felt wrong, surprising, or worth repeating?" />
           </label>
-          <button className="primary-button full-field" type="submit" disabled={!note.trim()}>Save bookmark</button>
+          <Button className="min-h-11 sm:col-span-2" variant="command" type="submit" disabled={!note.trim()}>Save bookmark</Button>
         </form>
       </DialogContent>
     </Dialog>
