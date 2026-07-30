@@ -1,7 +1,12 @@
 "use client";
 
 import { ChevronRight, MessageSquareQuote, UserRound } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import {
+  forwardRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -21,26 +26,47 @@ import { StatusBadge } from "./status-badge";
 import type { BrbAction, BrbStat, BrbTone } from "./types";
 
 type DecisionOptionProps = {
+  className?: string | undefined;
   index?: string;
   title: string;
   description?: string;
-  metadata?: ReactNode;
+  metadata?: ReactNode | undefined;
   selected?: boolean;
   disabled?: boolean;
   onSelect?: () => void;
-};
+  surface?: "paper" | "console";
+} & Omit<
+  ComponentProps<"button">,
+  "className" | "disabled" | "onSelect" | "title"
+>;
 
-export function DecisionOption({ index, title, description, metadata, selected = false, disabled = false, onSelect }: DecisionOptionProps) {
+export const DecisionOption = forwardRef<HTMLButtonElement, DecisionOptionProps>(
+  function DecisionOption({
+  className,
+  index,
+  title,
+  description,
+  metadata,
+  selected = false,
+  disabled = false,
+  onSelect,
+  surface = "paper",
+  ...buttonProps
+  }, ref) {
   return (
     <Button
+      ref={ref}
       type="button"
-      variant="dossier"
+      variant={surface === "paper" ? "dossier" : "quiet"}
       aria-pressed={selected}
       disabled={disabled}
       onClick={onSelect}
+      {...buttonProps}
       className={cn(
         "group h-auto min-h-20 w-full justify-start gap-4 rounded-sm px-4 py-4 text-left normal-case tracking-normal whitespace-normal",
+        surface === "console" && "bg-console/35 text-foreground",
         selected && "bg-dossier-ink text-dossier",
+        className,
       )}
     >
       {index ? <span className="brb-telemetry self-start text-[10px] opacity-55">{index}</span> : null}
@@ -52,7 +78,101 @@ export function DecisionOption({ index, title, description, metadata, selected =
       <ChevronRight className="mt-0.5 size-4 shrink-0 opacity-45 transition-transform group-hover:translate-x-1" aria-hidden="true" />
     </Button>
   );
-}
+  },
+);
+
+type ActionControlProps = {
+  className?: string | undefined;
+  title: string;
+  cost: string;
+  result: string;
+  knownChanges?: string[] | undefined;
+  risk?: string | undefined;
+  delayedConsequence?: string | undefined;
+  disabledReason?: string | undefined;
+  recommendation?: string | undefined;
+  disabled?: boolean;
+  compact?: boolean;
+  surface?: "paper" | "console";
+} & Omit<
+  ComponentProps<"button">,
+  "className" | "disabled" | "onSelect" | "title"
+>;
+
+/**
+ * The shared visual anatomy for every major commitment. Game rules and previews
+ * remain in plain TypeScript; this component only decides how that information
+ * is presented inside the confirmation trigger.
+ */
+export const ActionControl = forwardRef<HTMLButtonElement, ActionControlProps>(
+  function ActionControl({
+  className,
+  title,
+  cost,
+  result,
+  knownChanges,
+  risk,
+  delayedConsequence,
+  disabledReason,
+  recommendation,
+  disabled = false,
+  compact = false,
+  surface = "console",
+  ...buttonProps
+  }, ref) {
+  return (
+    <DecisionOption
+      ref={ref}
+      className={cn(
+        "items-start",
+        compact ? "min-h-[92px] py-3" : "min-h-[116px] py-4",
+        recommendation && "ring-2 ring-inset ring-signal/65",
+        className,
+      )}
+      disabled={disabled}
+      surface={surface}
+      title={title}
+      {...buttonProps}
+      description={result}
+      metadata={(
+        <span className="grid gap-2">
+          <span className="grid gap-1 border-t border-current/20 pt-2">
+            <span className="text-[8px] tracking-[0.14em] uppercase opacity-65">Commitment cost</span>
+            <strong className="font-sans text-[11px] leading-4 font-semibold normal-case tracking-normal opacity-90">
+              {cost}
+            </strong>
+          </span>
+          {knownChanges && knownChanges.length > 0 ? (
+            <span className="font-sans text-[10px] leading-4 font-semibold normal-case tracking-normal opacity-85">
+              Exact immediate changes: {knownChanges.join(" · ")}
+            </span>
+          ) : null}
+          {risk ? (
+            <span className="font-sans text-[10px] leading-4 font-medium text-[color:var(--destructive-soft)] normal-case tracking-normal">
+              Risk: {risk}
+            </span>
+          ) : null}
+          {delayedConsequence ? (
+            <span className="border-t border-dashed border-current/30 pt-2 font-sans text-[10px] leading-4 normal-case tracking-normal opacity-70">
+              {delayedConsequence}
+            </span>
+          ) : null}
+          {disabledReason ? (
+            <span className="font-sans text-[10px] leading-4 font-semibold text-[color:var(--destructive-soft)] normal-case tracking-normal">
+              {disabledReason}
+            </span>
+          ) : null}
+          {recommendation ? (
+            <span className="justify-self-start bg-signal/15 px-2 py-1 text-[8px] tracking-[0.12em] text-signal uppercase">
+              {recommendation}
+            </span>
+          ) : null}
+        </span>
+      )}
+    />
+  );
+  },
+);
 
 type AdvisorPanelProps = {
   name: string;

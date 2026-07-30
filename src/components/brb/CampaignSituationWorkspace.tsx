@@ -45,7 +45,10 @@ export function CampaignSituationWorkspace({
         hasActiveSituation={Boolean(card)}
       />
       {card ? (
-        <div className={`paper-panel ${workspaceStyles.activeFile}`}>
+        <div
+          key={card.id}
+          className={`paper-panel ${workspaceStyles.activeFile}`}
+        >
           <div className="panel-heading mobile-duplicate-situation">
             <div>
               <p className="file-label">SITUATION DECK</p>
@@ -56,7 +59,7 @@ export function CampaignSituationWorkspace({
             </span>
           </div>
           <p className="situation-copy mobile-duplicate-situation">{card.description}</p>
-          <div className="choice-list">
+          <div className={workspaceStyles.choiceList}>
             {card.choices.map((choice) => (
               <CampaignActionControl
                 key={choice.id}

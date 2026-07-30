@@ -65,8 +65,13 @@ export function ControlRoomPresentation({
       data-focus={focus}
       data-motion={reducedMotion ? "reduced" : "full"}
       data-presentation-state={model.state}
+      data-shot={hasActiveSituation ? "situation" : "operations"}
     >
-      <div aria-hidden="true" className={propStyles.layerBack}>
+      <div
+        aria-hidden="true"
+        className={propStyles.layerBack}
+        data-room-layer="back"
+      >
         <div className={styles.ceiling} data-room-part="ceiling">
           <span />
           <span />
@@ -83,7 +88,7 @@ export function ControlRoomPresentation({
         <AmbientRoomSurfaces />
       </div>
 
-      <div className={propStyles.layerMid}>
+      <div className={propStyles.layerMid} data-room-layer="mid">
         <div className={styles.advisorStations} data-room-part="advisor-stations">
           <div
             className={`${styles.advisorStation} ${styles.stationLeft}`}
@@ -142,14 +147,22 @@ export function ControlRoomPresentation({
         </div>
       </div>
 
-      <div aria-hidden="true" className={lightingStyles.layerLight}>
+      <div
+        aria-hidden="true"
+        className={lightingStyles.layerLight}
+        data-room-layer="light"
+      >
         <span className={lightingStyles.poolWall} />
         <span className={lightingStyles.poolTable} />
         <span className={lightingStyles.poolFile} />
         <span className={lightingStyles.alertWash} />
       </div>
 
-      <div aria-hidden="true" className={propStyles.layerFore}>
+      <div
+        aria-hidden="true"
+        className={propStyles.layerFore}
+        data-room-layer="fore"
+      >
         <span className={propStyles.foreFigureLeft}>
           <PixelSprite
             artKey="staffAnalystIdle"
@@ -181,20 +194,27 @@ export function ControlRoomPresentation({
         <span className={lightingStyles.vignette} />
       </div>
 
-      <div className={propStyles.layerUi}>
-        <div aria-hidden="true" className={styles.corporateOverlay}>
+      <div className={propStyles.layerUi} data-room-layer="ui">
+        <div
+          aria-hidden="true"
+          className={styles.corporateOverlay}
+          data-room-part="corporate-overlay"
+        >
           <span>PRIVATE SYSTEM</span>
           <i>CONTRACT AUTHORITY</i>
         </div>
 
-        <div className={styles.ambientCaption}>
+        <div className={styles.ambientCaption} data-room-part="ambient-caption">
           <span aria-hidden="true" className={styles.captionSignal} />
           <p>{model.caption}</p>
           <small>Focus: {focus}</small>
         </div>
 
         {displayStateLabel ? (
-          <span className={styles.developmentLabel}>
+          <span
+            className={styles.developmentLabel}
+            data-room-part="development-label"
+          >
             DEV STATE · {model.stateLabel}
           </span>
         ) : null}

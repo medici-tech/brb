@@ -388,10 +388,6 @@ button { font: inherit; }
 .classification { padding: 7px 10px; border: 1px solid var(--red); color: var(--red); white-space: nowrap; }
 .classification.rare { color: #6232aa; border-color: #6232aa; }
 .situation-copy { max-width: 700px; min-height: 56px; color: #55544e; font-size: 18px; line-height: 1.55; }
-.choice-list { display: grid; gap: 10px; margin: 28px 0; }
-.choice-list button { display: grid; gap: 5px; text-align: left; color: var(--ink); background: transparent; border: 1px solid #9c927f; padding: 16px 18px; cursor: pointer; }
-.choice-list button:hover { background: rgba(89,73,49,.08); border-color: var(--ink); }
-.choice-list button span { font-weight: 700; }.choice-list small { color: #747168; }
 .consequence-box { margin-top: 30px; padding: 4px 0 4px 18px; border-left: 4px solid var(--paper-line); }
 .consequence-box > span { color: var(--red); }.consequence-box p { margin: 7px 0; }.consequence-box summary { cursor: pointer; color: #555149; font-size: 13px; }
 .result-groups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-top: 12px; }
@@ -467,21 +463,6 @@ button { font: inherit; }
 .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 18px; }
 .action-group { margin-top: 12px; border-top: 1px solid #3c3e39; padding-top: 12px; }
 .action-group > summary { cursor: pointer; color: #d7cdbb; font-weight: 700; }
-.action-control { display: grid; width: 100%; gap: 6px; text-align: left; }
-.action-control .action-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; font-weight: 750; }
-.action-control .action-title em { padding: 3px 5px; color: #171917; background: #d4c8b3; font: 700 8px var(--font-brb-mono), monospace; text-transform: uppercase; letter-spacing: .05em; }
-.action-control small { color: #9c9b92; font-size: 10px; line-height: 1.35; }
-.action-control .action-result, .action-control .action-known, .action-control .action-risk, .action-control .action-echo, .action-control .action-disabled { color: #bbb4a8; font-size: 10px; font-weight: 400; line-height: 1.4; }
-.action-control .action-known { color: #d8cfb8; font-weight: 600; }
-.choice-list .action-control .action-result, .choice-list .action-control .action-risk, .choice-list .action-control .action-echo { color: #5f5b52; }
-.action-control .action-risk { color: #d7a69f; }
-.choice-list .action-control .action-risk { color: #8b3632; }
-.action-control .action-echo { padding-top: 5px; border-top: 1px dashed currentColor; opacity: .78; }
-.action-control .action-disabled { color: #e1a29a; font-weight: 700; }
-.action-control:disabled { cursor: not-allowed; opacity: .5; }
-.recommended-action { outline: 2px solid #d4c8b3; outline-offset: -2px; }
-.compact-action { min-height: 92px; align-content: start; }
-.track-actions .compact-action { min-height: 118px; }
 .briefing-panel ul { padding-left: 18px; color: #aaa99f; font-size: 13px; line-height: 1.5; }.threat-number { margin: 20px 0 10px; color: #e0d6c3; font: 700 68px/.8 var(--font-brb-mono), monospace; }.threat-number small { display: block; margin-top: 12px; color: #85857e; font-size: 11px; text-transform: uppercase; }
 .watch-meter, .watch-section { padding: 15px 0; border-bottom: 1px solid #3c3e39; }
 .watch-meter > span, .watch-section > span { color: #8e8e85; font: 700 10px var(--font-brb-mono), monospace; text-transform: uppercase; letter-spacing: .08em; }
@@ -685,13 +666,11 @@ button { font: inherit; }
   .classification { display: inline-block; margin-top: 5px; }
   /* Narrow box geometry also lives in SituationWorkspace.module.css. */
   .situation-copy { min-height: 0; font-size: 16px; }
-  .choice-list { margin: 20px 0; }
   .campaign-consultation > summary { align-items: flex-start; flex-direction: column; gap: 7px; }
   .dark-panel { padding: 18px; }
   .track-row { padding: 10px 0; }
   .track-body > p, .track-body > small { display: none; }
   .track-row progress { margin: 5px 0; }
-  .track-actions .compact-action { min-height: 84px; }
   .track-actions, .confirmation-summary { grid-template-columns: 1fr; }
   .confirmation-summary .confirmation-warning { grid-column: auto; }
   .lower-grid { grid-template-columns: 1fr; }

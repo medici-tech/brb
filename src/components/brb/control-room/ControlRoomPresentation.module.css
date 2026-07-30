@@ -47,15 +47,6 @@
   transition: opacity 350ms ease;
 }
 
-.presentation[data-active-situation="true"] {
-  opacity: 0.68;
-}
-
-.presentation[data-active-situation="true"] .ambientCaption,
-.presentation[data-active-situation="true"] .developmentLabel {
-  opacity: 0.25;
-}
-
 .presentation[data-focus="investigate"] .wallMonitors {
   filter: brightness(1.13);
   transform: translateY(1px) scale(1.005);

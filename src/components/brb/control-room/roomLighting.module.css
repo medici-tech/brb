@@ -25,7 +25,7 @@
 }
 
 .poolWall {
-  opacity: 0.34;
+  opacity: var(--pool-wall-level, 0.34);
   background: radial-gradient(
     ellipse 68% 46% at 31% 24%,
     rgba(214, 154, 58, 0.22) 0 18%,
@@ -35,7 +35,7 @@
 }
 
 .poolTable {
-  opacity: 0.26;
+  opacity: var(--pool-table-level, 0.26);
   background: radial-gradient(
     closest-side at 49% 64%,
     rgba(222, 170, 77, 0.22),
@@ -46,7 +46,7 @@
 
 .poolFile {
   inset: 4% 4% 6% 6%;
-  opacity: 0;
+  opacity: var(--pool-file-level, 0);
   background: radial-gradient(
     ellipse 78% 82% at 42% 48%,
     rgba(236, 191, 109, 0.2) 0 28%,
@@ -55,17 +55,17 @@
 }
 
 .alertWash {
-  opacity: 0;
+  opacity: var(--room-alert-level, 0);
   background: rgba(166, 58, 50, 0.16);
 }
 
 .scrim {
-  opacity: 0;
+  opacity: var(--room-scrim, 0);
   background: #0b0d0a;
 }
 
 .vignette {
-  opacity: 0.8;
+  opacity: var(--room-vignette, 0.8);
   background:
     repeating-linear-gradient(
       0deg,

@@ -3,7 +3,34 @@
  * shot, then focus. Data attributes are the cross-module selector surface.
  */
 .stateSurface {
+  --room-exposure: 1;
+  --room-chroma: 1;
+  --room-scrim: 0;
+  --room-vignette: 0.8;
+  --pool-file-level: 0;
   isolation: isolate;
+}
+
+.stateSurface :global([data-room-layer="back"]),
+.stateSurface :global([data-room-layer="mid"]) {
+  opacity: var(--room-exposure);
+}
+
+.stateSurface[data-shot="situation"] {
+  --room-exposure: 0.46;
+  --room-chroma: 0.5;
+  --room-scrim: 0.52;
+  --room-vignette: 0.92;
+  --pool-file-level: 0.3;
+}
+
+.stateSurface[data-shot="situation"] :global([data-room-part="paper-clutter"]) {
+  display: none;
+}
+
+.stateSurface[data-shot="situation"] :global([data-room-part="ambient-caption"]),
+.stateSurface[data-shot="situation"] :global([data-room-part="development-label"]) {
+  opacity: 0.2;
 }
 
 .stateSurface :global([data-room-part="monitor-wall"]) {
@@ -57,9 +84,28 @@
 }
 
 @media (max-width: 650px) {
+  .stateSurface[data-shot="situation"] {
+    height: 120px;
+    --room-scrim: 0.18;
+    --room-vignette: 0.58;
+  }
+
+  .stateSurface[data-shot="situation"] :global([data-room-layer="mid"]),
+  .stateSurface[data-shot="situation"] :global([data-room-part="ambient-caption"]) {
+    display: none;
+  }
+
   .stateSurface :global([data-room-part="monitor-wall"]) {
     top: 30px;
     left: 3%;
     width: 94%;
+  }
+
+  .stateSurface[data-shot="situation"] :global([data-room-part="monitor-wall"]) {
+    top: 26px;
+  }
+
+  .stateSurface[data-shot="situation"] :global([data-room-part="monitor-wall"]) > :global(div) {
+    display: none;
   }
 }
