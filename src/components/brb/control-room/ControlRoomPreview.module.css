@@ -79,23 +79,26 @@
 }
 
 .previewStage {
-  position: relative;
+  display: grid;
   max-width: 1400px;
-  min-height: 700px;
+  grid-template-columns: 704px minmax(360px, 1fr);
+  align-items: start;
+  gap: 18px;
   margin: 0 auto;
+}
+
+.previewRoom {
+  position: relative;
+  width: 704px;
+  height: 448px;
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: #10130f;
-  isolation: isolate;
 }
 
 .previewFile {
-  position: relative;
-  z-index: 10;
-  width: min(72%, 820px);
-  min-height: 430px;
-  margin: 80px auto;
-  padding: clamp(28px, 5vw, 58px);
+  width: 100%;
+  min-height: 448px;
+  margin: 0;
+  padding: clamp(24px, 3vw, 42px);
 }
 
 .previewFile h2 {
@@ -124,6 +127,21 @@
   text-align: left;
 }
 
+@media (max-width: 1100px) {
+  .previewStage {
+    grid-template-columns: 352px minmax(0, 1fr);
+  }
+
+  .previewRoom {
+    width: 352px;
+    height: 224px;
+  }
+
+  .previewFile {
+    min-height: 224px;
+  }
+}
+
 @media (max-width: 900px) {
   .previewControls {
     grid-template-columns: 1fr 1fr;
@@ -143,15 +161,27 @@
     grid-template-columns: 1fr;
   }
 
-  /* Narrow uses two deliberate compositions: a 120px active-Situation header
-     and a 232px standby diorama. Let the fixture size to either state. */
   .previewStage {
-    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .previewRoom {
+    order: 2;
+    align-self: center;
+    max-width: 100%;
   }
 
   .previewFile {
-    width: calc(100% - 24px);
-    margin: 24px 12px;
+    order: 1;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
     padding: 28px 20px;
+  }
+
+  .previewStandby {
+    order: 1;
   }
 }

@@ -1,17 +1,12 @@
 .situationWorkspace {
   position: relative;
   display: grid;
-  /* Desktop: scene band is a major playfield; dossier docks below with overlap. */
-  grid-template-rows: clamp(220px, 32vh, 420px) auto;
+  grid-template-columns: 704px minmax(360px, 1fr);
+  align-items: start;
+  gap: 18px;
   width: 100%;
   min-height: 0;
-  overflow: visible;
-  padding: 0;
   color: var(--cream);
-  border: 1px solid var(--console-line);
-  background: var(--console-900);
-  box-shadow: var(--shadow-lift-panel);
-  isolation: isolate;
   scroll-margin-top: 16px;
 }
 
@@ -21,47 +16,54 @@
 
 .sceneStage {
   position: relative;
-  min-height: 220px;
+  width: 704px;
+  height: 448px;
   overflow: hidden;
+  border: 1px solid var(--console-line);
   background: var(--console-900);
+  box-shadow: var(--shadow-lift-panel);
+}
+
+.dossierColumn {
+  min-width: 0;
 }
 
 .noActiveFile {
   position: relative;
-  z-index: 10;
-  width: min(42%, 360px);
-  margin: -72px 0 20px 3.5%;
-  padding: 16px 18px;
+  width: 100%;
+  min-height: 224px;
+  padding: clamp(24px, 3vw, 42px);
   color: var(--dossier-ink);
   border: 1px solid rgba(245, 234, 214, 0.7);
   border-left: 4px solid var(--red);
   background:
-    repeating-linear-gradient(0deg, transparent 0 4px, rgba(32, 31, 25, 0.035) 4px 5px),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 4px,
+      rgba(32, 31, 25, 0.035) 4px 5px
+    ),
     var(--dossier);
   box-shadow: var(--shadow-lift-sheet);
-  transform: rotate(-0.35deg);
 }
 
 .noActiveFile h1 {
-  margin: 6px 0;
-  font-size: clamp(24px, 3vw, 38px);
-  line-height: 1;
+  margin: 8px 0;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 0.95;
   letter-spacing: -0.035em;
 }
 
 .noActiveFile p:not(:first-child) {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   color: #555149;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .activeFile {
-  position: relative;
-  z-index: 10;
-  width: calc(100% - clamp(24px, 4vw, 56px));
-  min-height: 0;
-  margin: -84px clamp(12px, 2vw, 28px) 16px;
+  width: 100%;
+  min-height: 448px;
+  margin: 0;
   padding: 0;
   box-shadow: var(--shadow-lift-sheet);
 }
@@ -97,14 +99,14 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .activeFile {
-    animation: file-set-down 380ms var(--ease-out) both;
+    animation: file-set-down 260ms var(--ease-out) both;
   }
 }
 
 @keyframes file-set-down {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
 
   to {
@@ -114,10 +116,8 @@
 }
 
 .inactiveResult {
-  position: relative;
-  z-index: 10;
-  width: min(72%, 720px);
-  margin: 12px auto 28px;
+  width: 100%;
+  margin: 14px 0 0;
   padding: 18px;
   color: var(--paper-ink);
   border: 1px solid var(--paper-100);
@@ -125,54 +125,46 @@
   box-shadow: var(--shadow-lift-panel);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .situationWorkspace {
-    grid-template-rows: minmax(220px, 32vh) auto;
+    grid-template-columns: 352px minmax(0, 1fr);
   }
 
   .sceneStage {
-    min-height: 220px;
+    width: 352px;
+    height: 224px;
   }
 
-  .noActiveFile {
-    width: 52%;
+  .activeFile {
+    min-height: 224px;
   }
 }
 
-@media (max-width: 650px) {
-  /* Narrow: dossier-first reading order; scene is a reduced in-flow crop. */
+@media (max-width: 760px) {
   .situationWorkspace {
     display: flex;
     flex-direction: column;
-    min-height: 0;
+    gap: 14px;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
+  .dossierColumn {
+    order: 1;
+    width: 100%;
+  }
+
   .sceneStage {
-    order: -1;
-    min-height: 0;
-  }
-
-  .situationWorkspace[data-situation="active"] .sceneStage {
-    /* Active Situation keeps the shorter monitor-only crop from roomState. */
-    max-height: 120px;
-  }
-
-  .noActiveFile {
-    position: relative;
-    top: auto;
-    left: auto;
-    width: auto;
-    margin: 16px 12px;
+    order: 2;
+    align-self: center;
+    width: 352px;
+    max-width: 100%;
+    height: 224px;
   }
 
   .activeFile {
-    width: 100%;
     min-height: 0;
-    margin: 0;
-    padding: 0;
   }
 
   .activeFileBody {
@@ -186,7 +178,6 @@
   }
 
   .inactiveResult {
-    width: 100%;
-    margin: 0;
+    margin-bottom: 0;
   }
 }

@@ -192,17 +192,6 @@ export function CampaignScreen({
 
       {error ? <p role="alert" className="bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
 
-      <section className="mobile-situation-brief mb-2 hidden border-l-4 border-destructive bg-[color:var(--paper-200)] px-4 py-3.5 text-dossier-ink max-[650px]:block" aria-label="Current Situation">
-        <p className="file-label">
-          {card ? "CURRENT SITUATION" : "SITUATION DECK · STANDBY"}
-        </p>
-        <h1 className="brb-display my-1 text-2xl leading-none font-semibold">{card?.title ?? "No active file"}</h1>
-        <p className="m-0 text-xs leading-5 text-dossier-ink/75">
-          {card?.description
-            ?? "The desk is quiet. Choose where to commit the administration."}
-        </p>
-      </section>
-
       <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
         <CampaignSituationWorkspace
           state={state}

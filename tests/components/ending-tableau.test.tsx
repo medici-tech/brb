@@ -44,10 +44,19 @@ describe("ending tableau", () => {
     expect(
       screen.getByLabelText(/living control room/i),
     ).toHaveAttribute("data-tempo", "still");
+    const facility = screen.getByTestId("continuity-facility");
+    expect(
+      facility.querySelector(
+        'img[src="/assets/brb/control-room/rooms/continuity-facility.png"]',
+      ),
+    ).not.toBeNull();
+    expect(facility.contains(heading)).toBe(false);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /open final report/i }),
-    );
+    const reportButton = screen.getByRole("button", {
+      name: /open final report/i,
+    });
+    expect(facility.contains(reportButton)).toBe(false);
+    fireEvent.click(reportButton);
     expect(onOpenReport).toHaveBeenCalledOnce();
   });
 

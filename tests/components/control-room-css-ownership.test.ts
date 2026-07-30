@@ -57,4 +57,20 @@ describe("orthographic control-room CSS contract", () => {
     expect(presentation).toMatch(/\[data-motion="reduced"\]/);
     expect(presentation).toMatch(/prefers-reduced-motion:\s*reduce/);
   });
+
+  it("keeps the dossier outside the full fixed camera at both integer scales", () => {
+    const workspace = read(
+      path.join(CONTROL_ROOM, "SituationWorkspace.module.css"),
+    );
+
+    expect(workspace).toMatch(/grid-template-columns:\s*704px/);
+    expect(workspace).toMatch(/width:\s*704px/);
+    expect(workspace).toMatch(/height:\s*448px/);
+    expect(workspace).toMatch(/width:\s*352px/);
+    expect(workspace).toMatch(/height:\s*224px/);
+    expect(workspace).toMatch(/\.dossierColumn\s*\{[\s\S]*order:\s*1/);
+    expect(workspace).toMatch(/\.sceneStage\s*\{[\s\S]*order:\s*2/);
+    expect(workspace).not.toMatch(/margin:\s*-\d/);
+    expect(workspace).not.toMatch(/max-height:\s*120px/);
+  });
 });

@@ -48,53 +48,54 @@ export function CampaignSituationWorkspace({
           hasActiveSituation={Boolean(card)}
         />
       </div>
-      {card ? (
-        <DossierPanel
-          key={card.id}
-          className={workspaceStyles.activeFile ?? ""}
-          eyebrow="SITUATION DECK"
-          title={card.title}
-          headingLevel="h1"
-          summary={card.description}
-          classification={`${card.type} · ${card.rarity}`}
-          headerClassName="mobile-duplicate-situation"
-          bodyClassName={workspaceStyles.activeFileBody ?? ""}
-        >
-          <div className={workspaceStyles.choiceList}>
-            {card.choices.map((choice) => (
-              <CampaignActionControl
-                key={choice.id}
-                state={state}
-                action={{ type: "resolve_card", choiceId: choice.id }}
-                recommendation={recommendation}
-                activeCardTitle={card.title}
-                onCommit={onCommit}
-                compact
-              />
-            ))}
-          </div>
-          <LastTurnResult
-            resolution={state.lastTurnResolution}
-            echoTypes={resolvedEchoTypes}
-          />
-        </DossierPanel>
-      ) : (
-        <>
-          <div className={`${workspaceStyles.noActiveFile} mobile-duplicate-situation`}>
-            <p className="file-label">SITUATION DECK · STANDBY</p>
-            <h1>No active file</h1>
-            <p>The desk is quiet. Choose where to commit the administration.</p>
-          </div>
-          {state.lastTurnResolution ? (
-            <div className={workspaceStyles.inactiveResult}>
-              <LastTurnResult
-                resolution={state.lastTurnResolution}
-                echoTypes={resolvedEchoTypes}
-              />
+      <div className={workspaceStyles.dossierColumn}>
+        {card ? (
+          <DossierPanel
+            key={card.id}
+            className={workspaceStyles.activeFile ?? ""}
+            eyebrow="SITUATION DECK"
+            title={card.title}
+            headingLevel="h1"
+            summary={card.description}
+            classification={`${card.type} · ${card.rarity}`}
+            bodyClassName={workspaceStyles.activeFileBody ?? ""}
+          >
+            <div className={workspaceStyles.choiceList}>
+              {card.choices.map((choice) => (
+                <CampaignActionControl
+                  key={choice.id}
+                  state={state}
+                  action={{ type: "resolve_card", choiceId: choice.id }}
+                  recommendation={recommendation}
+                  activeCardTitle={card.title}
+                  onCommit={onCommit}
+                  compact
+                />
+              ))}
             </div>
-          ) : null}
-        </>
-      )}
+            <LastTurnResult
+              resolution={state.lastTurnResolution}
+              echoTypes={resolvedEchoTypes}
+            />
+          </DossierPanel>
+        ) : (
+          <>
+            <div className={workspaceStyles.noActiveFile}>
+              <p className="file-label">SITUATION DECK · STANDBY</p>
+              <h1>No active file</h1>
+              <p>The desk is quiet. Choose where to commit the administration.</p>
+            </div>
+            {state.lastTurnResolution ? (
+              <div className={workspaceStyles.inactiveResult}>
+                <LastTurnResult
+                  resolution={state.lastTurnResolution}
+                  echoTypes={resolvedEchoTypes}
+                />
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
     </section>
   );
 }

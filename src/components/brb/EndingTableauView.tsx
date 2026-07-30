@@ -60,11 +60,13 @@ export function EndingTableauView({ state, onOpenReport }: Props) {
         aria-labelledby="ending-tableau-title"
         className={styles.stage}
       >
-        <ControlRoomPresentation
-          model={model}
-          turn={state.turn}
-          hasActiveSituation={false}
-        />
+        <div className={styles.roomStage}>
+          <ControlRoomPresentation
+            model={model}
+            turn={state.turn}
+            hasActiveSituation={false}
+          />
+        </div>
         <div className={styles.caption}>
           <p>{ENDING_KICKERS[ending.id]}</p>
           <h1

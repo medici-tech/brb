@@ -329,7 +329,7 @@ button { font: inherit; }
 .primary-button:hover { background: #81231f; }
 .secondary-button { color: var(--ink); background: transparent; }
 
-.campaign-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 18px; align-items: start; }
+.campaign-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
 .lower-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; margin-top: 18px; }
 .confirmation-summary { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1px; margin-top: 4px; color: var(--cream); background: #444640; border: 1px solid #444640; }
 .confirmation-summary section { padding: 12px; background: #202320; }
@@ -361,19 +361,16 @@ button { font: inherit; }
   .campaign-shell > .first-turn-guide { order: 1; }
   .campaign-shell > .state-pressure-strip { order: 2; }
   .campaign-shell > .state-pressure-rail { order: 2; }
-  .campaign-shell > .mobile-situation-brief { order: 3; }
-  .campaign-shell > .campaign-consultation { order: 4; }
-  .campaign-shell > .campaign-grid { order: 5; }
-  .campaign-shell > .metric-strip { order: 6; }
-  .campaign-shell > .meter-guide { order: 7; }
-  .campaign-shell > .lower-grid { order: 8; }
+  .campaign-shell > .campaign-consultation { order: 3; }
+  .campaign-shell > .campaign-grid { order: 4; }
+  .campaign-shell > .metric-strip { order: 5; }
+  .campaign-shell > .meter-guide { order: 6; }
+  .campaign-shell > .lower-grid { order: 7; }
   .masthead { align-items: flex-start; padding-block: 15px; }
   .header-actions { justify-content: flex-start; gap: 8px 12px; }
   .stamp { position: static; display: inline-block; margin-bottom: 22px; }
   .metric-strip { grid-template-columns: repeat(5,minmax(108px,1fr)); overflow-x: auto; }
   .state-pressure-strip { grid-template-columns: repeat(4,minmax(148px,1fr)); overflow-x: auto; }
-  .mobile-duplicate-situation { display: none !important; }
-  .no-active-card .operations-column { order: -1; }
   .confirmation-summary { grid-template-columns: 1fr; }
   .confirmation-summary .confirmation-warning { grid-column: auto; }
   .lower-grid { grid-template-columns: 1fr; }
