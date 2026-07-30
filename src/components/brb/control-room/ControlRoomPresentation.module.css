@@ -28,18 +28,6 @@
   border-color: rgba(206, 142, 52, 0.72);
 }
 
-.presentation :global([data-room-object="architectural-damage"]) {
-  filter: saturate(0.48) brightness(0.72);
-}
-
-.presentation :global([data-room-object="corporation-presence"]) {
-  filter: sepia(0.2) saturate(0.78);
-}
-
-.presentation :global([data-room-object="brb-activation"]) {
-  filter: brightness(1.18);
-}
-
 .presentation :global([data-room-actor="courier"]) {
   animation-duration: 4.8s;
   animation-timing-function: steps(17, end);
@@ -91,7 +79,7 @@
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .presentation {
     min-height: 224px;
   }

@@ -23,10 +23,18 @@ export type RoomActor = {
   readonly motion?: string;
 };
 
+export type RoomLightingZone = {
+  readonly id: string;
+  readonly position: GridPoint;
+  readonly widthTiles: number;
+  readonly heightTiles: number;
+};
+
 export type RoomDefinition = {
   readonly id: string;
   readonly widthTiles: number;
   readonly heightTiles: number;
   readonly baseArtKey: ArtKey;
   readonly anchors: Readonly<Record<string, GridPoint>>;
+  readonly lightingZones: readonly RoomLightingZone[];
 };

@@ -36,9 +36,10 @@
   width: 704px;
   height: 448px;
   overflow: hidden;
-  border: 1px solid var(--console-line);
   background: var(--console-900);
-  box-shadow: var(--shadow-lift-panel);
+  box-shadow:
+    var(--shadow-lift-panel),
+    inset 0 0 0 1px var(--console-line);
 }
 
 .caption {
@@ -91,7 +92,7 @@
   cursor: pointer;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .stage {
     grid-template-columns: 352px minmax(0, 1fr);
   }

@@ -22,14 +22,6 @@
   flex: none;
 }
 
-.scene :global([data-room-object="architectural-damage"]) {
-  filter: saturate(0.48) brightness(0.7);
-}
-
-.scene :global([data-room-object="corporation-presence"]) {
-  filter: sepia(0.2) saturate(0.8);
-}
-
 .scene[data-motion="full"] :global([data-motion-cue="enter"]) {
   animation: scene-enter 560ms steps(4) both;
 }
@@ -122,11 +114,11 @@
 
 @keyframes scene-emphasis {
   50% {
-    filter: brightness(1.18);
+    transform: translateY(-2px);
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .sceneRoom {
     min-height: 160px;
   }

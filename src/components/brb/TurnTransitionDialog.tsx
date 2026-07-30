@@ -57,9 +57,13 @@ export function TurnTransitionDialog({
   return (
     <Dialog open={open}>
       <DialogContent
-        className="brb-paper-texture max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] min-w-0 max-w-5xl overflow-x-hidden overflow-y-auto rounded-sm border-dossier-ink/60 bg-dossier text-dossier-ink shadow-[10px_10px_0_rgba(0,0,0,0.5)] [&>*]:min-w-0 [&>*]:max-w-full [&_h2]:break-words [&_p]:break-words"
+        className="brb-paper-texture flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] min-w-0 max-w-5xl flex-col overflow-hidden rounded-sm border-dossier-ink/60 bg-dossier text-dossier-ink shadow-[10px_10px_0_rgba(0,0,0,0.5)] sm:max-w-5xl [&>*]:min-w-0 [&>*]:max-w-full [&_h2]:break-words [&_p]:break-words"
         showCloseButton={false}
+        zoomAnimation={false}
       >
+        {/* The record scrolls on its own so the month's primary action below it
+            never scrolls out of reach and never covers the beat controls. */}
+        <div className="grid min-w-0 flex-1 content-start gap-4 overflow-x-hidden overflow-y-auto [&>*]:min-w-0 [&>*]:max-w-full">
         <DialogHeader className="min-w-0">
           <p className="file-label text-destructive">
             COMMITMENT RESOLVED · MONTH {resolution.month}
@@ -113,7 +117,8 @@ export function TurnTransitionDialog({
             resolution={resolution}
           />
         </details>
-        <DialogFooter className="mt-2">
+        </div>
+        <DialogFooter className="mt-4 shrink-0 border-t border-dossier-ink/40 pt-4">
           <Button
             className="h-auto min-h-12 min-w-0 max-w-full whitespace-normal break-words px-4 py-3 text-center sm:w-auto sm:px-6"
             variant="dossier"

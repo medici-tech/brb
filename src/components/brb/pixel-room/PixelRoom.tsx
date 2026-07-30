@@ -28,6 +28,20 @@ function positionStyle(
   };
 }
 
+function lightingZoneStyle(
+  x: number,
+  y: number,
+  widthTiles: number,
+  heightTiles: number,
+): CSSProperties {
+  return {
+    left: `${x * 16}px`,
+    top: `${y * 16}px`,
+    width: `${widthTiles * 16}px`,
+    height: `${heightTiles * 16}px`,
+  };
+}
+
 /**
  * Shared fixed-camera room renderer.
  *
@@ -111,7 +125,19 @@ export function PixelRoom({
           ),
         )}
 
-        <span className={styles.light} aria-hidden="true" />
+        {definition.lightingZones.map((zone) => (
+          <span
+            className={styles.light}
+            style={lightingZoneStyle(
+              zone.position.x,
+              zone.position.y,
+              zone.widthTiles,
+              zone.heightTiles,
+            )}
+            key={zone.id}
+            aria-hidden="true"
+          />
+        ))}
       </div>
     </div>
   );

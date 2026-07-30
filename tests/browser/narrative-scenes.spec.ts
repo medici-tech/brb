@@ -44,7 +44,7 @@ async function expectWithinViewport(
   expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
 }
 
-async function expectMostlyVisibleWithin(
+async function expectFullyContainedWithin(
   locator: Locator,
   container: Locator,
 ): Promise<void> {
@@ -53,15 +53,16 @@ async function expectMostlyVisibleWithin(
       locator.boundingBox(),
       container.boundingBox(),
     ]);
-    if (!bounds || !containerBounds || bounds.height === 0) return 0;
+    if (!bounds || !containerBounds) return false;
 
-    const visibleTop = Math.max(bounds.y, containerBounds.y);
-    const visibleBottom = Math.min(
-      bounds.y + bounds.height,
-      containerBounds.y + containerBounds.height,
-    );
-    return Math.max(0, visibleBottom - visibleTop) / bounds.height;
-  }).toBeGreaterThanOrEqual(0.8);
+    const tolerance = 0.5;
+    return bounds.x >= containerBounds.x - tolerance
+      && bounds.y >= containerBounds.y - tolerance
+      && bounds.x + bounds.width
+        <= containerBounds.x + containerBounds.width + tolerance
+      && bounds.y + bounds.height
+        <= containerBounds.y + containerBounds.height + tolerance;
+  }).toBe(true);
 }
 
 test(
@@ -88,8 +89,15 @@ test(
     await expectWithinViewport(firstAction, viewport);
 
     const aftermath = await commitBudgetCut(page);
+    const dialogScale = await aftermath.evaluate((dialog) => {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(dialog).transform);
+      return { x: matrix.a, y: matrix.d };
+    });
+    expect(dialogScale).toEqual({ x: 1, y: 1 });
     const aftermathSection = aftermath.locator("[data-aftermath-step]");
     const visualScene = aftermath.locator("[data-narrative-location]");
+    const pixelRoom = visualScene.locator("[data-pixel-room]");
+    const roomHolder = pixelRoom.locator("..");
     await expect(aftermathSection).toHaveAttribute(
       "data-aftermath-step",
       "setup",
@@ -108,7 +116,7 @@ test(
     await expect(
       aftermath.getByText("Programs leave the page", { exact: true }),
     ).toBeVisible();
-    await expectMostlyVisibleWithin(visualScene, aftermath);
+    await expectFullyContainedWithin(pixelRoom, roomHolder);
 
     await aftermath.getByRole("button", { name: "Previous beat" }).focus();
     await page.keyboard.press("Enter");
@@ -128,7 +136,7 @@ test(
         exact: true,
       }),
     ).toBeVisible();
-    await expectMostlyVisibleWithin(visualScene, aftermath);
+    await expectFullyContainedWithin(pixelRoom, roomHolder);
 
     await aftermath.getByRole("button", { name: "Previous beat" }).click();
     await expect(aftermathSection).toHaveAttribute(
@@ -162,6 +170,7 @@ test(
     const aftermath = await commitBudgetCut(page);
 
     const narrativeScene = aftermath.locator("[data-narrative-location]");
+    const pixelRoom = narrativeScene.locator("[data-pixel-room]");
     await expect(narrativeScene).toHaveAttribute("data-motion", "reduced");
     await expect(
       aftermath.getByText("The appropriation arrives incomplete", {
@@ -174,7 +183,7 @@ test(
       "data-aftermath-step",
       "consequence",
     );
-    await expectMostlyVisibleWithin(narrativeScene, aftermath);
+    await expectFullyContainedWithin(pixelRoom, pixelRoom.locator(".."));
 
     const continueButton = aftermath.getByRole("button", {
       name: /Continue to Campaign Month 2/,

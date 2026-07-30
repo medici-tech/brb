@@ -367,7 +367,7 @@ button { font: inherit; }
   position: sticky;
   top: 18px;
 }
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .start-brief-grid,
   .records-screen-grid {
     grid-template-columns: minmax(0, 1fr) 224px;
