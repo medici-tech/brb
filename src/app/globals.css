@@ -50,8 +50,8 @@
    * Two ramps are the single source of colour. Everything below — the
    * shadcn-shaped semantic names and the legacy narrative names — aliases
    * into these. Do not reintroduce a raw hex; if a value is missing, add a
-   * ramp step for it. `--console-600` in particular is the `.dark-panel`
-   * surface, which used to be the most-repeated literal in this file. */
+   * ramp step for it. `--console-600` is the shared dense-console surface,
+   * formerly the most-repeated literal in this file. */
   --paper-100: #f4ead6; /* sheet highlight */
   --paper-200: #e9e0ce; /* primary sheet */
   --paper-300: #d7cbb4; /* backing sheet */
@@ -222,9 +222,7 @@ body {
 /* Barlow Condensed is the display voice. Nothing assigned it before, so every
  * headline inherited the body face. The two giant numerals are display
  * typography, not telemetry — small labels and stamps stay mono. */
-h1, h2, h3,
-.threat-number,
-.watch-meter > strong {
+h1, h2, h3 {
   font-family: var(--font-brb-display), "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 
@@ -393,59 +391,7 @@ button { font: inherit; }
 .exact-turn-audit { margin-top: 12px; border-top: 1px dashed #867e70; }
 .exact-turn-audit > summary { padding: 13px 2px 0; cursor: pointer; color: #555149; font: 700 11px var(--font-brb-mono), monospace; text-transform: uppercase; letter-spacing: .08em; }
 .exact-turn-audit .consequence-box { margin-top: 13px; }
-.dark-panel { padding: 25px; background: #202320; border: 1px solid #444640; }
-.operations-column .dark-panel { height: 100%; }
-.track-row { padding: 15px 0; border-bottom: 1px solid #3c3e39; }
-.track-row > summary { display: flex; justify-content: space-between; gap: 16px; cursor: pointer; list-style: none; }
-.track-row > summary::-webkit-details-marker { display: none; }
-.track-row strong { font: 600 12px var(--font-brb-mono), monospace; }
-.track-body > p { margin: 8px 0 0; color: #aaa99f; font-size: 11px; }
-.track-row progress { width: 100%; height: 5px; margin: 10px 0; accent-color: var(--red-bright); }
-.track-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.track-actions button, .advisor button, .button-grid button { color: var(--cream); background: #2b2e2b; border: 1px solid #52544f; padding: 9px; cursor: pointer; }
-.track-body > small { display: block; margin-top: 8px; color: #8e8e85; line-height: 1.35; }
-.activation-checklist { margin-top: 18px; padding: 14px; border: 1px solid #56584f; }
-.activation-checklist summary { cursor: pointer; color: #e0d6c3; font-weight: 700; }
-.activation-checklist > p { color: #aaa99f; font-size: 11px; line-height: 1.5; }
-.activation-checklist ul { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
-.activation-checklist li { display: grid; gap: 2px; padding: 7px 8px; border-left: 3px solid #74766d; background: #292c29; font-size: 11px; }
-.activation-checklist li.passed { border-color: var(--green); }
-.activation-checklist li small { color: #92928a; }
-.activate-button { width: 100%; min-height: 55px; margin-top: 22px; color: white; background: var(--red); border: 0; font-weight: 800; cursor: pointer; }
-.activate-button:disabled { background: #373a36; color: #71736d; cursor: not-allowed; }
 .lower-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; margin-top: 18px; }
-.panel-explainer { color: #aaa99f; font-size: 12px; line-height: 1.55; }
-.campaign-consultation { margin-bottom: 12px; padding-block: 14px; }
-.campaign-consultation > summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; cursor: pointer; list-style: none; }
-.campaign-consultation > summary::-webkit-details-marker { display: none; }
-.campaign-consultation > summary > span { display: grid; gap: 5px; }
-.campaign-consultation > summary > span > strong { font-size: 16px; }
-.campaign-consultation > summary > small { color: #aaa99f; }
-.advisor-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 12px; }
-.advisor { display: grid; grid-template-columns: minmax(0,1fr); align-content: start; gap: 10px; border: 1px solid #3c3e39; padding: 12px; }
-.advisor small { display: block; color: #92928a; margin-top: 4px; }.advisor.inactive { opacity: .45; }.advisor button:disabled { opacity: .4; }
-.advisor-meters { display: grid; gap: 3px; margin-top: 8px; color: #aaa99f; font-size: 10px; line-height: 1.4; }
-.advisor-meters b { color: #e0d6c3; }
-.advisor-identity p { margin: 7px 0 0; color: #87877f; font-size: 11px; line-height: 1.4; }
-.advisor-actions { display: grid; gap: 6px; min-width: 135px; }
-.advisor-actions button { display: grid; gap: 3px; }
-.advisor-actions button small { color: inherit; font-size: 9px; }
-.advisor-disabled-reason { color: #e1a29a !important; font-size: 9px; line-height: 1.35; }
-.advisor-brief { margin-top: 18px; padding: 15px; border-left: 4px solid var(--red-bright); background: #292c29; }
-.advisor-brief h3 { margin: 8px 0; font-size: 18px; }
-.advisor-brief p:not(.file-label) { margin: 7px 0; color: #c7bfae; font-size: 12px; line-height: 1.5; }
-.forecast { color: #c7bfae; border-left: 3px solid var(--red); padding-left: 12px; }
-.button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 18px; }
-.action-group { margin-top: 12px; border-top: 1px solid #3c3e39; padding-top: 12px; }
-.action-group > summary { cursor: pointer; color: #d7cdbb; font-weight: 700; }
-.briefing-panel ul { padding-left: 18px; color: #aaa99f; font-size: 13px; line-height: 1.5; }.threat-number { margin: 20px 0 10px; color: #e0d6c3; font: 700 68px/.8 var(--font-brb-mono), monospace; }.threat-number small { display: block; margin-top: 12px; color: #85857e; font-size: 11px; text-transform: uppercase; }
-.watch-meter, .watch-section { padding: 15px 0; border-bottom: 1px solid #3c3e39; }
-.watch-meter > span, .watch-section > span { color: #8e8e85; font: 700 10px var(--font-brb-mono), monospace; text-transform: uppercase; letter-spacing: .08em; }
-.watch-meter > strong { display: block; margin-top: 10px; color: #e0d6c3; font: 700 58px/.9 var(--font-brb-mono), monospace; }
-.watch-meter > strong small { font-size: 15px; }
-.watch-section > strong { display: block; margin-top: 7px; color: #e0d6c3; font-size: 19px; text-transform: capitalize; }
-.watch-meter p, .watch-section p, .watch-details p { color: #aaa99f; font-size: 11px; line-height: 1.5; }
-.watch-details { margin-top: 15px; color: #c7bfae; font-size: 12px; }
 .error-banner { padding: 11px 14px; color: #ffe6e3; background: #7b2722; }
 .guided-objective { display: grid; grid-template-columns: .8fr 1.2fr; gap: 24px; margin-bottom: 18px; padding: 20px; color: var(--ink); background: #d8ccb7; border: 2px solid #8e302a; }
 .guided-objective h2 { margin: 6px 0; font-size: 24px; }
@@ -481,8 +427,6 @@ button { font: inherit; }
 
 @media (max-width: 980px) {
   .campaign-grid, .lower-grid { grid-template-columns: 1fr; }
-  .operations-column .dark-panel { height: auto; }
-  .advisor-list { grid-template-columns: 1fr; }
   .first-turn-guide { grid-template-columns: 1fr; }
   .guided-objective { grid-template-columns: 1fr; }
 }
@@ -524,19 +468,11 @@ button { font: inherit; }
   .classification { display: inline-block; margin-top: 5px; }
   /* Narrow box geometry also lives in SituationWorkspace.module.css. */
   .situation-copy { min-height: 0; font-size: 16px; }
-  .campaign-consultation > summary { align-items: flex-start; flex-direction: column; gap: 7px; }
-  .dark-panel { padding: 18px; }
-  .track-row { padding: 10px 0; }
-  .track-body > p, .track-body > small { display: none; }
-  .track-row progress { margin: 5px 0; }
-  .track-actions, .confirmation-summary { grid-template-columns: 1fr; }
+  .confirmation-summary { grid-template-columns: 1fr; }
   .confirmation-summary .confirmation-warning { grid-column: auto; }
   .lower-grid { grid-template-columns: 1fr; }
-  .button-grid { grid-template-columns: 1fr; }
   .guide-grid, .glossary-grid { grid-template-columns: 1fr; }
   .result-groups { grid-template-columns: 1fr; }
-  .advisor { grid-template-columns: 1fr; }
-  .advisor-actions { grid-template-columns: 1fr 1fr; }
 }
 /* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).
  * Integer-scale sprite sheets only. `pixelated` is declared last so it wins in

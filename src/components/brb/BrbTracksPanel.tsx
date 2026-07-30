@@ -8,6 +8,7 @@ import type {
   MajorAction,
 } from "../../game/types";
 import { CampaignActionControl } from "./CampaignActionControl";
+import { ConsolePanel, ProgressTrack } from "./ui";
 
 interface Props {
   state: GameState;
@@ -26,24 +27,19 @@ export function BrbTracksPanel({
 }: Props) {
   const civicEvaluation = evaluateCivicLegacy(state);
   return (
-    <section className="dark-panel">
+    <ConsolePanel label="BRB tracks">
       <p className="file-label">BRB TRACKS · READINESS THRESHOLD 50</p>
       {TRACK_KEYS.map((track) => (
-        <details className="track-row" key={track} open>
-          <summary>
-            <span>{TRACK_LABELS[track]}</span>
-            <strong>
-              {state.tracks[track]} / 50 {state.tracks[track] >= 50 ? "· READY" : ""}
-            </strong>
-          </summary>
-          <div className="track-body">
-            <p>{TRACK_GUIDANCE[track].question}</p>
-            <progress
-              aria-label={`${TRACK_LABELS[track]} readiness`}
-              max="50"
-              value={Math.min(50, state.tracks[track])}
-            />
-            <div className="track-actions">
+        <ProgressTrack
+          label={TRACK_LABELS[track]}
+          value={state.tracks[track]}
+          maximum={50}
+          progressLabel={`${TRACK_LABELS[track]} readiness`}
+          description={TRACK_GUIDANCE[track].question}
+          {...(state.tracks[track] >= 50 ? { status: "READY" } : {})}
+          tone={state.tracks[track] >= 50 ? "stable" : "informational"}
+          controls={(
+            <div className="grid gap-2 sm:grid-cols-2">
               <CampaignActionControl
                 state={state}
                 action={{ type: "deposit", track, size: "standard" }}
@@ -61,18 +57,19 @@ export function BrbTracksPanel({
                 compact
               />
             </div>
-            <small>Track exposure: {TRACK_GUIDANCE[track].sideEffect}</small>
-          </div>
-        </details>
+          )}
+          footer={<>Track exposure: {TRACK_GUIDANCE[track].sideEffect}</>}
+          key={track}
+        />
       ))}
-      <details className="activation-checklist">
-        <summary>Activation outcome checklist</summary>
-        <p>Readiness allows activation. These safeguards determine whether control remains civic.</p>
-        <ul>
+      <details className="mt-5 border border-border p-3.5">
+        <summary className="cursor-pointer font-bold text-foreground">Activation outcome checklist</summary>
+        <p className="text-[11px] leading-5 text-muted-foreground">Readiness allows activation. These safeguards determine whether control remains civic.</p>
+        <ul className="m-0 grid list-none gap-2 p-0">
           {civicEvaluation.observations.map((observation) => (
-            <li className={observation.passed ? "passed" : "unmet"} key={observation.id}>
+            <li className={`grid gap-0.5 border-l-3 bg-raised px-2 py-1.5 text-[11px] ${observation.passed ? "border-l-phosphor" : "border-l-muted-foreground"}`} key={observation.id}>
               <span>{observation.passed ? "✓" : "○"} {observation.label}</span>
-              <small>{String(observation.actual)} · target {observation.target}</small>
+              <small className="text-muted-foreground">{String(observation.actual)} · target {observation.target}</small>
             </li>
           ))}
         </ul>
@@ -83,9 +80,9 @@ export function BrbTracksPanel({
         recommendation={recommendation}
         activeCardTitle={activeCardTitle}
         onCommit={onCommit}
-        className="activate-button"
+        className="mt-5 min-h-14 w-full"
         forceDisabled={!canActivate}
       />
-    </section>
+    </ConsolePanel>
   );
 }

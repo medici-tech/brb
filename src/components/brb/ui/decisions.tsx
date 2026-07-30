@@ -191,29 +191,48 @@ export const ActionControl = forwardRef<HTMLButtonElement, ActionControlProps>(
 type AdvisorPanelProps = {
   name: string;
   role: string;
-  status?: string;
+  status?: string | null;
   tone?: BrbTone;
   quote?: string;
+  description?: ReactNode;
   stats?: BrbStat[];
   portrait?: ReactNode;
+  showPortrait?: boolean;
   action?: BrbAction;
+  footer?: ReactNode;
+  className?: string;
 };
 
-export function AdvisorPanel({ name, role, status = "Available", tone = "stable", quote, stats = [], portrait, action }: AdvisorPanelProps) {
+export function AdvisorPanel({
+  name,
+  role,
+  status = "Available",
+  tone = "stable",
+  quote,
+  description,
+  stats = [],
+  portrait,
+  showPortrait = true,
+  action,
+  footer,
+  className,
+}: AdvisorPanelProps) {
   const ActionIcon = action?.icon;
   return (
-    <Card className="gap-0 overflow-hidden rounded-sm border-border bg-console py-0 shadow-[4px_4px_0_rgba(0,0,0,0.28)]">
-      <CardHeader className="grid grid-cols-[72px_1fr] gap-4 border-b border-border p-4">
-        {portrait ?? <ArtworkPlaceholder aspect="square" icon={UserRound} label={`${name} portrait placeholder`} className="size-[72px]" />}
+    <Card className={cn("gap-0 overflow-hidden rounded-sm border-border bg-console py-0 shadow-[4px_4px_0_rgba(0,0,0,0.28)]", className)}>
+      <CardHeader className={cn("grid gap-4 border-b border-border p-4", showPortrait && "grid-cols-[72px_1fr]")}>
+        {showPortrait ? portrait ?? <ArtworkPlaceholder aspect="square" icon={UserRound} label={`${name} portrait placeholder`} className="size-[72px]" /> : null}
         <div className="min-w-0">
-          <StatusBadge tone={tone}>{status}</StatusBadge>
+          {status ? <StatusBadge tone={tone}>{status}</StatusBadge> : null}
           <h3 className="brb-display mt-3 mb-0 text-3xl leading-none font-semibold">{name}</h3>
           <p className="brb-telemetry mt-1 mb-0 text-[9px] tracking-[0.14em] text-muted-foreground uppercase">{role}</p>
         </div>
       </CardHeader>
       {quote ? <CardContent className="border-b border-border p-4"><blockquote className="m-0 flex gap-3 text-sm leading-6 text-muted-foreground"><MessageSquareQuote className="mt-1 size-4 shrink-0 text-signal" aria-hidden="true" /><span>“{quote}”</span></blockquote></CardContent> : null}
-      {stats.length > 0 ? <CardContent className="grid grid-cols-2 gap-px bg-border p-0">{stats.map((stat) => <div key={stat.label} className="bg-console p-3"><span className="brb-telemetry block text-[8px] tracking-[0.12em] text-muted-foreground uppercase">{stat.label}</span><strong className="brb-telemetry mt-2 block text-sm">{stat.value}</strong></div>)}</CardContent> : null}
+      {description ? <CardContent className="border-b border-border p-4 text-[11px] leading-5 text-muted-foreground">{description}</CardContent> : null}
+      {stats.length > 0 ? <CardContent className="grid auto-cols-fr grid-flow-col gap-px bg-border p-0">{stats.map((stat) => <div key={stat.label} className="bg-console p-3"><span className="brb-telemetry block text-[8px] tracking-[0.12em] text-muted-foreground uppercase">{stat.label}</span><strong className="brb-telemetry mt-2 block text-sm">{stat.value}</strong></div>)}</CardContent> : null}
       {action ? <CardFooter className="border-t border-border p-4"><Button className="w-full" variant="command" disabled={action.disabled} onClick={action.onSelect}>{ActionIcon ? <ActionIcon aria-hidden="true" /> : null}{action.label}</Button></CardFooter> : null}
+      {footer ? <CardFooter className="grid gap-2 border-t border-border p-4">{footer}</CardFooter> : null}
     </Card>
   );
 }

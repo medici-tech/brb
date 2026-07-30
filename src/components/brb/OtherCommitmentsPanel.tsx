@@ -6,6 +6,7 @@ import type {
   MajorAction,
 } from "../../game/types";
 import { CampaignActionControl } from "./CampaignActionControl";
+import { ConsolePanel } from "./ui";
 
 interface Props {
   state: GameState;
@@ -21,15 +22,15 @@ export function OtherCommitmentsPanel({
   onCommit,
 }: Props) {
   return (
-    <article className="dark-panel actions-panel">
+    <ConsolePanel label="Other commitments">
       <p className="file-label">OTHER COMMITMENTS</p>
-      <p className="panel-explainer">
+      <p className="text-xs leading-5 text-muted-foreground">
         Each control below consumes the month. Costs and known exposure are listed before
         authorization.
       </p>
-      <details className="action-group" open>
-        <summary>Counter and protect the state</summary>
-        <div className="button-grid">
+      <details className="mt-3 border-t border-border pt-3" open>
+        <summary className="cursor-pointer font-bold text-foreground">Counter and protect the state</summary>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <CampaignActionControl
             state={state}
             action={{
@@ -60,9 +61,9 @@ export function OtherCommitmentsPanel({
           />
         </div>
       </details>
-      <details className="action-group">
-        <summary>Manage advisor relationships</summary>
-        <div className="button-grid">
+      <details className="mt-3 border-t border-border pt-3">
+        <summary className="cursor-pointer font-bold text-foreground">Manage advisor relationships</summary>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {ADVISOR_IDS.map((advisorId) => (
             <CampaignActionControl
               key={advisorId}
@@ -76,9 +77,9 @@ export function OtherCommitmentsPanel({
           ))}
         </div>
       </details>
-      <details className="action-group">
-        <summary>Recover a resource reserve</summary>
-        <div className="button-grid">
+      <details className="mt-3 border-t border-border pt-3">
+        <summary className="cursor-pointer font-bold text-foreground">Recover a resource reserve</summary>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {RESOURCE_KEYS.map((resource) => (
             <CampaignActionControl
               key={resource}
@@ -92,6 +93,6 @@ export function OtherCommitmentsPanel({
           ))}
         </div>
       </details>
-    </article>
+    </ConsolePanel>
   );
 }
