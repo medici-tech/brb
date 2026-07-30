@@ -27,6 +27,9 @@ gitignored outputs.
 | `envConferenceDesk` | `Conference_Hall_Singles_32.png` | `control-room/environment/conference-desk.png` | 16×32; static | `19f22b96cde2b9301f0cb2882a0074eed3ef9dd5840b7d6aec79b6a8f66dce64` | Prop single / recipe furniture source | N/A at room scale |
 | `envFloor` | `Room_Builder_Floors_16x16.png`, crop 16×16+128+272 | `control-room/environment/floor.png` | 16×16; static | `006f8be619116e5b46c3130ccad9a06e74fd40bbfb1b8982d5b24014c13127c1` | Room-composite floor fill | Baked into room bases |
 | `envWall` | `Room_Builder_Walls_16x16.png`, crop 16×16+16+492 | `control-room/environment/wall.png` | 16×16; static | `6139da6bf96814ed8a547b9e7bea53186115b2d17fdd78605524211111a83efd` | Room-composite wall fill | Baked into room bases |
+| `envRecordsShelfSparse` | `Classroom_and_Library_Singles_67.png` | `control-room/environment/records-shelf-sparse.png` | 32×48; static | `e8dfa176f36e3b36f81660381eb127122fa94df0aabc1a4f926256df981188b1` | First Archive evidence shelf | 1× inside room canvas |
+| `envRecordsShelfFull` | `Classroom_and_Library_Singles_60.png` | `control-room/environment/records-shelf-full.png` | 32×48; static | `dbfb77c49f391714d2f5809fbd0471bf0a943d8b2eda076a825c3bf8c17f873f` | Second Archive evidence shelf | 1× inside room canvas |
+| `envRecordsShelfOverflow` | `Classroom_and_Library_Singles_74.png` | `control-room/environment/records-shelf-overflow.png` | 32×48; static | `f45a8f4f4d97682df08ef18ec5aa111b23367faff2b9e8a4305d91bdeee88ff1` | Third Archive evidence shelf | 1× inside room canvas |
 | `envOversightBroadcast` | `animated_TV_reportage.png` | `control-room/narrative/oversight-broadcast.png` | 1152×32; 24 × 48×32 | `5ca128397fe04acd99997191d0273c3d0eca4a798d3a0e97f3dd3a9ae6311861` | Oversight aftermath prop | 1× inside room canvas |
 | `envSecureSafe` | `animated_safe_empty.png` | `control-room/narrative/secure-safe.png` | 96×32; 6 × 16×32 | `e5ff73c95d6d5b6b6c25624ed21fddf1f4a16510964507f8da8a87384db3a4d3` | Secure briefing aftermath prop | 1× inside room canvas |
 | `envInfrastructureToolbox` | `Worksite_toolbox_full_16x16.png`, endpoint holds preserved | `control-room/narrative/infrastructure-toolbox.png` | 704×48; 22 × 32×48 | `3cf75adadbd83156d166e53105965c88144feaf211fe05f1dbf735ae45b9a8a9` | BRB machinery / infrastructure prop | 1× inside room canvas |
@@ -41,9 +44,9 @@ frame at full source size.
 
 | Semantic key | Recipe note | Runtime destination | Source size | SHA-256 | React use |
 | --- | --- | --- | --- | --- | --- |
-| `roomFacility` | 22×14 continuity facility: command, BRB chamber, records annex, corridor | `control-room/rooms/continuity-facility.png` | 352×224 | `fb3d1f443f8f90f50073df972674d471666402526122c63e2904f7059a638214` | Campaign + Ending `PixelRoom` |
+| `roomFacility` | 22×14 continuity facility: command, BRB chamber, records annex, corridor | `control-room/rooms/continuity-facility.png` | 352×224 | `847d58865cdc60931b1a8313303b0429721e35b26c67ad5c9c74b460c69ca164` | Campaign + Ending `PixelRoom` |
 | `roomIntake` | Compact federal intake office | `control-room/rooms/intake-office.png` | 224×160 | `df796c59f6f4aacfbfd853fd09e50699a749a59cefe13eba45567e67017e9ebd` | Start operational brief |
-| `roomRecords` | Evidence records office | `control-room/rooms/records-office.png` | 224×160 | `3209be8e33e7f64485677ebd880cbb76f236370f6ac4891411be8c3f738dfc8f` | Report + Archive evidence scene |
+| `roomRecords` | Evidence records office; shelves are separate state layers | `control-room/rooms/records-office.png` | 224×160 | `ae2ad6b41857a4b79bf4b5b970beb9be12ff2115c6c74fec278d3f449b7b535b` | Report + Archive evidence scene |
 | `roomContinuity` | Continuity-floor aftermath | `control-room/rooms/aftermath-continuity.png` | 224×160 | `bc74a20a5ae08ce3722612f1ee00df34058597e453342e9c05ce2bdaf6d5a00d` | Aftermath location base |
 | `roomOversight` | Oversight hearing room | `control-room/rooms/aftermath-oversight.png` | 224×160 | `56b05cae4b9c8e7172a9fce42c718d22975c2bb9f5bafe21d59f3b280ee7f7a5` | Aftermath location base |
 | `roomSecureBriefing` | Compartmented briefing room | `control-room/rooms/aftermath-secure-briefing.png` | 224×160 | `989bc69710267689fdcad639502c90b8fa4463e5849e7339eca217cd5e20ecfb` | Aftermath location base |
@@ -77,8 +80,8 @@ Known missing or in-progress states:
 
 | Layout | Room canvas | Framing |
 | --- | ---: | --- |
-| Desktop (≥1101px) | 2× whole canvas | Facility 704×448 beside dossier; smaller rooms 448×320 |
-| Narrow (≤1100px) | 1× whole canvas | Facility 352×224; dossier stacks above the facility below 760px |
+| Desktop (≥1181px) | 2× whole canvas | Facility 704×448 beside dossier; smaller rooms 448×320 |
+| Narrow (≤1180px) | 1× whole canvas | Facility 352×224; dossier stacks above the facility below 760px |
 | Reduced motion | Same sizes | Ambient and travel animation freeze; still tableaux |
 
 Room history is presentation-only: campaign age changes paper/clutter load; consulted

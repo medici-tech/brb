@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   createActiveRunFixture,
   installActiveRun,
@@ -35,6 +35,29 @@ async function collectOffBrandFaces(page: Page): Promise<string[]> {
     }
     return [...offBrand];
   }, APPROVED_FACES);
+}
+
+async function expectFullyContained(
+  child: Locator,
+  parent: Locator,
+): Promise<void> {
+  const [childBounds, parentBounds] = await Promise.all([
+    child.boundingBox(),
+    parent.boundingBox(),
+  ]);
+  expect(childBounds).not.toBeNull();
+  expect(parentBounds).not.toBeNull();
+  if (!childBounds || !parentBounds) return;
+
+  const tolerance = 0.5;
+  expect(childBounds.x).toBeGreaterThanOrEqual(parentBounds.x - tolerance);
+  expect(childBounds.y).toBeGreaterThanOrEqual(parentBounds.y - tolerance);
+  expect(childBounds.x + childBounds.width).toBeLessThanOrEqual(
+    parentBounds.x + parentBounds.width + tolerance,
+  );
+  expect(childBounds.y + childBounds.height).toBeLessThanOrEqual(
+    parentBounds.y + parentBounds.height + tolerance,
+  );
 }
 
 test("every screen renders only the three approved faces", async ({ page }) => {
@@ -98,5 +121,34 @@ test("control-room sprites use approved integer display scales", async ({ page }
     expect(sprite.widthScale).toBe(sprite.heightScale);
     expect(Number.isInteger(sprite.widthScale)).toBe(true);
     expect([1, 2, 3, 4, 6]).toContain(sprite.widthScale);
+  }
+});
+
+test("the complete facility remains contained across the scale breakpoint", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "One desktop browser covers the intermediate-width contract",
+  );
+  await installActiveRun(page, createActiveRunFixture());
+  await resumeInstalledRun(page);
+
+  for (const width of [1200, 1140, 1120, 1101]) {
+    await page.setViewportSize({ width, height: 900 });
+    const stage = page.locator("[data-room-stage]");
+    const room = stage.locator("[data-pixel-room]");
+    await expect(room).toBeVisible();
+    await expectFullyContained(room, stage);
+
+    const layout = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
+
+    const bounds = await room.boundingBox();
+    expect(bounds?.width).toBe(width > 1180 ? 704 : 352);
+    expect(bounds?.height).toBe(width > 1180 ? 448 : 224);
   }
 });

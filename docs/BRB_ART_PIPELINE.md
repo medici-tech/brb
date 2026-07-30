@@ -28,7 +28,7 @@ Approved constraints:
 - No 3D-wall tiles, CSS furniture, perspective transforms (`perspective`, `rotateX`,
   `rotateY`), fractional scaling, or per-object color grading.
 - Rooms render internally at **1× source pixels**. The complete canvas upscales to
-  **2× on desktop** and **1× on narrow screens** (`max-width: 1100px`), preserving the
+  **2× on desktop** and **1× on narrow screens** (`max-width: 1180px`), preserving the
   same full camera — never a crop of a different composition.
 - Presentation state may change lighting, occupancy, clutter, damage overlays,
   Corporation presence, and BRB machinery stages. It must not invent a second rules
@@ -88,11 +88,13 @@ tsx scripts/curate-art.ts staffAnalystIdle roomFacility
 
 Copies/crops selected singles into `public/assets/brb/...` under the manifest's stable
 filenames, and composes complete room-base PNGs from `ROOM_RECIPES` in
-`scripts/room-recipes.ts`. Coordinates in recipes are integer tiles; the curator
-multiplies by 16 exactly once. Metadata is stripped without resizing or recoloring
-pixels. The command is idempotent and provenance-logged. The `CURATION` table and
-room recipes mirror the manifest keys. See `BRB_ART_INVENTORY.md` for selections,
-dimensions, hashes, screen usage, and missing states.
+`scripts/room-recipes.ts`. Coordinates and complete furniture footprints in recipes
+are integer tiles; the curator validates their full extents before multiplying by 16
+exactly once. Recipes also carry the fixed camera's sprite anchors, dynamic overlay
+anchors, and lighting zones. Metadata is stripped without resizing or recoloring pixels.
+The command is idempotent and provenance-logged. The `CURATION` table and room recipes
+mirror the manifest keys. See `BRB_ART_INVENTORY.md` for selections, dimensions, hashes,
+screen usage, and missing states.
 
 Static room composites declare their **complete source dimensions as a single frame**
 in the manifest (`frameCount: 1`, `expectedWidth` × `expectedHeight` equal to the PNG).
@@ -132,7 +134,7 @@ always builds and runs, with or without the curated art.**
   IBM Plex Sans owns prose and controls; IBM Plex Mono owns telemetry, case numbers,
   stamps, and short labels.
 - **Pixel scales:** every room canvas is authored at 1× source pixels. Desktop displays
-  the complete canvas at 2×; narrow layouts (`max-width: 1100px`) keep 1×. Do not apply
+  the complete canvas at 2×; narrow layouts (`max-width: 1180px`) keep 1×. Do not apply
   per-sprite scale overrides inside a room.
 - **Composition:** illustrated spaces use `PixelRoom` with integer tile anchors. No
   perspective or fractional transform may wrap a sprite or the room canvas (whole-canvas
@@ -198,6 +200,8 @@ commitment subtype have deterministic, grid-valid scripts. `NarrativeScene` rend
 actors and props through `PixelRoom`; beat text and controls remain below the canvas.
 
 Smaller shared rooms (`roomIntake`, `roomRecords`) support Start, Report, and Archive.
+The records base intentionally contains no bookcases; three curated black-shadow shelf
+singles and evidence props appear cumulatively from recovered run knowledge.
 Doctrine/Directive cards and Archive mechanics remain text- and rules-first; artwork does
 not alter Archive odds.
 
