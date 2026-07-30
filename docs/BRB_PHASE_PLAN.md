@@ -61,7 +61,16 @@ Use 3,000-run simulations for routine comparisons of common outcomes, duration, 
 
 **Current findings:** The accepted `5/4/3/2/1` Corporation cadence reached 8.34% activation at seed `20260715` and 8.02% at alternate seed `20260716`, with 5,000 runs per block. All-track readiness remained more common than activation, both terminal loss modes remained common, every normal strategy activated, and the median was 22 months. Automated reachability now meets its evaluation target; human fairness and replay desire remain unverified.
 
-**Current comprehension checkpoint:** The browser now leads with the objective and loss conditions, places consultation and Situation choices ahead of supporting systems, repeats exact routine effects in confirmation, preserves qualitative/classified Situation disclosure, and shows activation and advisor thresholds. After each commitment, a derived aftermath sequence leads with improvement, reveals only connections already proven by route or consequence history, marks meaningful milestones, and ends with the resulting pressure; the complete attributed audit remains available on demand. Reports retain a versioned final-state snapshot. This prepares rather than replaces the Phase 3 external onboarding gate.
+**Current comprehension checkpoint:** The browser now leads with the objective and loss
+conditions, places consultation and Situation choices ahead of supporting systems, repeats
+exact routine effects in confirmation, preserves qualitative/classified Situation
+disclosure, and shows activation and advisor thresholds. After each commitment, a
+player-stepped three-quarter top-down scene shows Setup → Action → Consequence while the
+linked written record preserves exact provenance. Six reusable political locations and
+canonical-state-derived control-room scars make major outcomes visible without adding
+movement or another rules engine. The complete attributed audit remains available on
+demand, and reports retain a versioned final-state snapshot. This prepares rather than
+replaces the Phase 3 external onboarding gate.
 
 **Current delivery checkpoint:** The existing IBM Plex and Barlow fonts are self-hosted under OFL 1.1, and the static production export succeeds with network access denied. Chromium Playwright coverage now exercises Start, Campaign, consultation, commitment, ordered aftermath, expandable exact audit, save/resume, Report, same-seed replay, Archive, keyboard navigation, narrow layout, reduced motion, and automated axe scans. These checks protect the current design; they do not approve balance or human comprehension.
 
