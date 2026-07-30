@@ -1,27 +1,19 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
-import {
-  AmbientConferenceDesk,
-  AmbientRoomSurfaces,
-  AmbientServerRack,
-} from "./AmbientEnvironment";
-import { AmbientMonitorWall } from "./AmbientMonitorWall";
-import { AmbientStaff } from "./AmbientStaff";
-import { BRBChamberProgress } from "./BRBChamberProgress";
-import { PixelSprite } from "@/components/brb/pixel/PixelSprite";
+import { useEffect, useRef, useState } from "react";
+import { PixelRoom } from "@/components/brb/pixel-room/PixelRoom";
+import { ROOM_DEFINITIONS } from "@/components/brb/pixel-room/roomDefinitions";
 import type {
+  GridPoint,
+  RoomActor,
+  RoomLayer,
+} from "@/components/brb/pixel-room/roomTypes";
+import type {
+  BrbVisualStage,
+  PaperLoad,
   PresentationFocus,
   PresentationModel,
 } from "./presentationStateResolver";
-import lightingStyles from "./roomLighting.module.css";
-import propStyles from "./roomProps.module.css";
-import stateStyles from "./roomState.module.css";
 import styles from "./ControlRoomPresentation.module.css";
 import { useReducedMotion } from "./useReducedMotion";
 
@@ -32,6 +24,217 @@ type ControlRoomPresentationProps = {
   reducedMotionOverride?: boolean;
   focusOverride?: PresentationFocus;
 };
+
+type RoomLighting = "calm" | "strained" | "crisis" | "failure";
+
+function at(x: number, y: number): GridPoint {
+  return { x, y };
+}
+
+function resolveLighting(model: PresentationModel): RoomLighting {
+  if (
+    model.state === "institutional-failure"
+    || model.endingId === "state_collapse"
+  ) {
+    return "failure";
+  }
+  if (
+    model.state === "crisis"
+    || model.endingId === "corporate_capture"
+  ) {
+    return "crisis";
+  }
+  if (
+    model.state === "strained"
+    || model.state === "corporate-encroachment"
+    || model.endingId === "compromised_activation"
+  ) {
+    return "strained";
+  }
+  return "calm";
+}
+
+function brbLayers(stage: BrbVisualStage): RoomLayer[] {
+  if (stage === "sealed") return [];
+
+  const layers: RoomLayer[] = [
+    {
+      id: "brb-infrastructure",
+      kind: "brb-machinery",
+      artKey: "envInfrastructureToolbox",
+      position: at(14, 2),
+      frameOffset: stage === "infrastructure" ? 0 : 7,
+    },
+  ];
+
+  if (stage !== "infrastructure") {
+    layers.push({
+      id: "brb-server-a",
+      kind: "brb-machinery",
+      artKey: "monitorServer",
+      position: at(17, 2),
+    });
+  }
+  if (stage === "unstable" || stage === "activation-ready") {
+    layers.push({
+      id: "brb-server-b",
+      kind: "brb-machinery",
+      artKey: "monitorServer",
+      position: at(19, 2),
+      frameOffset: stage === "unstable" ? 2 : 1,
+    });
+  }
+  if (stage === "activation-ready") {
+    layers.push({
+      id: "brb-activation-bank",
+      kind: "brb-activation",
+      artKey: "monitorScreens",
+      position: at(14, 1),
+      frameOffset: 5,
+    });
+  }
+
+  return layers;
+}
+
+function clutterLayers(paperLoad: PaperLoad): RoomLayer[] {
+  if (paperLoad === "sparse") return [];
+
+  const layers: RoomLayer[] = [
+    {
+      id: "evidence-load-a",
+      kind: "evidence-clutter",
+      artKey: "envSecureSafe",
+      position: at(2, 8),
+      frameOffset: 2,
+    },
+  ];
+  if (paperLoad === "burdened" || paperLoad === "saturated") {
+    layers.push({
+      id: "equipment-load",
+      kind: "equipment-clutter",
+      artKey: "envInfrastructureToolbox",
+      position: at(8, 7),
+      frameOffset: 7,
+    });
+  }
+  if (paperLoad === "saturated") {
+    layers.push({
+      id: "evidence-load-b",
+      kind: "evidence-clutter",
+      artKey: "envSecureSafe",
+      position: at(10, 8),
+      frameOffset: 4,
+    });
+  }
+  return layers;
+}
+
+function persistentLayers(model: PresentationModel): RoomLayer[] {
+  const marks = model.persistentRoomMarks;
+  const corporationPresence =
+    marks?.corporationPresence
+    ?? (model.state === "corporate-encroachment" ? "visible" : "distant");
+  const institutionalCondition =
+    marks?.institutionalCondition
+    ?? (model.state === "institutional-failure" ? "breached" : "secure");
+
+  const layers: RoomLayer[] = [];
+  if (corporationPresence !== "distant") {
+    layers.push({
+      id: "corporation-door",
+      kind: "corporation-presence",
+      artKey: "envCorporateDoor",
+      position: at(17, 1),
+      frameOffset: corporationPresence === "embedded" ? 7 : 0,
+    });
+  }
+  if (corporationPresence === "embedded") {
+    layers.push({
+      id: "corporation-terminal",
+      kind: "corporation-presence",
+      artKey: "monitorServer",
+      position: at(19, 2),
+      frameOffset: 2,
+    });
+  }
+
+  if (institutionalCondition !== "secure") {
+    layers.push({
+      id: "damage-a",
+      kind: "architectural-damage",
+      artKey: "envInfrastructureToolbox",
+      position: at(1, 8),
+      frameOffset: 11,
+    });
+  }
+  if (institutionalCondition === "breached") {
+    layers.push({
+      id: "damage-b",
+      kind: "architectural-damage",
+      artKey: "envSecureSafe",
+      position: at(19, 8),
+      frameOffset: 5,
+    });
+  }
+  return layers;
+}
+
+function roomActors(model: PresentationModel): RoomActor[] {
+  const departed = new Set(model.persistentRoomMarks?.departedAdvisors ?? []);
+  const actors: RoomActor[] = [];
+  const staff: readonly {
+    id: "analyst" | "fixer" | "steward";
+    artKey: RoomActor["artKey"];
+    position: GridPoint;
+  }[] = [
+    { id: "analyst", artKey: "staffAnalystIdle", position: at(3, 6) },
+    { id: "fixer", artKey: "staffOperatorIdle", position: at(8, 6) },
+    { id: "steward", artKey: "staffStewardIdle", position: at(10, 6) },
+  ];
+
+  for (const person of staff) {
+    const occupied =
+      model.staffLayout.mode === "full"
+      || (model.staffLayout.mode === "reduced" && person.id !== "steward")
+      || (model.staffLayout.mode === "skeleton" && person.id === "fixer");
+    if (occupied && !departed.has(person.id)) {
+      actors.push({
+        id: person.id,
+        artKey: person.artKey,
+        position: person.position,
+        motion: "idle",
+      });
+    }
+  }
+
+  const corporationPresence =
+    model.persistentRoomMarks?.corporationPresence
+    ?? (model.state === "corporate-encroachment" ? "visible" : "distant");
+  if (corporationPresence !== "distant") {
+    actors.push({
+      id: "corporation-officer",
+      artKey: "staffStewardIdle",
+      position: at(18, 4),
+      motion: "observe",
+    });
+  }
+
+  if (model.staffLayout.crossingVisible) {
+    const rightward =
+      model.staffLayout.crossingDirection === "left-to-right";
+    actors.push({
+      id: "courier",
+      artKey: rightward
+        ? "staffCrossingWalkRight"
+        : "staffCrossingWalkLeft",
+      position: rightward ? at(2, 11) : at(19, 11),
+      motion: rightward ? "corridor-right" : "corridor-left",
+    });
+  }
+
+  return actors;
+}
 
 export function ControlRoomPresentation({
   model,
@@ -59,203 +262,75 @@ export function ControlRoomPresentation({
 
   const focus = focusOverride
     ?? (showCommitFocus ? "commit" : model.focus);
-  const displayStateLabel = process.env.NODE_ENV === "development";
-  const roomStyle = {
-    ["--room-brb" as string]: model.brbProgress / 100,
-  } satisfies CSSProperties;
+  const layers = [
+    {
+      id: "monitor-bank",
+      kind: "monitor-bank",
+      artKey: "monitorScreens",
+      position: at(3, 1),
+      frameOffset: model.state === "institutional-failure" ? 0 : 4,
+      hidden: model.state === "institutional-failure",
+    },
+    {
+      id: "security-camera",
+      kind: "security-camera",
+      artKey: "envSecurityCamera",
+      position: at(11, 1),
+      frameOffset: 4,
+    },
+    ...brbLayers(model.brbStage),
+    ...clutterLayers(model.paperLoad),
+    ...persistentLayers(model),
+  ] satisfies RoomLayer[];
+  const actors = roomActors(model);
+  const occupiedStations = actors.filter((actor) =>
+    ["analyst", "fixer", "steward"].includes(actor.id)).length;
+  const corporationPresence =
+    model.persistentRoomMarks?.corporationPresence
+    ?? (model.state === "corporate-encroachment" ? "visible" : "distant");
+  const institutionalCondition =
+    model.persistentRoomMarks?.institutionalCondition ?? "secure";
+  const roomAriaLabel =
+    `Fixed continuity facility: ${model.stateLabel}; `
+    + `${occupiedStations} public staff stations occupied; BRB stage ${model.brbStage}; `
+    + `Corporation presence ${corporationPresence}; structure ${institutionalCondition}.`;
+  const ariaLabel = `Living control room: ${model.stateLabel}`;
 
   return (
     <section
-      aria-label={`Living control room: ${model.stateLabel}`}
-      className={`${styles.presentation} ${stateStyles.stateSurface}`}
-      data-brb-room=""
+      aria-label={ariaLabel}
+      className={styles.presentation}
       data-active-situation={hasActiveSituation ? "true" : "false"}
+      data-brb-room=""
       data-brb-stage={model.brbStage}
-      data-ending={model.endingId ?? "none"}
-      data-focus={focus}
-      data-lit-station={model.litStation ?? "none"}
-      data-motion={reducedMotion ? "reduced" : "full"}
-      data-departed-advisors={
-        model.persistentRoomMarks?.departedAdvisors.join(" ") || "none"
-      }
       data-completed-routes={
         model.persistentRoomMarks?.completedRouteCount ?? 0
       }
+      data-corporation-presence={corporationPresence}
       data-emergency-level={
         model.persistentRoomMarks?.emergencyLevel ?? "routine"
       }
-      data-institutional-condition={
-        model.persistentRoomMarks?.institutionalCondition ?? "secure"
-      }
-      data-corporation-presence={
-        model.persistentRoomMarks?.corporationPresence ?? "distant"
-      }
+      data-ending={model.endingId ?? "none"}
+      data-focus={focus}
+      data-institutional-condition={institutionalCondition}
+      data-lit-station={model.litStation ?? "none"}
+      data-motion={reducedMotion ? "reduced" : "full"}
       data-paper-load={model.paperLoad}
       data-presentation-state={model.state}
       data-shot={model.shot}
-      data-staff-direction={model.staffLayout.crossingDirection}
       data-staff-mode={model.staffLayout.mode}
       data-tempo={model.tempo}
-      style={roomStyle}
     >
-      <div
-        aria-hidden="true"
-        className={propStyles.layerBack}
-        data-room-layer="back"
-      >
-        <div className={styles.ceiling} data-room-part="ceiling">
-          <span />
-          <span />
-          <span />
-        </div>
-
-        <div className={styles.statusRail} data-room-part="status-rail">
-          <span>FCD // CONTINUITY FLOOR</span>
-          <i />
-          <span>CHANNEL 04</span>
-        </div>
-
-        <AmbientMonitorWall />
-        <AmbientRoomSurfaces />
-      </div>
-
-      <div className={propStyles.layerMid} data-room-layer="mid">
-        <div className={styles.advisorStations} data-room-part="advisor-stations">
-          <div
-            className={`${styles.advisorStation} ${styles.stationLeft}`}
-            data-room-part="station-analysis"
-          >
-            <span>ANALYSIS</span>
-            <i />
-            <b />
-          </div>
-          <div
-            className={`${styles.advisorStation} ${styles.stationCenter}`}
-            data-room-part="station-operations"
-          >
-            <span>OPERATIONS</span>
-            <i />
-            <b />
-          </div>
-          <div
-            className={`${styles.advisorStation} ${styles.stationRight}`}
-            data-room-part="station-institutions"
-          >
-            <span>INSTITUTIONS</span>
-            <i />
-            <b />
-          </div>
-        </div>
-
-        <div className={styles.paperClutter} data-room-part="paper-clutter">
-          <span />
-          <span />
-          <span />
-          <span />
-        </div>
-
-        <div className={styles.operationsTable} data-room-part="operations-table">
-          <span className={styles.tableMap} />
-          <span className={styles.tableSignal} data-room-part="table-signal" />
-          <small>CENTRAL OPERATIONS</small>
-        </div>
-
-        {/* Kept OUT of `.operationsTable`: that element carries a 3D perspective
-            transform. A transformed ancestor resamples pixel art. */}
-        <AmbientConferenceDesk />
-        <AmbientServerRack />
-
-        <BRBChamberProgress
-          progress={model.brbProgress}
-          stage={model.brbStage}
-        />
-
-        <div className={styles.staffLayer} data-room-part="staff-layer">
-          <AmbientStaff label="Analysis" position="left" />
-          <AmbientStaff label="Operations" position="center" />
-          <AmbientStaff label="Institutions" position="right" />
-          {model.staffLayout.crossingVisible ? (
-            <AmbientStaff
-              crossingDirection={model.staffLayout.crossingDirection}
-              label="Courier"
-              position="crossing"
-            />
-          ) : null}
-        </div>
-      </div>
-
-      <div
-        aria-hidden="true"
-        className={lightingStyles.layerLight}
-        data-room-layer="light"
-      >
-        <span className={lightingStyles.poolWall} />
-        <span className={lightingStyles.poolTable} />
-        <span className={lightingStyles.poolFile} />
-        <span className={lightingStyles.alertWash} />
-      </div>
-
-      <div
-        aria-hidden="true"
-        className={propStyles.layerFore}
-        data-room-layer="fore"
-      >
-        <span className={propStyles.foreFigureLeft}>
-          <PixelSprite
-            artKey="staffAnalystIdle"
-            className={propStyles.foreFigureSprite ?? ""}
-            frameOffset={1}
-            fallback={
-              <>
-                <i />
-                <b />
-              </>
-            }
-          />
-        </span>
-        <span className={propStyles.foreFigureRight}>
-          <PixelSprite
-            artKey="staffOperatorIdle"
-            className={propStyles.foreFigureSprite ?? ""}
-            frameOffset={2}
-            fallback={
-              <>
-                <i />
-                <b />
-              </>
-            }
-          />
-        </span>
-        <span className={propStyles.deskEdge} />
-        <span className={lightingStyles.scrim} />
-        <span className={lightingStyles.vignette} />
-      </div>
-
-      <div className={propStyles.layerUi} data-room-layer="ui">
-        <div
-          aria-hidden="true"
-          className={styles.corporateOverlay}
-          data-room-part="corporate-overlay"
-        >
-          <span>PRIVATE SYSTEM</span>
-          <i>CONTRACT AUTHORITY</i>
-        </div>
-
-        <div className={styles.ambientCaption} data-room-part="ambient-caption">
-          <span aria-hidden="true" className={styles.captionSignal} />
-          <p>{model.caption}</p>
-          <small>Focus: {focus}</small>
-        </div>
-
-        {displayStateLabel ? (
-          <span
-            className={styles.developmentLabel}
-            data-room-part="development-label"
-          >
-            DEV STATE · {model.stateLabel}
-          </span>
-        ) : null}
-      </div>
+      <PixelRoom
+        definition={ROOM_DEFINITIONS.facility}
+        ariaLabel={roomAriaLabel}
+        actors={actors}
+        layers={layers}
+        className={styles.room!}
+        lighting={resolveLighting(model)}
+        reducedMotion={reducedMotion}
+        testId="continuity-facility"
+      />
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -6,41 +6,55 @@ const CONTROL_ROOM = path.join(
   process.cwd(),
   "src/components/brb/control-room",
 );
+const PIXEL_ROOM = path.join(
+  process.cwd(),
+  "src/components/brb/pixel-room",
+);
 
-function readCss(fileName: string): string {
-  return readFileSync(path.join(CONTROL_ROOM, fileName), "utf8");
+function read(file: string): string {
+  return readFileSync(file, "utf8");
 }
 
-describe("control-room CSS ownership", () => {
-  it("keeps presentation-state selectors out of the base presentation module", () => {
-    const presentation = readCss("ControlRoomPresentation.module.css");
-    const state = readCss("roomState.module.css");
+describe("orthographic control-room CSS contract", () => {
+  it("contains no perspective camera or oversized sprite override", () => {
+    const roomCss = readdirSync(CONTROL_ROOM)
+      .filter((file) => file.endsWith(".css"))
+      .map((file) => read(path.join(CONTROL_ROOM, file)))
+      .join("\n");
+    const rendererCss = read(path.join(PIXEL_ROOM, "PixelRoom.module.css"));
+    const productionCss = `${roomCss}\n${rendererCss}`;
 
-    expect(presentation).not.toMatch(
-      /\.presentation\[data-presentation-state=/,
+    expect(productionCss).not.toMatch(/\bperspective\s*\(/i);
+    expect(productionCss).not.toMatch(/\brotate[XY]\s*\(/i);
+    expect(productionCss).not.toMatch(/--sprite-scale-override:\s*[3-9]/);
+  });
+
+  it("scales only the complete room canvas by desktop 2x or narrow 1x", () => {
+    const renderer = read(path.join(PIXEL_ROOM, "PixelRoom.module.css"));
+
+    expect(renderer).toMatch(/--pixel-room-scale:\s*2/);
+    expect(renderer).toMatch(/--pixel-room-scale:\s*1/);
+    expect(renderer).toMatch(/transform:\s*scale\(var\(--pixel-room-scale\)\)/);
+    expect(renderer).toMatch(/--sprite-scale-override:\s*1/);
+  });
+
+  it("keeps captions, monitor plates, and furniture CSS out of the room", () => {
+    const component = read(
+      path.join(CONTROL_ROOM, "ControlRoomPresentation.tsx"),
     );
-    expect(presentation).not.toMatch(/\.presentation\[data-focus=/);
-    expect(state).toMatch(/\.stateSurface\[data-presentation-state=/);
-    expect(state).toMatch(/\.stateSurface\[data-focus=/);
+
+    expect(component).toContain("<PixelRoom");
+    expect(component).not.toMatch(
+      /ambientCaption|monitorLabel|monitorChannel|operationsTable|advisorStation|corporateOverlay/,
+    );
   });
 
-  it("keeps lighting and prop modules free of presentation-state cascades", () => {
-    const lighting = readCss("roomLighting.module.css");
-    const props = readCss("roomProps.module.css");
-
-    expect(lighting).not.toMatch(/data-presentation-state=/);
-    expect(props).not.toMatch(/data-presentation-state=/);
-    expect(lighting).toMatch(/\.layerLight/);
-    expect(props).toMatch(/\.deskEdge/);
-  });
-
-  it("preserves reduced-motion kill switch and integer sprite scale overrides", () => {
-    const presentation = readCss("ControlRoomPresentation.module.css");
-    const props = readCss("roomProps.module.css");
+  it("preserves reduced-motion behavior", () => {
+    const presentation = read(
+      path.join(CONTROL_ROOM, "ControlRoomPresentation.module.css"),
+    );
 
     expect(presentation).toMatch(/\[data-motion="reduced"\]/);
     expect(presentation).toMatch(/prefers-reduced-motion:\s*reduce/);
-    expect(presentation).toMatch(/--sprite-scale-override:\s*[234]/);
-    expect(props).toMatch(/--sprite-scale-override:\s*6/);
   });
 });
