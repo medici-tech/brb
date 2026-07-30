@@ -282,3 +282,15 @@ A browser-game change is not complete merely because the component renders. Conf
 - Run the proportionate tests and report exactly what ran.
 - Mention any simulation log or documentation change explicitly.
 - Summarize the player-facing result and the architecture impact in plain language.
+
+## Cursor Cloud specific instructions
+
+The environment already runs `npm install` on startup, so dependencies are present. Standard commands are documented in `README.md` and `package.json` scripts (`dev`, `build`, `test`, `typecheck`, `simulate`); do not duplicate them here.
+
+Non-obvious caveats for this VM:
+
+- This is a single Next.js App Router app (no backend service or database). `npm run dev` serves it at `http://localhost:3000`. Both `dev` and `build` use the `--webpack` flag intentionally; do not switch to Turbopack.
+- Fonts load via `next/font/local`, so `npm run build` does not need network access for fonts.
+- Running `next dev` or `next build` regenerates `.next/dev/types` and rewrites `tsconfig.json` and `next-env.d.ts` in place (adding `.next/dev/...` include paths and repointing the routes import). This working-tree churn is expected tooling output — do not commit it.
+- Chromium browser tests (`npm run test:browser`) require a one-time `npm run test:browser:install`; Chromium is not part of the default dependency install.
+- `npm run simulate` appends to `docs/BRB_SIMULATION_LOG.md` — it mutates a tracked file and is not a harmless smoke test (see the Balance and Simulation Discipline section).
