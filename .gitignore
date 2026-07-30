@@ -14,3 +14,6 @@ test-results/
 /BRB Assets/
 # Curated runtime art — injected at deploy from private storage, never committed (public repo).
 /public/assets/brb/
+
+# Playwright MCP scratch output (screenshots, snapshots, console logs)
+.playwright-mcp/

@@ -100,7 +100,7 @@ export function ThreatPanel({ label = "Corporation watch", progress, threatLevel
   return (
     <section className="brb-console-grid border border-destructive/45 bg-console p-5" aria-label={label}>
       <div className="flex items-center justify-between gap-4">
-        <p className="brb-telemetry m-0 text-[10px] tracking-[0.16em] text-[#e98479] uppercase">{label}</p>
+        <p className="brb-telemetry m-0 text-[10px] tracking-[0.16em] text-destructive-soft uppercase">{label}</p>
         <AlertTriangle className="size-4 text-destructive" aria-hidden="true" />
       </div>
       <div className="mt-6 flex items-end justify-between gap-5">

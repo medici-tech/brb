@@ -11,7 +11,7 @@ const toneStyles: Record<BrbTone, string> = {
   informational: "border-signal/50 bg-signal/10 text-signal",
   stable: "border-phosphor/50 bg-phosphor/10 text-phosphor",
   warning: "border-signal bg-signal/15 text-signal",
-  critical: "border-destructive bg-destructive/15 text-[#e98479]",
+  critical: "border-destructive bg-destructive/15 text-destructive-soft",
   classified: "border-dossier/50 bg-dossier/10 text-dossier",
 };
 
