@@ -143,6 +143,46 @@ describe("versioned browser persistence", () => {
     expect(loadActiveRun(storage)).toBeNull();
   });
 
+  it("restores a save written before DecisionRecord.subject existed", () => {
+    // `subject` is additive: saves written before it carried only the prose
+    // `summary`. Deserialization must normalize the missing field to null
+    // rather than fail closed, and a rejected legacy save would strand a
+    // player's run — so this is the migration's load-bearing assertion.
+    const storage = memoryStorage();
+    const fresh = createGame({ seed: 44, runId: "subject-migration" });
+    fresh.activeCardId = null;
+    const played = commitAction(fresh, {
+      type: "counter_corporation",
+      predictedStrategy: "expanding",
+    });
+    expect(played.accepted).toBe(true);
+    expect(played.state.decisionHistory.length).toBeGreaterThan(0);
+
+    const legacy = JSON.parse(JSON.stringify(played.state));
+    for (const decision of legacy.decisionHistory) delete decision.subject;
+    expect(legacy.decisionHistory.every((d: object) => !("subject" in d))).toBe(true);
+    storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify(legacy));
+
+    const restored = loadActiveRun(storage);
+    expect(restored).not.toBeNull();
+    expect(restored?.decisionHistory).toHaveLength(legacy.decisionHistory.length);
+    expect(restored?.decisionHistory.every((d) => d.subject === null)).toBe(true);
+  });
+
+  it("rejects a save whose DecisionRecord.subject is structurally invalid", () => {
+    const storage = memoryStorage();
+    const fresh = createGame({ seed: 45, runId: "subject-invalid" });
+    fresh.activeCardId = null;
+    const played = commitAction(fresh, {
+      type: "counter_corporation",
+      predictedStrategy: "expanding",
+    });
+    const corrupt = JSON.parse(JSON.stringify(played.state));
+    corrupt.decisionHistory[0].subject = { kind: "counter", strategy: "not-a-strategy", outcome: "wrong" };
+    storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify(corrupt));
+    expect(loadActiveRun(storage)).toBeNull();
+  });
+
   it("loads a legacy v3 key and replaces it on the next save", () => {
     const storage = memoryStorage();
     const legacy = JSON.parse(JSON.stringify(createGame(21)));
