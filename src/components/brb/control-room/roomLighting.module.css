@@ -28,8 +28,8 @@
   opacity: var(--pool-wall-level, 0.34);
   background: radial-gradient(
     ellipse 68% 46% at 31% 24%,
-    rgba(214, 154, 58, 0.22) 0 18%,
-    rgba(214, 154, 58, 0.08) 42%,
+    color-mix(in oklab, var(--room-key) 22%, transparent) 0 18%,
+    color-mix(in oklab, var(--room-key) 8%, transparent) 42%,
     transparent 70%
   );
 }
@@ -38,8 +38,8 @@
   opacity: var(--pool-table-level, 0.26);
   background: radial-gradient(
     closest-side at 49% 64%,
-    rgba(222, 170, 77, 0.22),
-    rgba(214, 154, 58, 0.07) 58%,
+    color-mix(in oklab, var(--room-key) 22%, transparent),
+    color-mix(in oklab, var(--room-key) 7%, transparent) 58%,
     transparent
   );
 }

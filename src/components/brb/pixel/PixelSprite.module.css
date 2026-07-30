@@ -48,10 +48,16 @@
 
 .animated {
   animation-name: brb-pixel-sprite;
+  animation-duration: calc(var(--sprite-duration) * var(--room-tempo, 1));
   animation-timing-function: steps(1); /* overridden inline with the real step count */
   animation-iteration-count: infinite;
   /* An animating strip always plays from frame 0; the keyframe drives position-x. */
   background-position-x: 0;
+}
+
+:global([data-tempo="reading"]) :global([data-room-part^="staff-"]) .animated,
+:global([data-tempo="still"]) .animated {
+  animation-play-state: paused;
 }
 
 /* Offscreen probe <img> used only to detect a 404 on the sheet. It must never

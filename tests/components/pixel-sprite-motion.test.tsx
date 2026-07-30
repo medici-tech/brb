@@ -73,6 +73,8 @@ describe("PixelSprite reduced-motion tracking", () => {
     expect(style).toContain("--sprite-frames: 6");
     expect(style).toContain("--sprite-scale-base: 3");
     expect(style).toContain("--sprite-frozen-frame: 2");
+    expect(style).toContain("--sprite-duration: 1s");
+    expect(style).not.toContain("animation-duration:");
     expect(style).not.toMatch(/--sprite-scale:/);
     // No computed pixel sizes leak from JS.
     expect(style).not.toMatch(/width:\s*\d+px/);

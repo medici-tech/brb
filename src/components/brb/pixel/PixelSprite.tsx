@@ -175,7 +175,7 @@ export function PixelSprite(props: PixelSpriteProps) {
     ["--sprite-frozen-frame" as string]: frozenFrame,
     ...(shouldAnimate
       ? {
-          animationDuration: `${durationSeconds}s`,
+          ["--sprite-duration" as string]: `${durationSeconds}s`,
           animationTimingFunction: `steps(${frameCount})`,
         }
       : {}),

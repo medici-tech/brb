@@ -50,10 +50,17 @@ import type { PlaytestJournalV1, PlaytestRecap } from "../../playtest/types";
 import { ArchiveView } from "./ArchiveView";
 import { CampaignScreen } from "./CampaignScreen";
 import { DeclassifiedReportView } from "./DeclassifiedReportView";
+import { EndingTableauView } from "./EndingTableauView";
 import { PlaytestJournalView } from "./PlaytestJournalView";
 import { StartScreen } from "./StartScreen";
 
-type View = "start" | "campaign" | "report" | "archive" | "playtest";
+type View =
+  | "start"
+  | "campaign"
+  | "ending"
+  | "report"
+  | "archive"
+  | "playtest";
 
 function newRunId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -89,7 +96,9 @@ export function BRBApp() {
     setJournal(loadedJournal);
     if (loadedReport) {
       const reportSlot = loadedJournal.matrix.find((slot) => slot.primaryRunId === loadedReport.runId);
-      if (reportSlot?.status === "awaiting_recap") setView("report");
+      if (!loadedRun || reportSlot?.status === "awaiting_recap") {
+        setView("report");
+      }
     }
   }, []);
 
@@ -153,7 +162,7 @@ export function BRBApp() {
     setReport(next.report);
     setSavedRun(null);
     setState(next);
-    setView("report");
+    setView("ending");
   }
 
   function handleCommit(action: MajorAction, options: CommitOptions = {}): void {
@@ -280,6 +289,14 @@ export function BRBApp() {
         onOpenPlaytest={() => setView("playtest")}
         guidedObjective={trackedRun ? getGuidedRunObjective(trackedRun.slotId) : null}
         {...(isTracked ? { onBookmark: bookmarkCampaign } : {})}
+      />
+    );
+  }
+  if (view === "ending" && state?.ending) {
+    return (
+      <EndingTableauView
+        state={state}
+        onOpenReport={() => setView("report")}
       />
     );
   }

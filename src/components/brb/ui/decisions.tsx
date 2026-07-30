@@ -72,8 +72,22 @@ export const DecisionOption = forwardRef<HTMLButtonElement, DecisionOptionProps>
       {index ? <span className="brb-telemetry self-start text-[10px] opacity-55">{index}</span> : null}
       <span className="min-w-0 flex-1">
         <span className="block font-sans text-sm font-semibold">{title}</span>
-        {description ? <span className="mt-1.5 block font-sans text-xs leading-5 opacity-65">{description}</span> : null}
-        {metadata ? <span className="brb-telemetry mt-2 block text-[9px] tracking-[0.08em] uppercase opacity-55">{metadata}</span> : null}
+        {description ? (
+          <span className={cn(
+            "mt-1.5 block font-sans text-xs leading-5",
+            surface === "console" ? "text-muted-foreground" : "opacity-65",
+          )}>
+            {description}
+          </span>
+        ) : null}
+        {metadata ? (
+          <span className={cn(
+            "brb-telemetry mt-2 block text-[9px] tracking-[0.08em] uppercase",
+            surface === "console" ? "text-muted-foreground" : "opacity-55",
+          )}>
+            {metadata}
+          </span>
+        ) : null}
       </span>
       <ChevronRight className="mt-0.5 size-4 shrink-0 opacity-45 transition-transform group-hover:translate-x-1" aria-hidden="true" />
     </Button>
@@ -137,13 +151,13 @@ export const ActionControl = forwardRef<HTMLButtonElement, ActionControlProps>(
       metadata={(
         <span className="grid gap-2">
           <span className="grid gap-1 border-t border-current/20 pt-2">
-            <span className="text-[8px] tracking-[0.14em] uppercase opacity-65">Commitment cost</span>
-            <strong className="font-sans text-[11px] leading-4 font-semibold normal-case tracking-normal opacity-90">
+            <span className="text-[8px] tracking-[0.14em] uppercase">Commitment cost</span>
+            <strong className="font-sans text-[11px] leading-4 font-semibold normal-case tracking-normal">
               {cost}
             </strong>
           </span>
           {knownChanges && knownChanges.length > 0 ? (
-            <span className="font-sans text-[10px] leading-4 font-semibold normal-case tracking-normal opacity-85">
+            <span className="font-sans text-[10px] leading-4 font-semibold normal-case tracking-normal">
               Exact immediate changes: {knownChanges.join(" · ")}
             </span>
           ) : null}

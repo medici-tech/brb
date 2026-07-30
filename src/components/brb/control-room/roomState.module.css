@@ -16,12 +16,182 @@
   opacity: var(--room-exposure);
 }
 
+/* 1. Base operational condition. */
+.stateSurface[data-presentation-state="strained"] {
+  --room-key-level: 0.07;
+  --room-exposure: 0.88;
+  --room-chroma: 0.88;
+  --room-scrim: 0.06;
+}
+
+.stateSurface[data-presentation-state="crisis"] {
+  --room-key: #c13a32;
+  --room-key-level: 0.16;
+  --room-exposure: 0.76;
+  --room-chroma: 0.82;
+  --room-scrim: 0.13;
+  --room-alert-level: 0.12;
+}
+
+.stateSurface[data-presentation-state="institutional-failure"] {
+  --room-key: #85705c;
+  --room-key-level: 0.04;
+  --room-exposure: 0.42;
+  --room-chroma: 0.42;
+  --room-scrim: 0.3;
+  --room-vignette: 0.96;
+}
+
+.stateSurface[data-presentation-state="corporate-encroachment"] {
+  --room-key: #d69a3a;
+  --room-key-level: 0.15;
+  --room-exposure: 0.68;
+  --room-chroma: 0.58;
+  --room-scrim: 0.16;
+  --room-corporate: 1;
+}
+
+/* 2. BRB construction stage. */
+.stateSurface[data-brb-stage="construction"] {
+  --pool-table-level: calc(0.26 + var(--room-brb) * 0.1);
+}
+
+.stateSurface[data-brb-stage="unstable"],
+.stateSurface[data-brb-stage="activation-ready"] {
+  --room-key-level: calc(0.12 + var(--room-brb) * 0.12);
+  --pool-table-level: calc(0.28 + var(--room-brb) * 0.18);
+}
+
+/* 3. Camera shot. */
 .stateSurface[data-shot="situation"] {
   --room-exposure: 0.46;
   --room-chroma: 0.5;
   --room-scrim: 0.52;
   --room-vignette: 0.92;
   --pool-file-level: 0.3;
+}
+
+.stateSurface[data-shot="consultation"] {
+  --room-exposure: 0.72;
+  --room-scrim: 0.18;
+  --room-vignette: 0.88;
+}
+
+.stateSurface[data-shot="commitment"] {
+  --room-exposure: 0.84;
+  --room-alert-level: 0.18;
+  --pool-table-level: 0.44;
+}
+
+.stateSurface[data-shot="milestone"] {
+  --room-exposure: 0.92;
+  --pool-table-level: 0.58;
+  --room-vignette: 0.68;
+}
+
+.stateSurface[data-shot="ending"] {
+  --room-vignette: 0.94;
+}
+
+.stateSurface[data-shot="ending"] :global([data-room-part="ambient-caption"]),
+.stateSurface[data-shot="ending"] :global([data-room-part="development-label"]) {
+  display: none;
+}
+
+.stateSurface[data-shot="ending"][data-ending="civic_legacy"] {
+  --room-key: #d6aa54;
+  --room-key-level: 0.24;
+  --room-exposure: 1;
+  --room-chroma: 0.92;
+  --pool-wall-level: 0.5;
+  --pool-table-level: 0.56;
+}
+
+.stateSurface[data-shot="ending"][data-ending="compromised_activation"] {
+  --room-key: #d38e39;
+  --room-key-level: 0.2;
+  --room-exposure: 0.78;
+  --room-chroma: 0.65;
+  --room-scrim: 0.14;
+}
+
+.stateSurface[data-shot="ending"][data-ending="corporate_capture"] {
+  --room-key: #d69a3a;
+  --room-key-level: 0.22;
+  --room-exposure: 0.58;
+  --room-chroma: 0.48;
+  --room-scrim: 0.28;
+  --room-corporate: 1;
+}
+
+.stateSurface[data-shot="ending"][data-ending="state_collapse"] {
+  --room-key: #76695c;
+  --room-key-level: 0.02;
+  --room-exposure: 0.26;
+  --room-chroma: 0.24;
+  --room-scrim: 0.44;
+}
+
+/* 4. Immediate focus overrides. */
+.stateSurface[data-focus="commit"] {
+  --room-alert-level: 0.2;
+}
+
+.stateSurface[data-lit-station="analysis"] :global([data-room-part="station-analysis"]),
+.stateSurface[data-lit-station="operations"] :global([data-room-part="station-operations"]),
+.stateSurface[data-lit-station="institutions"] :global([data-room-part="station-institutions"]) {
+  border-color: color-mix(in oklab, var(--room-key) 68%, #454a3b);
+  box-shadow: 0 0 24px color-mix(in oklab, var(--room-key) 22%, transparent);
+}
+
+.stateSurface[data-brb-room][data-paper-load="sparse"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.08;
+}
+
+.stateSurface[data-brb-room][data-paper-load="working"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.24;
+}
+
+.stateSurface[data-brb-room][data-paper-load="burdened"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.46;
+}
+
+.stateSurface[data-brb-room][data-paper-load="saturated"] :global([data-room-part="paper-clutter"]) span {
+  opacity: 0.7;
+}
+
+.stateSurface[data-staff-mode="reduced"] :global([data-room-part="staff-right"]),
+.stateSurface[data-staff-mode="skeleton"] :global([data-room-part^="staff-"]) {
+  opacity: 0.05;
+}
+
+.stateSurface[data-staff-direction="right-to-left"] :global([data-room-part="staff-crossing"]) {
+  animation-direction: reverse;
+}
+
+.stateSurface[data-tempo="reading"] {
+  --room-tempo: 1.8;
+}
+
+.stateSurface[data-tempo="response"] {
+  --room-tempo: 0.55;
+}
+
+.stateSurface[data-tempo="critical"] {
+  --room-tempo: 0.62;
+}
+
+.stateSurface[data-tempo="still"] {
+  --room-tempo: 1;
+}
+
+.stateSurface[data-ending="corporate_capture"] :global([data-room-part="corporate-overlay"]) {
+  opacity: 0.96;
+  transform: none;
+}
+
+.stateSurface[data-ending="state_collapse"] :global([data-room-part^="station-"]) {
+  opacity: 0.08;
 }
 
 .stateSurface[data-shot="situation"] :global([data-room-part="paper-clutter"]) {

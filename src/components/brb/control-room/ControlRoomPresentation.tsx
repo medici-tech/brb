@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import {
   AmbientConferenceDesk,
   AmbientRoomSurfaces,
@@ -55,6 +60,9 @@ export function ControlRoomPresentation({
   const focus = focusOverride
     ?? (showCommitFocus ? "commit" : model.focus);
   const displayStateLabel = process.env.NODE_ENV === "development";
+  const roomStyle = {
+    ["--room-brb" as string]: model.brbProgress / 100,
+  } satisfies CSSProperties;
 
   return (
     <section
@@ -62,10 +70,18 @@ export function ControlRoomPresentation({
       className={`${styles.presentation} ${stateStyles.stateSurface}`}
       data-brb-room=""
       data-active-situation={hasActiveSituation ? "true" : "false"}
+      data-brb-stage={model.brbStage}
+      data-ending={model.endingId ?? "none"}
       data-focus={focus}
+      data-lit-station={model.litStation ?? "none"}
       data-motion={reducedMotion ? "reduced" : "full"}
+      data-paper-load={model.paperLoad}
       data-presentation-state={model.state}
-      data-shot={hasActiveSituation ? "situation" : "operations"}
+      data-shot={model.shot}
+      data-staff-direction={model.staffLayout.crossingDirection}
+      data-staff-mode={model.staffLayout.mode}
+      data-tempo={model.tempo}
+      style={roomStyle}
     >
       <div
         aria-hidden="true"
@@ -143,7 +159,9 @@ export function ControlRoomPresentation({
           <AmbientStaff label="Analyst" position="left" />
           <AmbientStaff label="Operator" position="center" />
           <AmbientStaff label="Steward" position="right" />
-          <AmbientStaff label="Staff" position="crossing" />
+          {model.staffLayout.crossingVisible ? (
+            <AmbientStaff label="Staff" position="crossing" />
+          ) : null}
         </div>
       </div>
 

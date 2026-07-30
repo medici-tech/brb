@@ -78,5 +78,6 @@ export async function openReportFromReadyRun(page: Page): Promise<void> {
   await resumeInstalledRun(page);
   await page.getByRole("button", { name: /^Activate BRB/ }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Activate BRB and end campaign" }).click();
+  await page.getByRole("button", { name: "Open final report" }).click();
   await page.getByText("CAMPAIGN OUTCOME", { exact: true }).waitFor();
 }
