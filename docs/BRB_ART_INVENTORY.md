@@ -12,7 +12,7 @@ selection or crop deliberately changes.
 
 | Semantic key | Supplied source or crop | Runtime destination | Output / frames | Alpha | Bytes | SHA-256 | React/CSS use | Narrow treatment |
 | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
-| `monitorScreens` | `3_Animated_objects/16x16/spritesheets/animated_control_room_screens.png` | `control-room/monitors/control-room-screens.png` | 704×48; 11 × 64×48 | Yes | 1,413 | `8a5961618ceb7d967914bdf2d4ef08169a87b669fe2989da3510aeaa674606ef` | `AmbientMonitorWall`, full screen bank | 1× on tablet; 2× in the cropped 232px mobile band |
+| `monitorScreens` | `3_Animated_objects/16x16/spritesheets/animated_control_room_screens.png` | `control-room/monitors/control-room-screens.png` | 704×48; 11 × 64×48 | Yes | 1,413 | `8a5961618ceb7d967914bdf2d4ef08169a87b669fe2989da3510aeaa674606ef` | `AmbientMonitorWall`, full screen bank | 2× on tablet and in the cropped mobile framing |
 | `monitorServer` | `3_Animated_objects/16x16/spritesheets/animated_control_room_server.png` | `control-room/monitors/control-room-server.png` | 48×48; 3 × 16×48 | Yes | 444 | `0b6216c85dacd058d22a482d65ea55f409c91681d8596b73ea2715ba1e363a13` | `AmbientServerRack`, floor furniture | Hidden below 650px |
 | `staffAnalystIdle` | `Premade_Character_01.png`, crop 96×32+0+32 | `control-room/staff/analyst-idle.png` | 96×32; 6 × 16×32 | Yes | 488 | `678b6b8469c4a939f0f9b64be7d2c4a0e6618b201aa1eb5a567f5236f440c280` | `AmbientStaff`, Analysis station | Kept at 2× in the mobile band |
 | `staffOperatorIdle` | `Premade_Character_02.png`, crop 96×32+0+32 | `control-room/staff/operator-idle.png` | 96×32; 6 × 16×32 | Yes | 505 | `4a8ceb34bba7eabf6404f06fb97a9b926f520fca04219a073b348bb197b8e5f8` | `AmbientStaff`, Operations station | Kept at 2× in the mobile band |
@@ -32,7 +32,7 @@ CSS `steps()` playback can freeze for reduced motion, while GIF playback cannot.
 | Surface | Decision |
 | --- | --- |
 | Start / doctrine selection | No suitable supplied character or dossier artwork. Keep the readable cards; do not imply that ambient staff sprites are the player director. |
-| Campaign Situation workspace | Use the complete control-room set as a subdued frame behind the Situation file. Gameplay text and controls remain DOM content above it. |
+| Campaign Situation workspace | Use the complete layered control-room set as a subdued frame behind the Situation file. Gameplay text and controls remain DOM content above it. |
 | Advisor consultation | No advisor portraits in the supplied pack. Keep names, meters, quotes, and controls text-first. |
 | Aftermath dialog | No suitable evidence image. Preserve the action-to-consequence record without decoration. |
 | Report and Archive | No suitable supplied report photography. Preserve dossier typography and classified silhouettes. |
@@ -44,8 +44,36 @@ Known missing states:
   Keep the stable key for compatibility, but replace the curated source when a verified
   seated strip is found.
 - There are no advisor/director portraits and no narrow-screen portrait crops.
-- Below 650px the room becomes a 232px in-flow band with the screen wall and two staff.
-  The server, camera, desk, crossing figure, and advisor stations are removed so the
-  Situation brief and choices remain dominant. This is the approved narrow presentation,
-  not a missing image request.
+- Below 650px, standby uses a 232px in-flow band with the screen wall and two staff.
+  An active Situation uses a separate 120px monitor-only header. The server, camera,
+  desk, crossing figure, and advisor stations are removed so the Situation brief and
+  choices remain dominant. These are approved presentation states, not missing images.
 - CSS silhouettes and room colors remain the required fallback when private art is absent.
+
+## Display and state matrix
+
+| Layout | Monitor wall | Staff / props | Framing |
+| --- | ---: | ---: | --- |
+| Desktop | 4× | 3× | Full 16:10 diorama with 6× foreground silhouettes |
+| Tablet | 2× | 2× | Foreground figures removed; reduced light pools |
+| Narrow standby | 2× | 2× | 232px two-staff band |
+| Narrow Situation | 2× | Hidden | 120px monitor header |
+
+Room history is presentation-only: campaign age changes paper load; the consulted
+advisor or Situation type chooses the lit station; BRB readiness increases chamber
+and table light; Corporation pressure promotes the private overlay; ending IDs select
+one of four final tableaux.
+
+## Visual verification record
+
+Reviewed locally at 1440×1100, tablet width, and 390×844 with licensed art present,
+plus the assetless CSS fallback. Captures remain in ignored `output/playwright/`.
+
+- **No P0/P1 issues:** Situation controls, ending report action, keyboard focus, and
+  narrow overflow remained usable; axe reported no violations.
+- **P2 · asset pipeline:** `staffStewardSeated` is not a true seated strip. Replace
+  its curated source only after a supplied seated animation is verified.
+- **P2 · art direction:** advisor/director portraits and narrow portrait crops remain
+  unavailable in the supplied pack. Keep these surfaces text-first.
+- **P3 · presentation:** the assetless foreground uses simplified CSS silhouettes;
+  this is intentional fallback degradation, not a licensing workaround.

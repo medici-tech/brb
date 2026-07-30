@@ -9,21 +9,65 @@ import {
   getBrbVisualStage,
   PRESENTATION_STATE_COPY,
   PRESENTATION_STATES,
+  type LitStation,
+  type PaperLoad,
   type PresentationFocus,
   type PresentationModel,
+  type PresentationShot,
   type PresentationState,
+  type PresentationTempo,
 } from "./presentationStateResolver";
+import type { EndingId } from "@/game/types";
 
 const FOCUS_OPTIONS: PresentationFocus[] = [
   "assess",
   "investigate",
   "commit",
 ];
+const SHOT_OPTIONS: PresentationShot[] = [
+  "operations",
+  "situation",
+  "consultation",
+  "commitment",
+  "milestone",
+  "ending",
+];
+const TEMPO_OPTIONS: PresentationTempo[] = [
+  "ambient",
+  "reading",
+  "response",
+  "critical",
+  "still",
+];
+const STATION_OPTIONS: Array<Exclude<LitStation, null> | "none"> = [
+  "none",
+  "analysis",
+  "operations",
+  "institutions",
+];
+const PAPER_OPTIONS: PaperLoad[] = [
+  "sparse",
+  "working",
+  "burdened",
+  "saturated",
+];
+const ENDING_OPTIONS: Array<EndingId | "none"> = [
+  "none",
+  "civic_legacy",
+  "compromised_activation",
+  "corporate_capture",
+  "state_collapse",
+];
 
 export function ControlRoomPreview() {
   const [state, setState] = useState<PresentationState>("calm");
   const [progress, setProgress] = useState(0);
   const [focus, setFocus] = useState<PresentationFocus>("assess");
+  const [shot, setShot] = useState<PresentationShot>("operations");
+  const [tempo, setTempo] = useState<PresentationTempo>("ambient");
+  const [station, setStation] = useState<LitStation>(null);
+  const [paperLoad, setPaperLoad] = useState<PaperLoad>("sparse");
+  const [ending, setEnding] = useState<EndingId | null>(null);
   const [activeSituation, setActiveSituation] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const copy = PRESENTATION_STATE_COPY[state];
@@ -34,11 +78,11 @@ export function ControlRoomPreview() {
     focus: focus === "investigate" ? "investigate" : "assess",
     brbProgress: progress,
     brbStage: getBrbVisualStage(progress),
-    shot: activeSituation ? "situation" : "operations",
-    tempo: activeSituation ? "reading" : "ambient",
-    litStation: null,
-    paperLoad: "sparse",
-    endingId: null,
+    shot,
+    tempo,
+    litStation: station,
+    paperLoad,
+    endingId: ending,
     staffLayout: {
       mode: "full",
       crossingVisible: !activeSituation,
@@ -93,6 +137,83 @@ export function ControlRoomPreview() {
               <option key={option} value={option}>
                 {option}
               </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Shot
+          <select
+            aria-label="Presentation shot"
+            value={shot}
+            onChange={(event) => {
+              setShot(event.target.value as PresentationShot);
+            }}
+          >
+            {SHOT_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Tempo
+          <select
+            aria-label="Presentation tempo"
+            value={tempo}
+            onChange={(event) => {
+              setTempo(event.target.value as PresentationTempo);
+            }}
+          >
+            {TEMPO_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Lit station
+          <select
+            aria-label="Lit station"
+            value={station ?? "none"}
+            onChange={(event) => {
+              const value = event.target.value as LitStation | "none";
+              setStation(value === "none" ? null : value);
+            }}
+          >
+            {STATION_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Paper load
+          <select
+            aria-label="Paper load"
+            value={paperLoad}
+            onChange={(event) => {
+              setPaperLoad(event.target.value as PaperLoad);
+            }}
+          >
+            {PAPER_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Ending
+          <select
+            aria-label="Ending tableau"
+            value={ending ?? "none"}
+            onChange={(event) => {
+              const value = event.target.value as EndingId | "none";
+              setEnding(value === "none" ? null : value);
+            }}
+          >
+            {ENDING_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
             ))}
           </select>
         </label>

@@ -97,6 +97,27 @@ control-room placeholders remain the fallbacks. Animation freezes under
 `data-motion="reduced"` or `prefers-reduced-motion`. Net effect: **the app always builds and
 runs, with or without the curated art.**
 
+## Approved presentation contract
+
+- **Typography:** Barlow Condensed owns display headings and large state numerals;
+  IBM Plex Sans owns prose and controls; IBM Plex Mono owns telemetry, case numbers,
+  stamps, and short labels.
+- **Pixel scales:** large desktop uses 4× for the monitor wall and 3× for staff and
+  props. Tablet and narrow layouts use 2× for every visible sprite. Foreground
+  silhouettes may use the approved 6× scale because their alpha is intentionally
+  painted black.
+- **Composition:** the room is a 16:10 desktop stage with background, midground,
+  additive light, foreground occlusion, and UI layers. No perspective or fractional
+  transform may wrap a sprite.
+- **Shots:** operations, Situation, consultation, commitment, milestone, and ending
+  are resolver outputs. CSS consumes those values through `data-*` attributes and
+  presentation tokens; the resolver never changes gameplay state.
+- **Motion:** ambient loops slow while reading, commitment and milestone responses
+  are brief, crossing staff appear only on deterministic standby turns, ending
+  tableaux are still, and reduced motion removes all room animation and transitions.
+- **Narrow layout:** an active Situation receives a 120px monitor header. Standby
+  keeps a 232px two-staff diorama. Peripheral props never displace decision text.
+
 ## How a dev refreshes local art
 
 ```bash
@@ -108,6 +129,24 @@ npm run art:curate            # tsx scripts/curate-art.ts
 # 4. run the app; PixelSprite now loads the real sheets, fallbacks disappear.
 npm run dev
 ```
+
+Use `/dev/control-room` in development to review every presentation state, shot,
+tempo, lit station, paper-load tier, BRB stage, ending, active-Situation framing,
+and reduced-motion mode. The route remains excluded from production builds.
+
+Final verification:
+
+```bash
+npm run typecheck
+npm test
+npx playwright test
+npm run build                         # assetless fallback build
+BRB_ART_SOURCE=./private-art npm run build
+```
+
+The configured build must fail if `./private-art` is incomplete or invalid. Do not
+replace that failure with a fallback: setting `BRB_ART_SOURCE` is an explicit promise
+that the private source is complete.
 
 ## Frame-geometry note for curators
 

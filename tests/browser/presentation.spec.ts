@@ -75,3 +75,28 @@ test("internal playtest tools render only the three approved faces", async ({ pa
   ).toBeVisible();
   expect(await collectOffBrandFaces(page)).toEqual([]);
 });
+
+test("control-room sprites use approved integer display scales", async ({ page }) => {
+  await installActiveRun(page, createActiveRunFixture());
+  await resumeInstalledRun(page);
+
+  const dimensions = await page.locator("[data-brb-room] .pixelated").evaluateAll(
+    (sprites) => sprites.map((sprite) => {
+      const style = getComputedStyle(sprite);
+      const frameWidth = Number(style.getPropertyValue("--sprite-frame-w"));
+      const frameHeight = Number(style.getPropertyValue("--sprite-frame-h"));
+      const rect = sprite.getBoundingClientRect();
+      return {
+        visible: rect.width > 0 && rect.height > 0,
+        widthScale: rect.width / frameWidth,
+        heightScale: rect.height / frameHeight,
+      };
+    }),
+  );
+
+  for (const sprite of dimensions.filter((entry) => entry.visible)) {
+    expect(sprite.widthScale).toBe(sprite.heightScale);
+    expect(Number.isInteger(sprite.widthScale)).toBe(true);
+    expect([2, 3, 4, 6]).toContain(sprite.widthScale);
+  }
+});

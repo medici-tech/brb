@@ -36,7 +36,7 @@
 .previewControls {
   display: grid;
   max-width: 1400px;
-  grid-template-columns: 1.25fr 1fr 1.2fr 0.8fr 0.8fr;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: 1px;
   margin: 0 auto 18px;
   border: 1px solid var(--border);
@@ -143,8 +143,8 @@
     grid-template-columns: 1fr;
   }
 
-  /* The room is a 168px band here, not a full scene — a 720px stage would just be
-     a void below it. Let the fixture size to its content. */
+  /* Narrow uses two deliberate compositions: a 120px active-Situation header
+     and a 232px standby diorama. Let the fixture size to either state. */
   .previewStage {
     min-height: 0;
   }
