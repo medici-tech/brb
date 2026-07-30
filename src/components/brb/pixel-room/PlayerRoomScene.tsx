@@ -13,19 +13,21 @@ export function PlayerRoomScene({
   ariaLabel,
   evidenceLoad = 0,
 }: PlayerRoomSceneProps) {
+  const intake = ROOM_DEFINITIONS.intake.anchors;
+  const records = ROOM_DEFINITIONS.records.anchors;
   const actors: RoomActor[] =
     variant === "intake"
       ? [
           {
             id: "intake-director",
             artKey: "staffOperatorIdle",
-            position: { x: 8, y: 6 },
+            position: intake.director,
             motion: "idle",
           },
           {
             id: "intake-officer",
             artKey: "staffStewardIdle",
-            position: { x: 4, y: 6 },
+            position: intake.officer,
             motion: "observe",
           },
         ]
@@ -33,7 +35,7 @@ export function PlayerRoomScene({
           {
             id: "records-clerk",
             artKey: "staffAnalystIdle",
-            position: { x: 6, y: 6 },
+            position: records.clerk,
             motion: "work",
           },
         ];
@@ -41,26 +43,47 @@ export function PlayerRoomScene({
     variant === "records"
       ? [
           {
+            id: "records-shelf-a",
+            kind: "evidence-shelf",
+            artKey: "envRecordsShelfSparse",
+            position: records.shelfA,
+            hidden: evidenceLoad < 1,
+          },
+          {
             id: "records-evidence-a",
             kind: "evidence-load",
             artKey: "envSecureSafe",
-            position: { x: 2, y: 7 },
+            position: records.evidenceA,
             frameOffset: 2,
             hidden: evidenceLoad < 1,
+          },
+          {
+            id: "records-shelf-b",
+            kind: "evidence-shelf",
+            artKey: "envRecordsShelfFull",
+            position: records.shelfB,
+            hidden: evidenceLoad < 2,
           },
           {
             id: "records-evidence-b",
             kind: "evidence-load",
             artKey: "envSecureSafe",
-            position: { x: 10, y: 7 },
+            position: records.evidenceB,
             frameOffset: 4,
             hidden: evidenceLoad < 2,
+          },
+          {
+            id: "records-shelf-c",
+            kind: "evidence-shelf",
+            artKey: "envRecordsShelfOverflow",
+            position: records.shelfC,
+            hidden: evidenceLoad < 3,
           },
           {
             id: "records-equipment",
             kind: "evidence-load",
             artKey: "envInfrastructureToolbox",
-            position: { x: 8, y: 5 },
+            position: records.evidenceEquipment,
             frameOffset: 7,
             hidden: evidenceLoad < 3,
           },

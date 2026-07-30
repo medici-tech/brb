@@ -143,6 +143,21 @@ export const CURATION: Record<SourceArtKey, CurationStep> = {
     crop: { width: 16, height: 16, x: 16, y: 492 },
     note: "Neutral institutional wall panel, gutter-free interior → one opaque 16×16 tile.",
   },
+  envRecordsShelfSparse: {
+    source:
+      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_67.png",
+    note: "Sparse records shelves → one static 32×48 black-shadow furniture single.",
+  },
+  envRecordsShelfFull: {
+    source:
+      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_60.png",
+    note: "Filled records shelves → one static 32×48 black-shadow furniture single.",
+  },
+  envRecordsShelfOverflow: {
+    source:
+      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_74.png",
+    note: "Overflow records shelves → one static 32×48 black-shadow furniture single.",
+  },
   envOversightBroadcast: {
     source: "3_Animated_objects/16x16/spritesheets/animated_TV_reportage.png",
     note: "Television reportage camera → 24×(48×32) frames for the oversight chamber.",
@@ -246,17 +261,56 @@ export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
     }
   }
 
+  for (const zone of recipe.lightingZones) {
+    const values = [zone.x, zone.y, zone.width, zone.height];
+    if (
+      values.some((value) => !Number.isInteger(value))
+      || zone.x < 0
+      || zone.y < 0
+      || zone.width <= 0
+      || zone.height <= 0
+      || zone.x + zone.width > recipe.widthTiles
+      || zone.y + zone.height > recipe.heightTiles
+    ) {
+      throw new UsageError(`${recipe.key}: lighting zone falls outside the room.`);
+    }
+  }
+
+  for (const anchors of [
+    recipe.spriteAnchors,
+    recipe.dynamicOverlayAnchors,
+  ]) {
+    for (const [name, point] of Object.entries(anchors)) {
+      if (
+        !Number.isInteger(point.x)
+        || !Number.isInteger(point.y)
+        || point.x < 0
+        || point.y < 0
+        || point.x >= recipe.widthTiles
+        || point.y >= recipe.heightTiles
+      ) {
+        throw new UsageError(
+          `${recipe.key}: anchor '${name}' falls outside the room.`,
+        );
+      }
+    }
+  }
+
   for (const placement of recipe.furniture) {
     if (
       !Number.isInteger(placement.x)
       || !Number.isInteger(placement.y)
+      || !Number.isInteger(placement.widthTiles)
+      || !Number.isInteger(placement.heightTiles)
       || placement.x < 0
       || placement.y < 0
-      || placement.x >= recipe.widthTiles
-      || placement.y >= recipe.heightTiles
+      || placement.widthTiles <= 0
+      || placement.heightTiles <= 0
+      || placement.x + placement.widthTiles > recipe.widthTiles
+      || placement.y + placement.heightTiles > recipe.heightTiles
     ) {
       throw new UsageError(
-        `${recipe.key}: furniture '${placement.source}' has an invalid tile anchor.`,
+        `${recipe.key}: furniture '${placement.source}' falls outside the room.`,
       );
     }
   }

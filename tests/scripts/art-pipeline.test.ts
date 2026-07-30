@@ -97,8 +97,35 @@ describe("BRB art pipeline", () => {
       for (const placement of recipe.furniture) {
         expect(Number.isInteger(placement.x)).toBe(true);
         expect(Number.isInteger(placement.y)).toBe(true);
+        expect(Number.isInteger(placement.widthTiles)).toBe(true);
+        expect(Number.isInteger(placement.heightTiles)).toBe(true);
+        expect(placement.x + placement.widthTiles).toBeLessThanOrEqual(
+          recipe.widthTiles,
+        );
+        expect(placement.y + placement.heightTiles).toBeLessThanOrEqual(
+          recipe.heightTiles,
+        );
       }
+      expect(recipe.lightingZones).not.toHaveLength(0);
     }
+  });
+
+  it("rejects furniture when any part of its source extends past the camera", () => {
+    const recipe = ROOM_RECIPES.roomFacility;
+    const first = recipe.furniture[0]!;
+    const invalid = {
+      ...recipe,
+      furniture: [
+        {
+          ...first,
+          x: recipe.widthTiles - first.widthTiles + 1,
+        },
+      ],
+    };
+
+    expect(() => validateRoomRecipe(invalid)).toThrow(
+      /furniture.+falls outside the room/i,
+    );
   });
 
   it("sequences security-camera frames with the supplied endpoint holds", () => {

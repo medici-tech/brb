@@ -70,8 +70,8 @@ export function CreditsDialog() {
 
         <p className="guide-note">
           Only packs represented in the current runtime art manifest are listed.
-          When private art is absent, CSS silhouettes replace the sheets without
-          changing gameplay.
+          When private art is absent, flat orthographic schematics and simple shape
+          markers replace the sheets without changing gameplay.
         </p>
       </DialogContent>
     </Dialog>

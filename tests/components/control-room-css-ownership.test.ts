@@ -36,6 +36,7 @@ describe("orthographic control-room CSS contract", () => {
     expect(renderer).toMatch(/--pixel-room-scale:\s*1/);
     expect(renderer).toMatch(/transform:\s*scale\(var\(--pixel-room-scale\)\)/);
     expect(renderer).toMatch(/--sprite-scale-override:\s*1/);
+    expect(renderer).toMatch(/@media \(max-width:\s*1180px\)/);
   });
 
   it("keeps captions, monitor plates, and furniture CSS out of the room", () => {
@@ -72,6 +73,7 @@ describe("orthographic control-room CSS contract", () => {
     expect(workspace).toMatch(/\.sceneStage\s*\{[\s\S]*order:\s*2/);
     expect(workspace).not.toMatch(/margin:\s*-\d/);
     expect(workspace).not.toMatch(/max-height:\s*120px/);
+    expect(workspace).not.toMatch(/\.sceneStage\s*\{[^}]*border:\s*1px/);
   });
 
   it("keeps narrative rooms orthographic and free of actor labels", () => {
@@ -89,6 +91,9 @@ describe("orthographic control-room CSS contract", () => {
     expect(narrativeCss).not.toMatch(/\bperspective\s*\(/i);
     expect(narrativeCss).not.toMatch(/\brotate[XY]\s*\(/i);
     expect(narrativeCss).not.toMatch(/--sprite-scale-override:\s*[2-9]/);
+    expect(narrativeCss).not.toMatch(
+      /\[data-room-object=[^\]]+\][^{]*\{[^}]*filter:/,
+    );
     expect(narrativeComponent).not.toMatch(/<small>\{actor\.label\}<\/small>/);
     expect(narrativeComponent).toContain("<PixelRoom");
   });

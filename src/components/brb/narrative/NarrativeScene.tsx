@@ -33,6 +33,16 @@ const PROP_ART: Record<ScenePropKind, ArtKey> = {
   "warning-beacon": "envSecurityCamera",
 };
 
+function getPropArt(
+  location: NarrativeSceneRendererProps["location"],
+  kind: ScenePropKind,
+): ArtKey {
+  if (location === "oversight-chamber" && kind === "monitor-bank") {
+    return "envOversightBroadcast";
+  }
+  return PROP_ART[kind];
+}
+
 function getActorArt(actor: SceneActor): ArtKey {
   if (actor.role === "analyst") return "staffAnalystIdle";
   if (actor.role === "fixer") return "staffOperatorIdle";
@@ -47,6 +57,7 @@ function clampLayerPosition(position: GridPoint, artKey: ArtKey): GridPoint {
     monitorScreens: { x: 4, y: 3 },
     monitorServer: { x: 1, y: 3 },
     envConferenceDesk: { x: 1, y: 2 },
+    envOversightBroadcast: { x: 3, y: 2 },
     envSecureSafe: { x: 1, y: 2 },
     envInfrastructureToolbox: { x: 2, y: 3 },
     envCorporateDoor: { x: 3, y: 2 },
@@ -153,7 +164,7 @@ export function NarrativeScene({
   const locationDefinition = NARRATIVE_LOCATIONS[location];
   const roomDefinition = ROOM_DEFINITIONS[locationDefinition.roomDefinition];
   const propLayers = beat.props.map((prop): RoomLayer => {
-    const artKey = PROP_ART[prop.kind];
+    const artKey = getPropArt(location, prop.kind);
     return {
       id: prop.id,
       kind: prop.kind,

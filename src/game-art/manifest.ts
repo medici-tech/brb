@@ -304,6 +304,43 @@ export const ART = {
     expectedHeight: 160,
   },
 
+  // ── Records-office progression ──────────────────────────────────────────
+  // Real library singles remain separate from the room base so accumulated
+  // Archive knowledge can physically fill the office without changing rules.
+  envRecordsShelfSparse: {
+    key: "envRecordsShelfSparse",
+    src: `${ART_BASE_PATH}/environment/records-shelf-sparse.png`,
+    frameWidth: 32,
+    frameHeight: 48,
+    frameCount: 1,
+    fps: 0,
+    scale: 1,
+    expectedWidth: 32,
+    expectedHeight: 48,
+  },
+  envRecordsShelfFull: {
+    key: "envRecordsShelfFull",
+    src: `${ART_BASE_PATH}/environment/records-shelf-full.png`,
+    frameWidth: 32,
+    frameHeight: 48,
+    frameCount: 1,
+    fps: 0,
+    scale: 1,
+    expectedWidth: 32,
+    expectedHeight: 48,
+  },
+  envRecordsShelfOverflow: {
+    key: "envRecordsShelfOverflow",
+    src: `${ART_BASE_PATH}/environment/records-shelf-overflow.png`,
+    frameWidth: 32,
+    frameHeight: 48,
+    frameCount: 1,
+    fps: 0,
+    scale: 1,
+    expectedWidth: 32,
+    expectedHeight: 48,
+  },
+
   // ── Narrative locations ──────────────────────────────────────────────────
   // Oversight chamber broadcast camera / public feed.
   envOversightBroadcast: {

@@ -4,7 +4,10 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CampaignScreen } from "../../src/components/brb/CampaignScreen.js";
 import { ControlRoomPresentation } from "../../src/components/brb/control-room/ControlRoomPresentation.js";
-import type { PresentationModel } from "../../src/components/brb/control-room/presentationStateResolver.js";
+import type {
+  BrbVisualStage,
+  PresentationModel,
+} from "../../src/components/brb/control-room/presentationStateResolver.js";
 import { createGame } from "../../src/game/engine.js";
 
 const calmModel: PresentationModel = {
@@ -391,5 +394,44 @@ describe("Living Control Room UI", () => {
       ).not.toBeNull();
     }
     expect(scenario.model).toEqual(before);
+  });
+
+  it.each<BrbVisualStage>([
+    "sealed",
+    "infrastructure",
+    "construction",
+    "unstable",
+    "activation-ready",
+  ])("renders the %s BRB machinery stage without changing presentation state", (stage) => {
+    const model = {
+      ...calmModel,
+      brbStage: stage,
+    } satisfies PresentationModel;
+    const before = structuredClone(model);
+    const { container } = render(
+      <ControlRoomPresentation
+        model={model}
+        turn={5}
+        hasActiveSituation={false}
+        reducedMotionOverride
+      />,
+    );
+
+    expect(screen.getByLabelText(/living control room/i)).toHaveAttribute(
+      "data-brb-stage",
+      stage,
+    );
+    expect(
+      container.querySelectorAll('[data-room-object="brb-machinery"]'),
+    ).toHaveLength(
+      stage === "sealed"
+        ? 0
+        : stage === "infrastructure"
+          ? 1
+          : stage === "construction"
+            ? 2
+            : 3,
+    );
+    expect(model).toEqual(before);
   });
 });

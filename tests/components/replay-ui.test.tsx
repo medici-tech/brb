@@ -243,6 +243,35 @@ describe("campaign replay UI", () => {
         'img[src="/assets/brb/control-room/rooms/records-office.png"]',
       ),
     ).not.toBeNull();
+    expect(
+      document.querySelectorAll('[data-room-object="evidence-shelf"]'),
+    ).toHaveLength(0);
+  });
+
+  it("physically fills records shelves as recovered run knowledge grows", () => {
+    const archive = createEmptyArchive();
+    archive.processedRunIds = ["run-one", "run-two"];
+
+    render(<ArchiveView archive={archive} onBack={vi.fn()} />);
+
+    expect(
+      document.querySelectorAll('[data-room-object="evidence-shelf"]'),
+    ).toHaveLength(2);
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/environment/records-shelf-sparse.png"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/environment/records-shelf-full.png"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/environment/records-shelf-overflow.png"]',
+      ),
+    ).toBeNull();
   });
 
   it("reveals only witnessed Archive choice labels and encounter counts", () => {
@@ -276,6 +305,9 @@ describe("campaign replay UI", () => {
     expect(screen.queryByText(/narrative weight/i)).not.toBeInTheDocument();
     expect(
       document.querySelectorAll('[data-room-object="evidence-load"]'),
+    ).toHaveLength(3);
+    expect(
+      document.querySelectorAll('[data-room-object="evidence-shelf"]'),
     ).toHaveLength(3);
     fireEvent.click(screen.getByRole("button", { name: /test this theory/i }));
     fireEvent.click(screen.getByRole("button", { name: /open a new file/i }));

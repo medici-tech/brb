@@ -27,9 +27,12 @@ type ControlRoomPresentationProps = {
 
 type RoomLighting = "calm" | "strained" | "crisis" | "failure";
 
-function at(x: number, y: number): GridPoint {
-  return { x, y };
-}
+/**
+ * Tile anchors are declared once on the room definition. Read them here rather
+ * than repeating literals, so a moved anchor moves the sprite with it.
+ */
+const FACILITY = ROOM_DEFINITIONS.facility;
+const AT = FACILITY.anchors;
 
 function resolveLighting(model: PresentationModel): RoomLighting {
   if (
@@ -62,7 +65,7 @@ function brbLayers(stage: BrbVisualStage): RoomLayer[] {
       id: "brb-infrastructure",
       kind: "brb-machinery",
       artKey: "envInfrastructureToolbox",
-      position: at(14, 2),
+      position: AT.brbMachine,
       frameOffset: stage === "infrastructure" ? 0 : 7,
     },
   ];
@@ -72,7 +75,7 @@ function brbLayers(stage: BrbVisualStage): RoomLayer[] {
       id: "brb-server-a",
       kind: "brb-machinery",
       artKey: "monitorServer",
-      position: at(17, 2),
+      position: AT.brbServerA,
     });
   }
   if (stage === "unstable" || stage === "activation-ready") {
@@ -80,7 +83,7 @@ function brbLayers(stage: BrbVisualStage): RoomLayer[] {
       id: "brb-server-b",
       kind: "brb-machinery",
       artKey: "monitorServer",
-      position: at(19, 2),
+      position: AT.brbServerB,
       frameOffset: stage === "unstable" ? 2 : 1,
     });
   }
@@ -89,7 +92,7 @@ function brbLayers(stage: BrbVisualStage): RoomLayer[] {
       id: "brb-activation-bank",
       kind: "brb-activation",
       artKey: "monitorScreens",
-      position: at(14, 1),
+      position: AT.serverBank,
       frameOffset: 5,
     });
   }
@@ -105,7 +108,7 @@ function clutterLayers(paperLoad: PaperLoad): RoomLayer[] {
       id: "evidence-load-a",
       kind: "evidence-clutter",
       artKey: "envSecureSafe",
-      position: at(2, 8),
+      position: AT.clutterA,
       frameOffset: 2,
     },
   ];
@@ -114,7 +117,7 @@ function clutterLayers(paperLoad: PaperLoad): RoomLayer[] {
       id: "equipment-load",
       kind: "equipment-clutter",
       artKey: "envInfrastructureToolbox",
-      position: at(8, 7),
+      position: AT.equipmentClutter,
       frameOffset: 7,
     });
   }
@@ -123,7 +126,7 @@ function clutterLayers(paperLoad: PaperLoad): RoomLayer[] {
       id: "evidence-load-b",
       kind: "evidence-clutter",
       artKey: "envSecureSafe",
-      position: at(10, 8),
+      position: AT.clutterB,
       frameOffset: 4,
     });
   }
@@ -145,7 +148,7 @@ function persistentLayers(model: PresentationModel): RoomLayer[] {
       id: "corporation-door",
       kind: "corporation-presence",
       artKey: "envCorporateDoor",
-      position: at(17, 1),
+      position: AT.corporationDoor,
       frameOffset: corporationPresence === "embedded" ? 7 : 0,
     });
   }
@@ -154,7 +157,7 @@ function persistentLayers(model: PresentationModel): RoomLayer[] {
       id: "corporation-terminal",
       kind: "corporation-presence",
       artKey: "monitorServer",
-      position: at(19, 2),
+      position: AT.corporationTerminal,
       frameOffset: 2,
     });
   }
@@ -164,7 +167,7 @@ function persistentLayers(model: PresentationModel): RoomLayer[] {
       id: "damage-a",
       kind: "architectural-damage",
       artKey: "envInfrastructureToolbox",
-      position: at(1, 8),
+      position: AT.damageA,
       frameOffset: 11,
     });
   }
@@ -173,7 +176,7 @@ function persistentLayers(model: PresentationModel): RoomLayer[] {
       id: "damage-b",
       kind: "architectural-damage",
       artKey: "envSecureSafe",
-      position: at(19, 8),
+      position: AT.damageB,
       frameOffset: 5,
     });
   }
@@ -188,9 +191,9 @@ function roomActors(model: PresentationModel): RoomActor[] {
     artKey: RoomActor["artKey"];
     position: GridPoint;
   }[] = [
-    { id: "analyst", artKey: "staffAnalystIdle", position: at(3, 6) },
-    { id: "fixer", artKey: "staffOperatorIdle", position: at(8, 6) },
-    { id: "steward", artKey: "staffStewardIdle", position: at(10, 6) },
+    { id: "analyst", artKey: "staffAnalystIdle", position: AT.analyst },
+    { id: "fixer", artKey: "staffOperatorIdle", position: AT.operator },
+    { id: "steward", artKey: "staffStewardIdle", position: AT.steward },
   ];
 
   for (const person of staff) {
@@ -215,7 +218,7 @@ function roomActors(model: PresentationModel): RoomActor[] {
     actors.push({
       id: "corporation-officer",
       artKey: "staffStewardIdle",
-      position: at(18, 4),
+      position: AT.corporationOfficer,
       motion: "observe",
     });
   }
@@ -228,7 +231,7 @@ function roomActors(model: PresentationModel): RoomActor[] {
       artKey: rightward
         ? "staffCrossingWalkRight"
         : "staffCrossingWalkLeft",
-      position: rightward ? at(2, 11) : at(19, 11),
+      position: rightward ? AT.corridorLeft : AT.corridorRight,
       motion: rightward ? "corridor-right" : "corridor-left",
     });
   }
@@ -267,7 +270,7 @@ export function ControlRoomPresentation({
       id: "monitor-bank",
       kind: "monitor-bank",
       artKey: "monitorScreens",
-      position: at(3, 1),
+      position: AT.monitorBank,
       frameOffset: model.state === "institutional-failure" ? 0 : 4,
       hidden: model.state === "institutional-failure",
     },
@@ -275,7 +278,7 @@ export function ControlRoomPresentation({
       id: "security-camera",
       kind: "security-camera",
       artKey: "envSecurityCamera",
-      position: at(11, 1),
+      position: AT.securityCamera,
       frameOffset: 4,
     },
     ...brbLayers(model.brbStage),
@@ -322,7 +325,7 @@ export function ControlRoomPresentation({
       data-tempo={model.tempo}
     >
       <PixelRoom
-        definition={ROOM_DEFINITIONS.facility}
+        definition={FACILITY}
         ariaLabel={roomAriaLabel}
         actors={actors}
         layers={layers}
