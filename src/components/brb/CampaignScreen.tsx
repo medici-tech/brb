@@ -25,6 +25,7 @@ import {
   derivePresentationInputs,
   resolvePresentationModel,
 } from "./control-room/presentationStateResolver";
+import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
@@ -106,26 +107,40 @@ export function CampaignScreen({
     {
       label: "Stress",
       value: `${state.pressures.stress} / 100`,
-      helper: "At 80+, administrative overload drains 4 Trust every month.",
       tone: state.pressures.stress >= 75 ? "critical" : "neutral",
     },
     {
       label: "Panic",
       value: `${state.pressures.panic} / 100`,
-      helper: "At 100, public order collapses and the campaign ends.",
       tone: state.pressures.panic >= 75 ? "critical" : "neutral",
     },
     {
       label: "Institutions",
       value: `${state.institutions} / 100`,
-      helper: "At 0, the state collapses. Protection can restore this meter.",
       tone: state.institutions <= 25 ? "critical" : "neutral",
     },
     {
       label: "Corporation Progress",
       value: `${state.corporation.progress} / 100`,
-      helper: "At 100, the Corporation wins. At 80+, activation risks capture.",
       tone: state.corporation.progress >= 75 ? "critical" : "neutral",
+    },
+  ];
+  const pressureThresholds = [
+    {
+      label: "Stress",
+      explanation: "At 80+, administrative overload drains 4 Trust every month.",
+    },
+    {
+      label: "Panic",
+      explanation: "At 100, public order collapses and the campaign ends.",
+    },
+    {
+      label: "Institutions",
+      explanation: "At 0, the state collapses. Protection can restore this meter.",
+    },
+    {
+      label: "Corporation Progress",
+      explanation: "At 100, the Corporation wins. At 80+, activation risks capture.",
     },
   ];
   const resourceStats: BrbStat[] = RESOURCE_KEYS.map((key) => ({
@@ -164,6 +179,7 @@ export function CampaignScreen({
         </div>
         <div className="header-actions">
           <HowToPlayDialog />
+          <CreditsDialog />
           {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
           {onOpenPlaytest ? (
             <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>
@@ -173,6 +189,41 @@ export function CampaignScreen({
           <button className="text-button" type="button" onClick={onOpenArchive}>Archive</button>
         </div>
       </header>
+
+      {error ? <p role="alert" className="bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
+
+      <section className="mobile-situation-brief mb-2 hidden border-l-4 border-destructive bg-[color:var(--paper-200)] px-4 py-3.5 text-dossier-ink max-[650px]:block" aria-label="Current Situation">
+        <p className="file-label">
+          {card ? "CURRENT SITUATION" : "SITUATION DECK · STANDBY"}
+        </p>
+        <h1 className="brb-display my-1 text-2xl leading-none font-semibold">{card?.title ?? "No active file"}</h1>
+        <p className="m-0 text-xs leading-5 text-dossier-ink/75">
+          {card?.description
+            ?? "The desk is quiet. Choose where to commit the administration."}
+        </p>
+      </section>
+
+      <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
+        <CampaignSituationWorkspace
+          state={state}
+          card={card}
+          recommendation={recommendation}
+          model={controlRoomModel}
+          resolvedEchoTypes={resolvedEchoTypes}
+          workspaceRef={situationWorkspaceRef}
+          onCommit={onCommit}
+        />
+
+        <aside className="operations-column">
+          <BrbTracksPanel
+            state={state}
+            recommendation={recommendation}
+            activeCardTitle={card?.title ?? null}
+            canActivate={canActivate}
+            onCommit={onCommit}
+          />
+        </aside>
+      </div>
 
       {state.experiment ? (
         <GuidedObjective
@@ -209,8 +260,6 @@ export function CampaignScreen({
           <ul>{guidedObjective.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
         </GuidedObjective>
       ) : null}
-      {error ? <p role="alert" className="bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
-
       {onboarding ? (
         <GuidedObjective
           className="first-turn-guide mb-2.5"
@@ -222,24 +271,28 @@ export function CampaignScreen({
         />
       ) : null}
 
-      <MetricStrip
-        className="state-pressure-strip mb-2"
-        columns={4}
-        label="State pressure"
-        stats={pressureStats}
-        tabIndex={0}
-      />
-
-      <section className="mobile-situation-brief mb-2 hidden border-l-4 border-destructive bg-[color:var(--paper-200)] px-4 py-3.5 text-dossier-ink max-[650px]:block" aria-label="Current Situation">
-        <p className="file-label">
-          {card ? "CURRENT SITUATION" : "SITUATION DECK · STANDBY"}
-        </p>
-        <h1 className="brb-display my-1 text-2xl leading-none font-semibold">{card?.title ?? "No active file"}</h1>
-        <p className="m-0 text-xs leading-5 text-dossier-ink/75">
-          {card?.description
-            ?? "The desk is quiet. Choose where to commit the administration."}
-        </p>
-      </section>
+      <div className="state-pressure-rail mt-3 mb-2" aria-label="State pressure">
+        <MetricStrip
+          className="state-pressure-strip"
+          columns={4}
+          label="Pressure meters"
+          stats={pressureStats}
+          tabIndex={0}
+        />
+        <details className="meter-guide mt-1.5 text-[11px] text-muted-foreground">
+          <summary className="inline-block cursor-pointer border-b border-muted-foreground">
+            What do these pressure thresholds mean?
+          </summary>
+          <dl className="mt-2.5 grid gap-px bg-border md:grid-cols-4">
+            {pressureThresholds.map((item) => (
+              <div className="bg-[color:var(--console-600)] p-3" key={item.label}>
+                <dt className="font-bold text-foreground">{item.label}</dt>
+                <dd className="mt-1 mb-0 leading-5">{item.explanation}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      </div>
 
       <MetricStrip
         className="metric-strip mb-2"
@@ -262,28 +315,6 @@ export function CampaignScreen({
         onConsult={onConsult}
       />
 
-      <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
-        <CampaignSituationWorkspace
-          state={state}
-          card={card}
-          recommendation={recommendation}
-          model={controlRoomModel}
-          resolvedEchoTypes={resolvedEchoTypes}
-          workspaceRef={situationWorkspaceRef}
-          onCommit={onCommit}
-        />
-
-        <aside className="operations-column">
-          <BrbTracksPanel
-            state={state}
-            recommendation={recommendation}
-            activeCardTitle={card?.title ?? null}
-            canActivate={canActivate}
-            onCommit={onCommit}
-          />
-        </aside>
-      </div>
-
       <section className="lower-grid">
         <OtherCommitmentsPanel
           state={state}
@@ -301,6 +332,7 @@ export function CampaignScreen({
         onContinue={continueToBriefing}
         open={transitionDecisionId === latestDecisionId}
         resolution={state.lastTurnResolution}
+        state={state}
       />
     </main>
   );

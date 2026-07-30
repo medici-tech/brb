@@ -2,11 +2,16 @@
 
 import { useEffect, useRef } from "react";
 import type { GameState } from "../../game/types";
+import { deriveTurnBeats } from "../../game/turn-beats";
 import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation";
 import {
   derivePresentationInputs,
   resolvePresentationModel,
 } from "./control-room/presentationStateResolver";
+import { NarrativeAftermath } from "./narrative/NarrativeAftermath";
+import { NARRATIVE_SCENE_REGISTRY } from "./narrative/sceneRegistry";
+import { resolveNarrativeSceneCues } from "./narrative/sceneResolver";
+import { CreditsDialog } from "./CreditsDialog";
 import styles from "./EndingTableauView.module.css";
 
 type Props = {
@@ -29,6 +34,11 @@ export function EndingTableauView({ state, onOpenReport }: Props) {
       ending: ending?.id ?? null,
     }),
   );
+  const narrativeCues = resolveNarrativeSceneCues(
+    state,
+    NARRATIVE_SCENE_REGISTRY,
+  );
+  const turnBeats = deriveTurnBeats(state, state.lastTurnResolution);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -40,7 +50,10 @@ export function EndingTableauView({ state, onOpenReport }: Props) {
     <main className={styles.shell} data-ending-tableau={ending.id}>
       <header className={styles.masthead}>
         <p>FCD · FINAL CONTROL-ROOM RECORD</p>
-        <span>{state.runId}</span>
+        <div className="header-actions">
+          <CreditsDialog />
+          <span>{state.runId}</span>
+        </div>
       </header>
 
       <section
@@ -70,6 +83,9 @@ export function EndingTableauView({ state, onOpenReport }: Props) {
           </button>
         </div>
       </section>
+      {narrativeCues.length > 0 ? (
+        <NarrativeAftermath cues={narrativeCues} turnBeats={turnBeats} />
+      ) : null}
     </main>
   );
 }

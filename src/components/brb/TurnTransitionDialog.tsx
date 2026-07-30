@@ -10,8 +10,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCampaignTime } from "../../game/progression";
-import type { EchoType, TurnBeat as TurnBeatModel, TurnResolution } from "../../game/types";
+import type {
+  EchoType,
+  GameState,
+  TurnBeat as TurnBeatModel,
+  TurnResolution,
+} from "../../game/types";
 import { LastTurnResult } from "./LastTurnResult";
+import { NarrativeAftermath } from "./narrative/NarrativeAftermath";
+import { NARRATIVE_SCENE_REGISTRY } from "./narrative/sceneRegistry";
+import { resolveNarrativeSceneCues } from "./narrative/sceneResolver";
 import { TurnBeat, TurnBeatSequence } from "./ui";
 
 const BEAT_LABELS: Record<TurnBeatModel["kind"], string> = {
@@ -28,6 +36,7 @@ type Props = {
   onContinue: () => void;
   open: boolean;
   resolution: TurnResolution | null;
+  state: GameState;
 };
 
 export function TurnTransitionDialog({
@@ -37,13 +46,18 @@ export function TurnTransitionDialog({
   onContinue,
   open,
   resolution,
+  state,
 }: Props) {
   if (!resolution) return null;
+  const narrativeCues = resolveNarrativeSceneCues(
+    state,
+    NARRATIVE_SCENE_REGISTRY,
+  );
 
   return (
     <Dialog open={open}>
       <DialogContent
-        className="brb-paper-texture max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] min-w-0 max-w-3xl overflow-x-hidden overflow-y-auto rounded-sm border-dossier-ink/60 bg-dossier text-dossier-ink shadow-[10px_10px_0_rgba(0,0,0,0.5)] [&>*]:min-w-0 [&>*]:max-w-full [&_h2]:break-words [&_p]:break-words"
+        className="brb-paper-texture max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] min-w-0 max-w-5xl overflow-x-hidden overflow-y-auto rounded-sm border-dossier-ink/60 bg-dossier text-dossier-ink shadow-[10px_10px_0_rgba(0,0,0,0.5)] [&>*]:min-w-0 [&>*]:max-w-full [&_h2]:break-words [&_p]:break-words"
         showCloseButton={false}
       >
         <DialogHeader className="min-w-0">
@@ -58,6 +72,9 @@ export function TurnTransitionDialog({
             may need to solve.
           </DialogDescription>
         </DialogHeader>
+        {narrativeCues.length > 0 ? (
+          <NarrativeAftermath cues={narrativeCues} turnBeats={beats} />
+        ) : null}
         {beats.length > 0 ? (
           <section aria-label="Commitment outcome" aria-live="polite">
             <TurnBeatSequence className="mt-1.5">

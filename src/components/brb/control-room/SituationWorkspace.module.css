@@ -1,10 +1,11 @@
 .situationWorkspace {
   position: relative;
+  display: grid;
+  /* Desktop: scene band is a major playfield; dossier docks below with overlap. */
+  grid-template-rows: clamp(220px, 32vh, 420px) auto;
   width: 100%;
   min-height: 0;
-  aspect-ratio: 16 / 10;
-  max-height: 560px;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
   color: var(--cream);
   border: 1px solid var(--console-line);
@@ -18,12 +19,18 @@
   outline: none;
 }
 
+.sceneStage {
+  position: relative;
+  min-height: 220px;
+  overflow: hidden;
+  background: var(--console-900);
+}
+
 .noActiveFile {
-  position: absolute;
+  position: relative;
   z-index: 10;
-  top: 43%;
-  left: 3.5%;
-  width: min(38%, 330px);
+  width: min(42%, 360px);
+  margin: -72px 0 20px 3.5%;
   padding: 16px 18px;
   color: var(--dossier-ink);
   border: 1px solid rgba(245, 234, 214, 0.7);
@@ -52,21 +59,40 @@
 .activeFile {
   position: relative;
   z-index: 10;
-  width: calc(100% - clamp(24px, 5vw, 72px));
-  min-height: calc(min(62.5vw, 560px) - clamp(24px, 5vw, 72px));
-  margin: clamp(12px, 2.5vw, 36px);
+  width: calc(100% - clamp(24px, 4vw, 56px));
+  min-height: 0;
+  margin: -84px clamp(12px, 2vw, 28px) 16px;
   padding: 0;
   box-shadow: var(--shadow-lift-sheet);
 }
 
+.activeFile > div {
+  padding: clamp(20px, 2.5vw, 32px);
+}
+
+.activeFile header {
+  gap: 12px;
+}
+
+.activeFile h1 {
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.activeFile header p:not(:first-child) {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
 .activeFileBody {
-  margin-top: 24px;
+  margin-top: 12px;
+  padding-top: 14px;
 }
 
 .choiceList {
   display: grid;
-  gap: 10px;
-  margin: 28px 0;
+  gap: 8px;
+  margin: 12px 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -91,7 +117,7 @@
   position: relative;
   z-index: 10;
   width: min(72%, 720px);
-  margin: 370px auto 28px;
+  margin: 12px auto 28px;
   padding: 18px;
   color: var(--paper-ink);
   border: 1px solid var(--paper-100);
@@ -101,27 +127,39 @@
 
 @media (max-width: 900px) {
   .situationWorkspace {
-    aspect-ratio: 4 / 3;
-    max-height: none;
+    grid-template-rows: minmax(220px, 32vh) auto;
+  }
+
+  .sceneStage {
+    min-height: 220px;
   }
 
   .noActiveFile {
-    width: 46%;
+    width: 52%;
   }
 }
 
 @media (max-width: 650px) {
+  /* Narrow: dossier-first reading order; scene is a reduced in-flow crop. */
   .situationWorkspace {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
-    aspect-ratio: auto;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
-  /* The room is an in-flow band on narrow screens, so the standby card flows
-     BELOW it instead of floating at 42% — absolute positioning here dropped the
-     card straight on top of the art and buried its own second line. */
+  .sceneStage {
+    order: -1;
+    min-height: 0;
+  }
+
+  .situationWorkspace[data-situation="active"] .sceneStage {
+    /* Active Situation keeps the shorter monitor-only crop from roomState. */
+    max-height: 120px;
+  }
+
   .noActiveFile {
     position: relative;
     top: auto;

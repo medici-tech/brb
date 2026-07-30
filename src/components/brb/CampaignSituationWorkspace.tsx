@@ -39,12 +39,15 @@ export function CampaignSituationWorkspace({
       aria-label="Situation workspace"
       tabIndex={-1}
       className={workspaceStyles.situationWorkspace}
+      data-situation={card ? "active" : "standby"}
     >
-      <ControlRoomPresentation
-        model={model}
-        turn={state.turn}
-        hasActiveSituation={Boolean(card)}
-      />
+      <div className={workspaceStyles.sceneStage} data-room-stage="">
+        <ControlRoomPresentation
+          model={model}
+          turn={state.turn}
+          hasActiveSituation={Boolean(card)}
+        />
+      </div>
       {card ? (
         <DossierPanel
           key={card.id}
@@ -66,6 +69,7 @@ export function CampaignSituationWorkspace({
                 recommendation={recommendation}
                 activeCardTitle={card.title}
                 onCommit={onCommit}
+                compact
               />
             ))}
           </div>

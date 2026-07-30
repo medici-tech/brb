@@ -360,6 +360,7 @@ button { font: inherit; }
   .campaign-shell > .masthead { order: 0; }
   .campaign-shell > .first-turn-guide { order: 1; }
   .campaign-shell > .state-pressure-strip { order: 2; }
+  .campaign-shell > .state-pressure-rail { order: 2; }
   .campaign-shell > .mobile-situation-brief { order: 3; }
   .campaign-shell > .campaign-consultation { order: 4; }
   .campaign-shell > .campaign-grid { order: 5; }
