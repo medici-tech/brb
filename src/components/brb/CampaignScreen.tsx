@@ -29,6 +29,12 @@ import { HowToPlayDialog } from "./HowToPlayDialog";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
 import { TurnTransitionDialog } from "./TurnTransitionDialog";
+import {
+  ConsolePanel,
+  GuidedObjective,
+  MetricStrip,
+  type BrbStat,
+} from "./ui";
 
 type Props = {
   state: GameState;
@@ -96,6 +102,38 @@ export function CampaignScreen({
   const equippedDirective = state.legacyDirective.equippedId
     ? LEGACY_DIRECTIVES[state.legacyDirective.equippedId]
     : null;
+  const pressureStats: BrbStat[] = [
+    {
+      label: "Stress",
+      value: `${state.pressures.stress} / 100`,
+      helper: "At 80+, administrative overload drains 4 Trust every month.",
+      tone: state.pressures.stress >= 75 ? "critical" : "neutral",
+    },
+    {
+      label: "Panic",
+      value: `${state.pressures.panic} / 100`,
+      helper: "At 100, public order collapses and the campaign ends.",
+      tone: state.pressures.panic >= 75 ? "critical" : "neutral",
+    },
+    {
+      label: "Institutions",
+      value: `${state.institutions} / 100`,
+      helper: "At 0, the state collapses. Protection can restore this meter.",
+      tone: state.institutions <= 25 ? "critical" : "neutral",
+    },
+    {
+      label: "Corporation Progress",
+      value: `${state.corporation.progress} / 100`,
+      helper: "At 100, the Corporation wins. At 80+, activation risks capture.",
+      tone: state.corporation.progress >= 75 ? "critical" : "neutral",
+    },
+  ];
+  const resourceStats: BrbStat[] = RESOURCE_KEYS.map((key) => ({
+    label: RESOURCE_LABELS[key],
+    value: state.resources[key],
+    maximum: 100,
+    tone: "stable",
+  }));
 
   useEffect(() => {
     if (!latestDecisionId || previousDecisionIdRef.current === latestDecisionId) return;
@@ -137,86 +175,83 @@ export function CampaignScreen({
       </header>
 
       {state.experiment ? (
-        <aside className="objective compact"><span>NEXT-RUN THEORY</span>{state.experiment}</aside>
+        <GuidedObjective
+          className="mb-5"
+          eyebrow="NEXT-RUN THEORY"
+          title={state.experiment}
+          description=""
+          compact
+        />
       ) : null}
       {equippedDirective ? (
-        <aside className={`campaign-directive ${state.legacyDirective.used ? "used" : ""}`}>
-          <div>
+        <ConsolePanel className={`my-3 border-l-4 border-l-signal py-3.5 ${state.legacyDirective.used ? "opacity-60" : ""}`} label="Legacy Directive">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
             <p className="file-label">LEGACY DIRECTIVE · {equippedDirective.rarity}</p>
-            <h2>{equippedDirective.title}</h2>
+              <h2 className="brb-display m-0 text-xl leading-none font-semibold">{equippedDirective.title}</h2>
+            </div>
+            <p className="m-0 text-xs leading-5 text-muted-foreground">
+              {state.legacyDirective.used
+                ? "Authorization spent for this campaign."
+                : `${equippedDirective.benefit} · ${equippedDirective.warning} · available once`}
+            </p>
           </div>
-          <p>
-            {state.legacyDirective.used
-              ? "Authorization spent for this campaign."
-              : `${equippedDirective.benefit} · ${equippedDirective.warning} · available once`}
-          </p>
-        </aside>
+        </ConsolePanel>
       ) : null}
       {guidedObjective ? (
-        <aside className="guided-objective" aria-labelledby="guided-objective-title">
-          <div>
-            <p className="file-label">ACTIVE PLAYTEST DIRECTIVE</p>
-            <h2 id="guided-objective-title">{guidedObjective.label}</h2>
-            <p>{guidedObjective.strategy}</p>
-          </div>
+        <GuidedObjective
+          className="mb-5"
+          eyebrow="ACTIVE PLAYTEST DIRECTIVE"
+          title={guidedObjective.label}
+          titleId="guided-objective-title"
+          description={guidedObjective.strategy}
+        >
           <ul>{guidedObjective.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
-        </aside>
+        </GuidedObjective>
       ) : null}
-      {error ? <p role="alert" className="error-banner">{error}</p> : null}
+      {error ? <p role="alert" className="bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
 
       {onboarding ? (
-        <section className="first-turn-guide" aria-labelledby="first-turn-title">
-          <p className="file-label">{onboarding.label} · BRIEF {state.turn} OF 3</p>
-          <div>
-            <h2 id="first-turn-title">{onboarding.title}</h2>
-            <p>{onboarding.copy}</p>
-          </div>
-        </section>
+        <GuidedObjective
+          className="first-turn-guide mb-2.5"
+          eyebrow={`${onboarding.label} · BRIEF ${state.turn} OF 3`}
+          title={onboarding.title}
+          titleId="first-turn-title"
+          description={onboarding.copy}
+          compact
+        />
       ) : null}
 
-      <section className="state-pressure-strip" aria-label="State pressure" tabIndex={0}>
-        <article className={state.pressures.stress >= 75 ? "danger-metric" : ""}>
-          <span>Stress</span><strong>{state.pressures.stress} / 100</strong>
-          <p>At 80+, administrative overload drains 4 Trust every month.</p>
-        </article>
-        <article className={state.pressures.panic >= 75 ? "danger-metric" : ""}>
-          <span>Panic</span><strong>{state.pressures.panic} / 100</strong>
-          <p>At 100, public order collapses and the campaign ends.</p>
-        </article>
-        <article className={state.institutions <= 25 ? "danger-metric" : ""}>
-          <span>Institutions</span><strong>{state.institutions} / 100</strong>
-          <p>At 0, the state collapses. Protection can restore this meter.</p>
-        </article>
-        <article className={state.corporation.progress >= 75 ? "danger-metric" : ""}>
-          <span>Corporation Progress</span><strong>{state.corporation.progress} / 100</strong>
-          <p>At 100, the Corporation wins. At 80+, activation risks capture.</p>
-        </article>
-      </section>
+      <MetricStrip
+        className="state-pressure-strip mb-2"
+        columns={4}
+        label="State pressure"
+        stats={pressureStats}
+        tabIndex={0}
+      />
 
-      <section className="mobile-situation-brief" aria-label="Current Situation">
+      <section className="mobile-situation-brief mb-2 hidden border-l-4 border-destructive bg-[color:var(--paper-200)] px-4 py-3.5 text-dossier-ink max-[650px]:block" aria-label="Current Situation">
         <p className="file-label">
           {card ? "CURRENT SITUATION" : "SITUATION DECK · STANDBY"}
         </p>
-        <h1>{card?.title ?? "No active file"}</h1>
-        <p>
+        <h1 className="brb-display my-1 text-2xl leading-none font-semibold">{card?.title ?? "No active file"}</h1>
+        <p className="m-0 text-xs leading-5 text-dossier-ink/75">
           {card?.description
             ?? "The desk is quiet. Choose where to commit the administration."}
         </p>
       </section>
 
-      <section className="metric-strip" aria-label="Active resources" tabIndex={0}>
-        {RESOURCE_KEYS.map((key) => (
-          <div className="metric" key={key} title={RESOURCE_GUIDANCE[key]}>
-            <span>{RESOURCE_LABELS[key]}</span><strong>{state.resources[key]}</strong>
-            <i style={{ width: `${state.resources[key]}%` }} />
-          </div>
-        ))}
-      </section>
-      <details className="meter-guide">
-        <summary>What do these resources fund?</summary>
-        <dl>
+      <MetricStrip
+        className="metric-strip mb-2"
+        label="Active resources"
+        stats={resourceStats}
+        tabIndex={0}
+      />
+      <details className="meter-guide mb-3 text-[11px] text-muted-foreground">
+        <summary className="inline-block cursor-pointer border-b border-muted-foreground">What do these resources fund?</summary>
+        <dl className="mt-2.5 grid gap-px bg-border md:grid-cols-5">
           {RESOURCE_KEYS.map((key) => (
-            <div key={key}><dt>{RESOURCE_LABELS[key]}</dt><dd>{RESOURCE_GUIDANCE[key]}</dd></div>
+            <div className="bg-[color:var(--console-600)] p-3" key={key}><dt className="font-bold text-foreground">{RESOURCE_LABELS[key]}</dt><dd className="mt-1 mb-0 leading-5">{RESOURCE_GUIDANCE[key]}</dd></div>
           ))}
         </dl>
       </details>

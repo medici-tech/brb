@@ -37,7 +37,11 @@ export function MetricReadout({ stat, className }: MetricReadoutProps) {
   const progress = numericValue !== null && stat.maximum ? Math.min(100, Math.max(0, (numericValue / stat.maximum) * 100)) : null;
   const TrendIcon = stat.trend?.startsWith("+") ? ArrowUpRight : stat.trend?.startsWith("-") ? ArrowDownRight : Minus;
   return (
-    <div className={cn("relative min-w-0 overflow-hidden border border-border bg-console p-4", className)}>
+    <div className={cn(
+      "relative min-w-0 overflow-hidden border border-border bg-console p-4",
+      tone === "critical" && "bg-destructive/10 shadow-[inset_4px_0_0_var(--red-bright)]",
+      className,
+    )}>
       <div className="flex items-start justify-between gap-3">
         <span className="brb-telemetry text-[9px] tracking-[0.14em] text-muted-foreground uppercase">{stat.label}</span>
         {stat.trend ? <span className="brb-telemetry flex items-center text-[10px] text-phosphor"><TrendIcon className="mr-1 size-3" aria-hidden="true" />{stat.trend}</span> : null}
@@ -58,14 +62,18 @@ const metricColumns = {
 export function MetricStrip({
   stats,
   columns = 5,
+  label = "Operational metrics",
+  tabIndex,
   className,
 }: {
   stats: BrbStat[];
   columns?: keyof typeof metricColumns;
+  label?: string;
+  tabIndex?: number;
   className?: string;
 }) {
   return (
-    <section aria-label="Operational metrics" className={cn("grid grid-cols-1 gap-px border border-border bg-border sm:grid-cols-2", metricColumns[columns], className)}>
+    <section aria-label={label} tabIndex={tabIndex} className={cn("grid grid-cols-1 gap-px border border-border bg-border sm:grid-cols-2", metricColumns[columns], className)}>
       {stats.map((stat) => <MetricReadout key={stat.label} stat={stat} className="border-0" />)}
     </section>
   );

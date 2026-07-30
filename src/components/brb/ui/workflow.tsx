@@ -92,6 +92,7 @@ export function JournalSlot({
 type GuidedObjectiveProps = {
   eyebrow: string;
   title: string;
+  titleId?: string;
   description: ReactNode;
   children?: ReactNode;
   compact?: boolean;
@@ -101,6 +102,7 @@ type GuidedObjectiveProps = {
 export function GuidedObjective({
   eyebrow,
   title,
+  titleId,
   description,
   children,
   compact = false,
@@ -117,8 +119,8 @@ export function GuidedObjective({
       )}
     >
       <div>
-        <p className="brb-telemetry m-0 text-[10px] tracking-[0.14em] uppercase opacity-65">{eyebrow}</p>
-        <h2 className="brb-display my-1.5 text-2xl leading-none font-semibold">{title}</h2>
+        <p className="brb-telemetry m-0 text-[10px] tracking-[0.14em] text-dossier-ink/80 uppercase">{eyebrow}</p>
+        <h2 id={titleId} className="brb-display my-1.5 text-2xl leading-none font-semibold">{title}</h2>
         <div className="text-xs leading-5 text-dossier-ink/75">{description}</div>
       </div>
       {children ? <div className="text-xs leading-5 text-dossier-ink/80">{children}</div> : null}

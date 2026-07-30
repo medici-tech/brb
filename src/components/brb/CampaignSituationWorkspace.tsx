@@ -12,6 +12,7 @@ import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation"
 import workspaceStyles from "./control-room/SituationWorkspace.module.css";
 import type { PresentationModel } from "./control-room/presentationStateResolver";
 import { LastTurnResult } from "./LastTurnResult";
+import { DossierPanel } from "./ui";
 
 type Props = {
   state: GameState;
@@ -37,7 +38,7 @@ export function CampaignSituationWorkspace({
       ref={workspaceRef}
       aria-label="Situation workspace"
       tabIndex={-1}
-      className={`situation-panel ${workspaceStyles.situationWorkspace}`}
+      className={workspaceStyles.situationWorkspace}
     >
       <ControlRoomPresentation
         model={model}
@@ -45,20 +46,17 @@ export function CampaignSituationWorkspace({
         hasActiveSituation={Boolean(card)}
       />
       {card ? (
-        <div
+        <DossierPanel
           key={card.id}
-          className={`paper-panel ${workspaceStyles.activeFile}`}
+          className={workspaceStyles.activeFile ?? ""}
+          eyebrow="SITUATION DECK"
+          title={card.title}
+          headingLevel="h1"
+          summary={card.description}
+          classification={`${card.type} · ${card.rarity}`}
+          headerClassName="mobile-duplicate-situation"
+          bodyClassName={workspaceStyles.activeFileBody ?? ""}
         >
-          <div className="panel-heading mobile-duplicate-situation">
-            <div>
-              <p className="file-label">SITUATION DECK</p>
-              <h1>{card.title}</h1>
-            </div>
-            <span className={`classification ${card.rarity}`}>
-              {card.type} · {card.rarity}
-            </span>
-          </div>
-          <p className="situation-copy mobile-duplicate-situation">{card.description}</p>
           <div className={workspaceStyles.choiceList}>
             {card.choices.map((choice) => (
               <CampaignActionControl
@@ -75,7 +73,7 @@ export function CampaignSituationWorkspace({
             resolution={state.lastTurnResolution}
             echoTypes={resolvedEchoTypes}
           />
-        </div>
+        </DossierPanel>
       ) : (
         <>
           <div className={`${workspaceStyles.noActiveFile} mobile-duplicate-situation`}>
