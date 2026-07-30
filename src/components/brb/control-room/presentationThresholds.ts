@@ -19,6 +19,15 @@ export type PresentationThresholds = {
     corporationThreatMinimum: number;
     brbProgressMinimum: number;
   };
+  paperLoad: {
+    workingTurnMinimum: number;
+    burdenedTurnMinimum: number;
+    saturatedTurnMinimum: number;
+  };
+  staffSchedule: {
+    crossingInterval: number;
+    crossingOffset: number;
+  };
 };
 
 /**
@@ -47,5 +56,14 @@ export const PRESENTATION_THRESHOLDS = {
     corporationProgressMinimum: 40,
     corporationThreatMinimum: 50,
     brbProgressMinimum: 50,
+  },
+  paperLoad: {
+    workingTurnMinimum: 4,
+    burdenedTurnMinimum: 9,
+    saturatedTurnMinimum: 16,
+  },
+  staffSchedule: {
+    crossingInterval: 4,
+    crossingOffset: 2,
   },
 } as const satisfies PresentationThresholds;

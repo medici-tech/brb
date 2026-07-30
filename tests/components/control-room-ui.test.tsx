@@ -14,6 +14,16 @@ const calmModel: PresentationModel = {
   focus: "assess",
   brbProgress: 0,
   brbStage: "sealed",
+  shot: "operations",
+  tempo: "ambient",
+  litStation: null,
+  paperLoad: "sparse",
+  endingId: null,
+  staffLayout: {
+    mode: "full",
+    crossingVisible: false,
+    crossingDirection: "left-to-right",
+  },
 };
 
 const originalMatchMedia = window.matchMedia;

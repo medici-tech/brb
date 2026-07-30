@@ -34,6 +34,16 @@ export function ControlRoomPreview() {
     focus: focus === "investigate" ? "investigate" : "assess",
     brbProgress: progress,
     brbStage: getBrbVisualStage(progress),
+    shot: activeSituation ? "situation" : "operations",
+    tempo: activeSituation ? "reading" : "ambient",
+    litStation: null,
+    paperLoad: "sparse",
+    endingId: null,
+    staffLayout: {
+      mode: "full",
+      crossingVisible: !activeSituation,
+      crossingDirection: "left-to-right",
+    },
   };
 
   return (
