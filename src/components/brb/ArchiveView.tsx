@@ -6,6 +6,7 @@ import {
   type EndingId,
   type RouteId,
 } from "../../game/types";
+import { CreditsDialog } from "./CreditsDialog";
 import {
   ConsolePanel,
   DossierPanel,
@@ -28,7 +29,10 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
     <main className="shell">
       <header className="masthead">
         <div><p className="eyebrow">INTELLIGENCE ARCHIVE v1</p><strong>{archive.processedRunIds.length} files processed</strong></div>
-        <button className="text-button" onClick={onBack}>{backLabel}</button>
+        <div className="header-actions">
+          <CreditsDialog />
+          <button className="text-button" onClick={onBack}>{backLabel}</button>
+        </div>
       </header>
 
       <DossierPanel

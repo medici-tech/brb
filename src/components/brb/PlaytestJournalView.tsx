@@ -6,6 +6,7 @@ import { serializePlaytestJournal, summarizePlaytestJournal } from "../../playte
 import type { PlaytestJournalV1 } from "../../playtest/types";
 import { Button } from "../ui/button";
 import { ConfirmActionDialog } from "./ui/decisions";
+import { CreditsDialog } from "./CreditsDialog";
 import {
   ConsolePanel,
   DossierPanel,
@@ -77,7 +78,10 @@ export function PlaytestJournalView({
           <p className="eyebrow">GUIDED INTERNAL PLAYTEST · {journal.buildId}</p>
           <strong>{summary.completedSlots} / {summary.totalSlots} matrix runs complete</strong>
         </div>
-        <button className="text-button" type="button" onClick={onBack}>Return</button>
+        <div className="header-actions">
+          <CreditsDialog />
+          <button className="text-button" type="button" onClick={onBack}>Return</button>
+        </div>
       </header>
 
       <DossierPanel

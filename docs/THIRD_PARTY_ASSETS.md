@@ -18,6 +18,8 @@ The font packages are not runtime or development dependencies. Their selected fi
 
 BRB's pixel art comes from **LimeZu** (https://limezu.itch.io): the *Modern Interiors*, *Modern Exteriors*, and *Character Generator* **full-version** packs. Credit to LimeZu (limezu.itch.io) is required by their license.
 
+Player-facing screens expose a **Credits** dialog that lists only the LimeZu packs currently represented by `src/game-art/manifest.ts` (via `src/game-art/credits.ts`). Packs owned but unused by the runtime manifest stay out of the dialog until curated keys map to them.
+
 These packs are **never committed to this repository.** The full-version license permits commercial use but **prohibits redistribution**, and this repo is public. The handling model:
 
 - Purchased source packs live locally under `BRB Assets/` (gitignored); they are the local source of truth and are never committed.

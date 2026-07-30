@@ -14,6 +14,7 @@ import {
   type ReplayIntent,
 } from "../../game/types";
 import { Button } from "../ui/button";
+import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import {
   ArchetypeCard,
@@ -58,6 +59,7 @@ export function StartScreen({
         <p className="eyebrow">Federal Continuity Directorate · File BRB-01</p>
         <div className="header-actions">
           <HowToPlayDialog />
+          <CreditsDialog />
           {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Internal Playtest</button> : null}
           <button className="text-button" type="button" onClick={onOpenArchive}>Intelligence Archive</button>
         </div>

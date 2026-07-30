@@ -13,6 +13,7 @@ import {
 import type { BookmarkInput } from "../../playtest/journal";
 import type { PlaytestRecap, PlaytestRunEntry } from "../../playtest/types";
 import { Button } from "../ui/button";
+import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
 import { PlaytestRecapForm } from "./PlaytestRecapForm";
@@ -72,6 +73,7 @@ export function DeclassifiedReportView({
         <p className="eyebrow">Declassification Authority · {report.runId}</p>
         <div className="header-actions">
           <HowToPlayDialog />
+          <CreditsDialog />
           {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
           {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Internal Playtest</button> : null}
           <button className="text-button" type="button" onClick={onArchive}>Intelligence Archive</button>
