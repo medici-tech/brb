@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SITUATION_CARDS } from "../../src/game/content.js";
-import { createGame } from "../../src/game/engine.js";
+import { commitAction, createGame } from "../../src/game/engine.js";
 import { emptyDecision } from "../../src/game/state-helpers.js";
 import {
   ACTION_SCENE_SCRIPTS,
@@ -21,6 +21,7 @@ import {
 import { NARRATIVE_SCENE_IDS } from "../../src/components/brb/narrative/sceneTypes.js";
 import type {
   DecisionRecord,
+  DecisionSubject,
   GameState,
   ResolvedEffect,
   StateDelta,
@@ -57,8 +58,9 @@ function decision(
   summary: string,
   cardId: string | null = null,
   choiceId: string | null = null,
+  subject: DecisionSubject | null = null,
 ): DecisionRecord {
-  return emptyDecision(state, category, summary, cardId, choiceId);
+  return emptyDecision(state, category, summary, cardId, choiceId, subject);
 }
 
 describe("narrative scene registry", () => {
@@ -131,7 +133,7 @@ describe("narrative scene registry", () => {
 });
 
 describe("narrative scene resolver", () => {
-  it("derives stable semantic keys without renderer state", () => {
+  it("derives stable semantic keys from structured DecisionSubject", () => {
     const state = createGame(902);
     expect(
       getDecisionSceneKey(
@@ -139,6 +141,9 @@ describe("narrative scene resolver", () => {
           state,
           "deposit",
           "Large engineering deposit permanently committed.",
+          null,
+          null,
+          { kind: "deposit", track: "engineering", size: "large" },
         ),
       ),
     ).toBe("action:deposit:engineering:large");
@@ -147,7 +152,14 @@ describe("narrative scene resolver", () => {
         decision(
           state,
           "counter",
-          "The buying influence counter-operation targeted the wrong strategy.",
+          "The counter-operation targeted the wrong strategy.",
+          null,
+          null,
+          {
+            kind: "counter",
+            strategy: "buying_influence",
+            outcome: "wrong",
+          },
         ),
       ),
     ).toBe("action:counter:buying_influence:wrong");
@@ -168,9 +180,40 @@ describe("narrative scene resolver", () => {
           state,
           "advisor",
           "The Fixer received authority to contain the next ignored Situation Card.",
+          null,
+          null,
+          { kind: "consult", advisorId: "fixer" },
         ),
       ),
     ).toBe("consult:fixer");
+  });
+
+  it("keys wrong-strategy counters from engine subjects without summary prose", () => {
+    const initial = createGame(905);
+    initial.activeCardId = null;
+    initial.corporation.strategy = "expanding";
+    initial.resources.intelligence = 20;
+    initial.resources.influence = 20;
+
+    const result = commitAction(initial, {
+      type: "counter_corporation",
+      predictedStrategy: "buying_influence",
+    });
+
+    expect(result.accepted).toBe(true);
+    const recorded = result.state.decisionHistory.at(-1);
+    expect(recorded?.summary).toBe(
+      "The counter-operation targeted the wrong strategy.",
+    );
+    expect(recorded?.subject).toEqual({
+      kind: "counter",
+      strategy: "buying_influence",
+      outcome: "wrong",
+    });
+    expect(getDecisionSceneKey(recorded!)).toBe(
+      "action:counter:buying_influence:wrong",
+    );
+    expect(NARRATIVE_SCENE_REGISTRY[getDecisionSceneKey(recorded!)]).toBeDefined();
   });
 
   it("preserves ignored-card precedence before the selected commitment", () => {
@@ -186,6 +229,9 @@ describe("narrative scene resolver", () => {
       state,
       "institutions",
       "Institutional safeguards were reinforced.",
+      null,
+      null,
+      { kind: "institutions" },
     );
     state.decisionHistory.push(ignored, commitment);
 

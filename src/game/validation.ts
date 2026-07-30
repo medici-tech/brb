@@ -154,6 +154,35 @@ function isCardEncounter(value: unknown): boolean {
   return value.choiceId === null || CARD_CHOICES.get(value.cardId)?.has(value.choiceId) === true;
 }
 
+function isDecisionSubject(value: unknown): boolean {
+  if (value === null) return true;
+  if (!isRecord(value) || !isNonEmptyString(value.kind)) return false;
+  switch (value.kind) {
+    case "card":
+      return isNonEmptyString(value.cardId)
+        && CARD_ID_SET.has(value.cardId)
+        && isNonEmptyString(value.choiceId)
+        && (CARD_CHOICES.get(value.cardId)?.has(value.choiceId) ?? false);
+    case "deposit":
+      return isOneOf(value.track, TRACK_KEYS)
+        && isOneOf(value.size, ["standard", "large"] as const);
+    case "counter":
+      return isOneOf(value.strategy, CORPORATION_STRATEGIES)
+        && isOneOf(value.outcome, ["correct", "wrong"] as const);
+    case "advisor":
+    case "consult":
+      return isOneOf(value.advisorId, ADVISOR_IDS);
+    case "recover":
+      return isOneOf(value.resource, RESOURCE_KEYS);
+    case "faction":
+    case "institutions":
+    case "activate":
+      return true;
+    default:
+      return false;
+  }
+}
+
 function isDecision(value: unknown): boolean {
   if (!isRecord(value)
     || !isNonEmptyString(value.id)
@@ -164,6 +193,8 @@ function isDecision(value: unknown): boolean {
     || !isNullableString(value.choiceId)) {
     return false;
   }
+  // `subject` is additive: absent on legacy saves, null or structured on new ones.
+  if ("subject" in value && !isDecisionSubject(value.subject)) return false;
   if (value.cardId !== null && !CARD_ID_SET.has(value.cardId)) return false;
   const routeLists = [
     value.routesOpened,

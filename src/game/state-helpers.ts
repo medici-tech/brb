@@ -6,6 +6,7 @@ import {
   type AdvisorId,
   type AdvisorState,
   type DecisionRecord,
+  type DecisionSubject,
   type Effects,
   type GameState,
   type StateDelta,
@@ -239,7 +240,13 @@ export function emptyDecision(
   summary: string,
   cardId: string | null = null,
   choiceId: string | null = null,
+  subject: DecisionSubject | null = null,
 ): DecisionRecord {
+  const resolvedSubject =
+    subject
+    ?? (cardId && choiceId
+      ? { kind: "card" as const, cardId, choiceId }
+      : null);
   return {
     id: nextDecisionId(state),
     turn: state.turn,
@@ -247,6 +254,7 @@ export function emptyDecision(
     summary,
     cardId,
     choiceId,
+    subject: resolvedSubject,
     echoHints: [],
     echoTypes: [],
     flagsCreated: [],
@@ -283,8 +291,9 @@ export function recordSimpleDecision(
   before: GameState,
   category: ActionCategory,
   summary: string,
+  subject: DecisionSubject | null = null,
 ): string {
-  const decision = emptyDecision(state, category, summary);
+  const decision = emptyDecision(state, category, summary, null, null, subject);
   populateDecisionImpact(decision, before, state);
   state.decisionHistory.push(decision);
   addHistory(state, "player", summary, { decisionId: decision.id });

@@ -1,5 +1,5 @@
 import { getBrbCompletionPercent } from "@/game/progression";
-import type { DecisionRecord, GameState, TrackKey } from "@/game/types";
+import type { DecisionRecord, DecisionSubject, GameState, TrackKey } from "@/game/types";
 import type {
   NarrativeSceneCue,
   NarrativeSceneScript,
@@ -15,52 +15,37 @@ const TRACK_LABELS: Record<TrackKey, string> = {
   stability: "stability",
 };
 
+function sceneKeyFromSubject(subject: DecisionSubject): string {
+  switch (subject.kind) {
+    case "card":
+      return `card:${subject.cardId}:${subject.choiceId}`;
+    case "deposit":
+      return `action:deposit:${subject.track}:${subject.size}`;
+    case "counter":
+      return `action:counter:${subject.strategy}:${subject.outcome}`;
+    case "advisor":
+      return `action:advisor:${subject.advisorId}`;
+    case "consult":
+      return `consult:${subject.advisorId}`;
+    case "recover":
+      return `action:recover:${subject.resource}`;
+    case "faction":
+      return "action:faction";
+    case "institutions":
+      return "action:institutions";
+    case "activate":
+      return "action:activate";
+  }
+}
+
 export function getDecisionSceneKey(decision: Readonly<DecisionRecord>): string {
+  if (decision.subject) {
+    return sceneKeyFromSubject(decision.subject);
+  }
+
+  // Legacy saves / incomplete records: cards still carry structured IDs.
   if (decision.cardId && decision.choiceId) {
     return `card:${decision.cardId}:${decision.choiceId}`;
-  }
-
-  if (decision.category === "deposit") {
-    const match = /^(Large|Standard) (engineering|access|legitimacy|stability) deposit/.exec(
-      decision.summary,
-    );
-    if (match) {
-      return `action:deposit:${match[2]}:${match[1]?.toLowerCase()}`;
-    }
-  }
-
-  if (decision.category === "counter") {
-    const strategy = /(expanding|infiltrating|discrediting|buying influence)/.exec(
-      decision.summary,
-    )?.[1]?.replace(" ", "_");
-    const outcome = decision.summary.includes("was countered") ? "correct" : "wrong";
-    return strategy
-      ? `action:counter:${strategy}:${outcome}`
-      : `action:counter:unknown:${outcome}`;
-  }
-
-  if (decision.category === "advisor") {
-    if (decision.summary.includes("converted public Trust")) {
-      return "consult:steward";
-    }
-    if (decision.summary.includes("authority to contain")) {
-      return "consult:fixer";
-    }
-    const advisor = decision.summary.startsWith("The Analyst")
-      ? "analyst"
-      : decision.summary.startsWith("The Fixer")
-        ? "fixer"
-        : decision.summary.startsWith("The Steward")
-          ? "steward"
-          : "advisor";
-    return `action:advisor:${advisor}`;
-  }
-
-  if (decision.category === "recover") {
-    const resource = /^(money|influence|intelligence|capacity|trust) was recovered/.exec(
-      decision.summary,
-    )?.[1];
-    return `action:recover:${resource ?? "resource"}`;
   }
 
   return `action:${decision.category}`;

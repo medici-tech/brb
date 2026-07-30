@@ -136,12 +136,13 @@ Six reusable locations provide the top-down RPG vocabulary:
 | Corporate Suite | Corporation counters, money, private influence |
 | Civic Gate | public disorder, trust, access, emergency consequences |
 
-`sceneTypes.ts` is the renderer-neutral contract. The resolver maps canonical
-`DecisionRecord` data to a semantic script key, `sceneRegistry.ts` owns the complete
-catalog, and `NarrativeAftermath.tsx` owns only the current visual step. All 30 card
-choices, all 15 ignored outcomes, and every other supported major commitment subtype
-have deterministic scripts. If art is absent, the same actors, props, and locations
-remain visible as CSS shapes.
+`sceneTypes.ts` is the renderer-neutral contract. The resolver maps structured
+`DecisionRecord.subject` facts (with legacy `cardId`/`choiceId` fallback) to a
+semantic script key — never by parsing summary prose. `sceneRegistry.ts` owns the
+complete catalog, and `NarrativeAftermath.tsx` owns only the current visual step.
+All 30 card choices, all 15 ignored outcomes, and every other supported major
+commitment subtype have deterministic scripts. If art is absent, the same actors,
+props, and locations remain visible as CSS shapes.
 
 The continuity floor also receives persistent visual marks derived from canonical
 state: pressure, institutional damage, Corporation presence, BRB construction,
