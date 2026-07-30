@@ -58,7 +58,7 @@ export function ReportMetadata({
     <dl className={cn("my-8 grid border-y border-[color:var(--paper-line)] sm:grid-cols-2 lg:grid-cols-3", className)}>
       {items.map((item) => (
         <div className="py-4 pr-3" key={item.label}>
-          <dt className="brb-telemetry text-[10px] tracking-[0.1em] text-dossier-ink/60 uppercase">{item.label}</dt>
+          <dt className="brb-telemetry text-[10px] tracking-[0.1em] text-dossier-ink/75 uppercase">{item.label}</dt>
           <dd className="mt-1.5 mb-0 font-bold">{item.value}</dd>
         </div>
       ))}
@@ -69,18 +69,20 @@ export function ReportMetadata({
 export function ReportSection({
   eyebrow,
   title,
+  titleId,
   children,
   className,
 }: {
   eyebrow: string;
   title: ReactNode;
+  titleId?: string;
   children?: ReactNode;
   className?: string;
 }) {
   return (
     <section className={cn("border-b border-[color:var(--paper-line)] py-8", className)}>
       <p className="brb-telemetry m-0 text-[10px] tracking-[0.14em] uppercase opacity-65">{eyebrow}</p>
-      <h2 className="brb-display mt-2.5 mb-0 max-w-3xl text-[clamp(1.75rem,4vw,2.625rem)] leading-none font-semibold">
+      <h2 id={titleId} className="brb-display mt-2.5 mb-0 max-w-3xl text-[clamp(1.75rem,4vw,2.625rem)] leading-none font-semibold">
         {title}
       </h2>
       {children ? <div className="mt-3 text-sm leading-6 text-dossier-ink/75">{children}</div> : null}
@@ -109,9 +111,9 @@ export function ReportStat({
 }) {
   return (
     <article className="bg-[color:var(--paper-200)] p-4">
-      <span className="brb-telemetry text-[9px] tracking-[0.12em] uppercase opacity-60">{label}</span>
+      <span className="brb-telemetry text-[9px] tracking-[0.12em] text-dossier-ink/75 uppercase">{label}</span>
       <strong className="brb-display mt-2 block text-3xl leading-none">{value}</strong>
-      {helper ? <small className="mt-2 block text-[11px] leading-4 opacity-65">{helper}</small> : null}
+      {helper ? <small className="mt-2 block text-[11px] leading-4 text-dossier-ink/75">{helper}</small> : null}
     </article>
   );
 }
