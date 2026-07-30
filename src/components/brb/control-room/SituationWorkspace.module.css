@@ -93,6 +93,9 @@
   width: min(72%, 720px);
   margin: 370px auto 28px;
   padding: 18px;
+  color: var(--paper-ink);
+  border: 1px solid var(--paper-100);
+  background: var(--paper-200);
   box-shadow: var(--shadow-lift-panel);
 }
 

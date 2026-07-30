@@ -18,6 +18,7 @@ type TurnBeatProps = {
   description?: ReactNode;
   details?: ReactNode;
   tone?: TurnBeatTone;
+  dataBeatKind?: TurnBeatTone;
   className?: string;
 };
 
@@ -27,10 +28,12 @@ export function TurnBeat({
   description,
   details,
   tone = "neutral",
+  dataBeatKind,
   className,
 }: TurnBeatProps) {
   return (
     <article
+      data-beat-kind={dataBeatKind}
       className={cn(
         "w-full min-w-0 overflow-hidden border-l-4 py-3.5 pr-4 pl-4",
         tone === "milestone" && "border-l-[6px]",

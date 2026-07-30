@@ -20,23 +20,70 @@ const noticeStyles: Record<BrbTone, string> = {
 
 type OutcomeNoticeProps = {
   eyebrow: string;
-  title: string;
+  title?: ReactNode;
   description: ReactNode;
   details?: ReactNode;
   tone?: BrbTone;
+  surface?: "console" | "paper";
   className?: string;
 };
 
-export function OutcomeNotice({ eyebrow, title, description, details, tone = "informational", className }: OutcomeNoticeProps) {
+export function OutcomeNotice({
+  eyebrow,
+  title,
+  description,
+  details,
+  tone = "informational",
+  surface = "console",
+  className,
+}: OutcomeNoticeProps) {
+  const paper = surface === "paper";
+
   return (
-    <Alert className={cn("rounded-sm py-5", noticeStyles[tone], className)}>
+    <Alert
+      className={cn(
+        "rounded-sm py-5",
+        paper
+          ? "border-[color:var(--paper-line)] bg-transparent text-dossier-ink"
+          : noticeStyles[tone],
+        className,
+      )}
+    >
       <AlertCircle aria-hidden="true" />
       <AlertTitle className="font-sans">
-        <span className="brb-telemetry mb-1 block text-[9px] tracking-[0.15em] text-muted-foreground uppercase">{eyebrow}</span>
-        <span className="font-semibold text-foreground">{title}</span>
+        <span
+          className={cn(
+            "brb-telemetry block text-[9px] tracking-[0.15em] uppercase",
+            title && "mb-1",
+            paper ? "text-destructive" : "text-muted-foreground",
+          )}
+        >
+          {eyebrow}
+        </span>
+        {title ? (
+          <span className={cn("font-semibold", paper ? "text-dossier-ink" : "text-foreground")}>
+            {title}
+          </span>
+        ) : null}
       </AlertTitle>
-      <AlertDescription className="mt-2 text-sm leading-6 text-muted-foreground">{description}</AlertDescription>
-      {details ? <div className="col-start-2 mt-4 border-t border-current/15 pt-4 text-xs text-muted-foreground">{details}</div> : null}
+      <AlertDescription
+        className={cn(
+          "mt-2 text-sm leading-6",
+          paper ? "text-dossier-ink/75" : "text-muted-foreground",
+        )}
+      >
+        {description}
+      </AlertDescription>
+      {details ? (
+        <div
+          className={cn(
+            "col-start-2 mt-4 border-t border-current/15 pt-4 text-xs",
+            paper ? "text-dossier-ink/75" : "text-muted-foreground",
+          )}
+        >
+          {details}
+        </div>
+      ) : null}
     </Alert>
   );
 }

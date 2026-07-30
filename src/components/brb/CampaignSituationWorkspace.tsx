@@ -82,7 +82,7 @@ export function CampaignSituationWorkspace({
             <p>The desk is quiet. Choose where to commit the administration.</p>
           </div>
           {state.lastTurnResolution ? (
-            <div className={`paper-panel ${workspaceStyles.inactiveResult}`}>
+            <div className={workspaceStyles.inactiveResult}>
               <LastTurnResult
                 resolution={state.lastTurnResolution}
                 echoTypes={resolvedEchoTypes}

@@ -10,10 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCampaignTime } from "../../game/progression";
-import type { EchoType, TurnBeat, TurnResolution } from "../../game/types";
+import type { EchoType, TurnBeat as TurnBeatModel, TurnResolution } from "../../game/types";
 import { LastTurnResult } from "./LastTurnResult";
+import { TurnBeat, TurnBeatSequence } from "./ui";
 
-const BEAT_LABELS: Record<TurnBeat["kind"], string> = {
+const BEAT_LABELS: Record<TurnBeatModel["kind"], string> = {
   improvement: "01 · IMPROVEMENT",
   discovery: "02 · STRATEGIC CONNECTION",
   milestone: "03 · MILESTONE",
@@ -21,41 +22,13 @@ const BEAT_LABELS: Record<TurnBeat["kind"], string> = {
 };
 
 type Props = {
-  beats: TurnBeat[];
+  beats: TurnBeatModel[];
   echoTypes: EchoType[];
   nextTurn: number;
   onContinue: () => void;
   open: boolean;
   resolution: TurnResolution | null;
 };
-
-function TurnBeatSequence({ beats }: { beats: TurnBeat[] }) {
-  if (beats.length === 0) return null;
-  return (
-    <section
-      className="turn-beat-sequence"
-      aria-label="Commitment outcome"
-      aria-live="polite"
-    >
-      {beats.map((beat) => (
-        <article
-          className={`turn-beat turn-beat-${beat.kind}`}
-          data-beat-kind={beat.kind}
-          key={`${beat.kind}-${beat.title}-${beat.linkedDecisionIds.join("-")}`}
-        >
-          <p className="turn-beat-label">{BEAT_LABELS[beat.kind]}</p>
-          <h3>{beat.title}</h3>
-          <p>{beat.explanation}</p>
-          {beat.exactChanges.length > 0 ? (
-            <ul>
-              {beat.exactChanges.map((change) => <li key={change}>{change}</li>)}
-            </ul>
-          ) : null}
-        </article>
-      ))}
-    </section>
-  );
-}
 
 export function TurnTransitionDialog({
   beats,
@@ -70,7 +43,7 @@ export function TurnTransitionDialog({
   return (
     <Dialog open={open}>
       <DialogContent
-        className="turn-transition-dialog brb-paper-texture max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] min-w-0 max-w-3xl overflow-x-hidden overflow-y-auto rounded-sm border-dossier-ink/60 bg-dossier text-dossier-ink shadow-[10px_10px_0_rgba(0,0,0,0.5)]"
+        className="brb-paper-texture max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] min-w-0 max-w-3xl overflow-x-hidden overflow-y-auto rounded-sm border-dossier-ink/60 bg-dossier text-dossier-ink shadow-[10px_10px_0_rgba(0,0,0,0.5)] [&>*]:min-w-0 [&>*]:max-w-full [&_h2]:break-words [&_p]:break-words"
         showCloseButton={false}
       >
         <DialogHeader className="min-w-0">
@@ -85,9 +58,38 @@ export function TurnTransitionDialog({
             may need to solve.
           </DialogDescription>
         </DialogHeader>
-        <TurnBeatSequence beats={beats} />
-        <details className="exact-turn-audit">
-          <summary>Open exact action-to-consequence record</summary>
+        {beats.length > 0 ? (
+          <section aria-label="Commitment outcome" aria-live="polite">
+            <TurnBeatSequence className="mt-1.5">
+              {beats.map((beat) => (
+                <TurnBeat
+                  dataBeatKind={beat.kind}
+                  description={beat.explanation}
+                  details={beat.exactChanges.length > 0 ? (
+                    <ul className="flex list-none flex-wrap gap-1.5 p-0">
+                      {beat.exactChanges.map((change) => (
+                        <li
+                          className="brb-telemetry border border-dossier-ink/35 px-2 py-1 text-[10px] font-semibold text-dossier-ink/80"
+                          key={change}
+                        >
+                          {change}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  key={`${beat.kind}-${beat.title}-${beat.linkedDecisionIds.join("-")}`}
+                  label={BEAT_LABELS[beat.kind]}
+                  title={beat.title}
+                  tone={beat.kind}
+                />
+              ))}
+            </TurnBeatSequence>
+          </section>
+        ) : null}
+        <details className="mt-3 border-t border-dashed border-dossier-ink/50">
+          <summary className="brb-telemetry cursor-pointer px-0.5 pt-3.5 text-[11px] font-bold tracking-[0.08em] text-dossier-ink/70 uppercase">
+            Open exact action-to-consequence record
+          </summary>
           <LastTurnResult
             echoTypes={echoTypes}
             heading="ACTION-TO-CONSEQUENCE RECORD"
