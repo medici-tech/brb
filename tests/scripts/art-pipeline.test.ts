@@ -9,7 +9,16 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { CURATION, buildCurationConvertArgs } from "../../scripts/curate-art.js";
+import {
+  CURATION,
+  buildCurationConvertArgs,
+  buildRoomCompositeConvertArgs,
+  validateRoomRecipe,
+} from "../../scripts/curate-art.js";
+import {
+  ROOM_COMPOSITE_KEYS,
+  ROOM_RECIPES,
+} from "../../scripts/room-recipes.js";
 import {
   findDuplicateArtPayloads,
   injectArt,
@@ -58,10 +67,38 @@ afterEach(() => {
 
 describe("BRB art pipeline", () => {
   it("keeps manifest and curator coverage one-to-one", () => {
-    expect(Object.keys(CURATION).sort()).toEqual(Object.keys(ART).sort());
+    expect(
+      [...Object.keys(CURATION), ...ROOM_COMPOSITE_KEYS].sort(),
+    ).toEqual(Object.keys(ART).sort());
     expect(new Set(Object.values(ART).map((entry) => entry.src)).size).toBe(
       Object.keys(ART).length,
     );
+  });
+
+  it("keeps every room recipe on the 16px grid and inside its manifest frame", () => {
+    for (const key of ROOM_COMPOSITE_KEYS) {
+      const recipe = ROOM_RECIPES[key];
+      expect(() => validateRoomRecipe(recipe)).not.toThrow();
+      expect(ART[key].expectedWidth).toBe(recipe.widthTiles * 16);
+      expect(ART[key].expectedHeight).toBe(recipe.heightTiles * 16);
+
+      const furniture = recipe.furniture.map(
+        (_, index) => `/private/furniture-${index}.png`,
+      );
+      const args = buildRoomCompositeConvertArgs(
+        recipe,
+        "/private/floor.png",
+        "/private/wall.png",
+        furniture,
+        "/private/room.png",
+      );
+      expect(args.at(-2)).toBe("-strip");
+      expect(args.at(-1)).toBe("/private/room.png");
+      for (const placement of recipe.furniture) {
+        expect(Number.isInteger(placement.x)).toBe(true);
+        expect(Number.isInteger(placement.y)).toBe(true);
+      }
+    }
   });
 
   it("sequences security-camera frames with the supplied endpoint holds", () => {

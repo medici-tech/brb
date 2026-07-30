@@ -86,7 +86,9 @@ export function PixelSprite(props: PixelSpriteProps) {
 
   const rootRef = useRef<HTMLSpanElement>(null);
   const probeRef = useRef<HTMLImageElement>(null);
-  const mountedRef = useRef(false);
+  // Start true so an image that fails before the first effect still settles to
+  // the fallback. The effect keeps this accurate through Strict Mode remounts.
+  const mountedRef = useRef(true);
   const prefersReducedMotion = useReducedMotion();
   const [ancestorReduced, setAncestorReduced] = useState(false);
   const [loadState, setLoadState] = useState<SpriteLoadState>("pending");
@@ -140,8 +142,8 @@ export function PixelSprite(props: PixelSpriteProps) {
   useEffect(() => {
     setLoadState("pending");
     const probe = probeRef.current;
-    if (probe?.complete && probe.naturalWidth > 0) {
-      setLoadState("loaded");
+    if (probe?.complete) {
+      setLoadState(probe.naturalWidth > 0 ? "loaded" : "error");
     }
   }, [src]);
 

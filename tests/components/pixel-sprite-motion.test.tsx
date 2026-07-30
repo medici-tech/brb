@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PixelSprite } from "../../src/components/brb/pixel/PixelSprite.js";
 
@@ -24,6 +24,7 @@ describe("PixelSprite reduced-motion tracking", () => {
       <PixelSprite artKey="staffAnalystIdle" frameOffset={2} />,
       { container: host },
     );
+    fireEvent.load(host.querySelector("img")!);
     const sprite = () => host.querySelector("span");
     return { host, view, sprite };
   }

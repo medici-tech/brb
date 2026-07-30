@@ -13,12 +13,12 @@ describe("PixelSprite", () => {
       />,
     );
 
-    // Optimistically the sprite box is present and the fallback is not shown yet.
-    expect(screen.queryByTestId("fallback")).toBeNull();
     const probe = container.querySelector("img");
     expect(probe).not.toBeNull();
 
-    // The gitignored/uninjected asset 404s → the probe fires `error`.
+    // Happy DOM settles unknown images as complete with zero width, which is the
+    // same fail-closed state as a browser 404 that lands before React observes it.
+    expect(screen.getByTestId("fallback")).toBeInTheDocument();
     fireEvent.error(probe!);
 
     expect(screen.getByTestId("fallback")).toBeInTheDocument();
@@ -74,13 +74,14 @@ describe("PixelSprite", () => {
       }),
     });
 
-    render(
+    const { container } = render(
       <PixelSprite
         artKey="envSecurityCamera"
         frameOffset={4}
         label="Frozen security camera"
       />,
     );
+    fireEvent.load(container.querySelector("img")!);
 
     const sprite = screen.getByRole("img", { name: "Frozen security camera" });
     await waitFor(() => {

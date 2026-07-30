@@ -22,6 +22,12 @@ import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { ART, type ArtKey } from "../src/game-art/manifest.js";
+import {
+  ROOM_COMPOSITE_KEYS,
+  ROOM_RECIPES,
+  type RoomCompositeKey,
+  type RoomCompositeRecipe,
+} from "./room-recipes.js";
 
 const PROJECT_ROOT = process.cwd();
 const PACK_ROOT = path.join(PROJECT_ROOT, "BRB Assets");
@@ -53,12 +59,14 @@ export type CurationStep = {
   readonly note: string;
 };
 
+type SourceArtKey = Exclude<ArtKey, RoomCompositeKey>;
+
 /**
  * Curation table — one entry per manifest key. These selections and crops were
  * verified against the supplied pack on 2026-07-29 / 2026-07-30. Character strips
  * are 96x32 (16x32 × 6 frames) cut from a wider premade sheet.
  */
-export const CURATION: Record<ArtKey, CurationStep> = {
+export const CURATION: Record<SourceArtKey, CurationStep> = {
   // Wall of monitors — complete 11-frame, 64×48-per-frame strip.
   monitorScreens: {
     source: "3_Animated_objects/16x16/spritesheets/animated_control_room_screens.png",
@@ -122,8 +130,8 @@ export const CURATION: Record<ArtKey, CurationStep> = {
   // Floor tile — single tileable floor from the room builder set.
   envFloor: {
     source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png",
-    crop: { width: 16, height: 16, x: 192, y: 256 },
-    note: "Neutral dark stone floor → one opaque 16×16 tile.",
+    crop: { width: 16, height: 16, x: 128, y: 272 },
+    note: "Muted blue-charcoal institutional floor → one opaque 16×16 tile.",
   },
   // Wall tile — single tileable wall from the room builder set.
   envWall: {
@@ -211,6 +219,110 @@ function outputPath(key: ArtKey): string {
   return path.join(PUBLIC_ROOT, ART[key].src);
 }
 
+export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
+  if (
+    !Number.isInteger(recipe.widthTiles)
+    || !Number.isInteger(recipe.heightTiles)
+    || recipe.widthTiles <= 0
+    || recipe.heightTiles <= 0
+  ) {
+    throw new UsageError(`${recipe.key}: room dimensions must be positive integers.`);
+  }
+
+  for (const wall of recipe.walls) {
+    const values = [wall.x, wall.y, wall.width, wall.height];
+    if (values.some((value) => !Number.isInteger(value))) {
+      throw new UsageError(`${recipe.key}: wall rectangles must use integer tile coordinates.`);
+    }
+    if (
+      wall.x < 0
+      || wall.y < 0
+      || wall.width <= 0
+      || wall.height <= 0
+      || wall.x + wall.width > recipe.widthTiles
+      || wall.y + wall.height > recipe.heightTiles
+    ) {
+      throw new UsageError(`${recipe.key}: wall rectangle falls outside the room.`);
+    }
+  }
+
+  for (const placement of recipe.furniture) {
+    if (
+      !Number.isInteger(placement.x)
+      || !Number.isInteger(placement.y)
+      || placement.x < 0
+      || placement.y < 0
+      || placement.x >= recipe.widthTiles
+      || placement.y >= recipe.heightTiles
+    ) {
+      throw new UsageError(
+        `${recipe.key}: furniture '${placement.source}' has an invalid tile anchor.`,
+      );
+    }
+  }
+
+  const entry = ART[recipe.key];
+  if (
+    entry.expectedWidth !== recipe.widthTiles * 16
+    || entry.expectedHeight !== recipe.heightTiles * 16
+    || entry.frameWidth !== entry.expectedWidth
+    || entry.frameHeight !== entry.expectedHeight
+    || entry.frameCount !== 1
+  ) {
+    throw new UsageError(
+      `${recipe.key}: manifest geometry must describe the complete 16px-grid room as one frame.`,
+    );
+  }
+}
+
+/**
+ * ImageMagick arguments for one metadata-stripped room composite.
+ * Exported so tests can verify the exact source-pixel contract without the pack.
+ */
+export function buildRoomCompositeConvertArgs(
+  recipe: RoomCompositeRecipe,
+  floorTile: string,
+  wallTile: string,
+  furnitureSources: readonly string[],
+  dest: string,
+): string[] {
+  validateRoomRecipe(recipe);
+  if (furnitureSources.length !== recipe.furniture.length) {
+    throw new UsageError(
+      `${recipe.key}: expected ${recipe.furniture.length} resolved furniture sources, received ${furnitureSources.length}.`,
+    );
+  }
+
+  const width = recipe.widthTiles * 16;
+  const height = recipe.heightTiles * 16;
+  const args: string[] = ["-size", `${width}x${height}`, `tile:${floorTile}`];
+
+  for (const wall of recipe.walls) {
+    args.push(
+      "(",
+      "-size",
+      `${wall.width * 16}x${wall.height * 16}`,
+      `tile:${wallTile}`,
+      ")",
+      "-geometry",
+      `+${wall.x * 16}+${wall.y * 16}`,
+      "-composite",
+    );
+  }
+
+  recipe.furniture.forEach((placement, index) => {
+    args.push(
+      furnitureSources[index]!,
+      "-geometry",
+      `+${placement.x * 16}+${placement.y * 16}`,
+      "-composite",
+    );
+  });
+
+  args.push("-strip", dest);
+  return args;
+}
+
 /**
  * Build ImageMagick argv that writes `dest` from `source` according to the step.
  * Exported for unit tests so frame sequencing stays deterministic without I/O.
@@ -265,7 +377,7 @@ export function buildCurationConvertArgs(
   ];
 }
 
-function curate(key: ArtKey, convertCmd: string[]): void {
+function curate(key: SourceArtKey, convertCmd: string[]): void {
   const step = CURATION[key];
   const source = resolveSource(step.source);
   const dest = outputPath(key);
@@ -296,6 +408,30 @@ function curate(key: ArtKey, convertCmd: string[]): void {
   );
 }
 
+function curateRoom(key: RoomCompositeKey, convertCmd: string[]): void {
+  const recipe = ROOM_RECIPES[key];
+  validateRoomRecipe(recipe);
+  const dest = outputPath(key);
+  mkdirSync(path.dirname(dest), { recursive: true });
+
+  const furnitureSources = recipe.furniture.map((placement) =>
+    resolveSource(placement.source));
+  const args = buildRoomCompositeConvertArgs(
+    recipe,
+    outputPath("envFloor"),
+    outputPath("envWall"),
+    furnitureSources,
+    dest,
+  );
+  execFileSync(convertCmd[0]!, [...convertCmd.slice(1), ...args], {
+    stdio: "inherit",
+  });
+
+  console.error(
+    `✓ ${key}: ${recipe.widthTiles}×${recipe.heightTiles} tiles → ${path.relative(PROJECT_ROOT, dest)}  (${recipe.note})`,
+  );
+}
+
 function main(): void {
   if (!existsSync(PACK_ROOT)) {
     throw new UsageError(
@@ -308,7 +444,8 @@ function main(): void {
 
   const convertCmd = imageMagick("convert");
   const requested = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
-  const allKeys = Object.keys(CURATION) as ArtKey[];
+  const sourceKeys = Object.keys(CURATION) as SourceArtKey[];
+  const allKeys: ArtKey[] = [...sourceKeys, ...ROOM_COMPOSITE_KEYS];
 
   const unknown = requested.filter((name) => !allKeys.includes(name as ArtKey));
   if (unknown.length) {
@@ -319,9 +456,23 @@ function main(): void {
 
   const keys = requested.length ? (requested as ArtKey[]) : allKeys;
   let failures = 0;
+  const needsRoomPrerequisites = keys.some((key) =>
+    ROOM_COMPOSITE_KEYS.includes(key as RoomCompositeKey));
+  if (needsRoomPrerequisites) {
+    for (const prerequisite of ["envFloor", "envWall"] as const) {
+      if (!keys.includes(prerequisite) || !existsSync(outputPath(prerequisite))) {
+        curate(prerequisite, convertCmd);
+      }
+    }
+  }
+
   for (const key of keys) {
     try {
-      curate(key, convertCmd);
+      if (ROOM_COMPOSITE_KEYS.includes(key as RoomCompositeKey)) {
+        curateRoom(key as RoomCompositeKey, convertCmd);
+      } else {
+        curate(key as SourceArtKey, convertCmd);
+      }
     } catch (error) {
       failures += 1;
       const message = error instanceof Error ? error.message : String(error);
