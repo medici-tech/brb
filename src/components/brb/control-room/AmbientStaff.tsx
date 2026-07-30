@@ -24,6 +24,7 @@ export function AmbientStaff({ position, label }: AmbientStaffProps) {
     <span
       aria-hidden="true"
       className={`${styles.staff} ${styles[`staff-${position}`]}`}
+      data-room-part={`staff-${position}`}
       title={label}
     >
       <PixelSprite

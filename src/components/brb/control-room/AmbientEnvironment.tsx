@@ -21,10 +21,15 @@ export function AmbientRoomSurfaces() {
   };
 
   return (
-    <div aria-hidden="true" className={styles.roomDepth} style={style}>
+    <div
+      aria-hidden="true"
+      className={styles.roomDepth}
+      data-room-part="room-depth"
+      style={style}
+    >
       <span className={styles.backWall} />
       <span className={styles.floorGrid} />
-      <span className={styles.securityCamera}>
+      <span className={styles.securityCamera} data-room-part="security-camera">
         <PixelSprite
           artKey="envSecurityCamera"
           className={styles.securityCameraSprite ?? ""}
@@ -36,7 +41,11 @@ export function AmbientRoomSurfaces() {
 
 export function AmbientConferenceDesk() {
   return (
-    <span aria-hidden="true" className={styles.conferenceDesk}>
+    <span
+      aria-hidden="true"
+      className={styles.conferenceDesk}
+      data-room-part="conference-desk"
+    >
       <PixelSprite
         artKey="envConferenceDesk"
         className={styles.conferenceDeskSprite ?? ""}
@@ -55,7 +64,11 @@ export function AmbientConferenceDesk() {
  */
 export function AmbientServerRack() {
   return (
-    <span aria-hidden="true" className={styles.serverRack}>
+    <span
+      aria-hidden="true"
+      className={styles.serverRack}
+      data-room-part="server-rack"
+    >
       <PixelSprite
         artKey="monitorServer"
         className={styles.serverRackSprite ?? ""}

@@ -42,6 +42,7 @@ export function AmbientMonitorWall() {
     <div
       className={styles.wallMonitors}
       data-art={hasArt ? "pixel" : "css"}
+      data-room-part="monitor-wall"
     >
       <PixelSprite
         artKey="monitorScreens"

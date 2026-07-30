@@ -1,0 +1,105 @@
+.layerLight {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.poolWall,
+.poolTable,
+.poolFile,
+.alertWash,
+.scrim,
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.poolWall,
+.poolTable,
+.poolFile {
+  mix-blend-mode: screen;
+}
+
+.poolWall {
+  opacity: 0.34;
+  background: radial-gradient(
+    ellipse 68% 46% at 31% 24%,
+    rgba(214, 154, 58, 0.22) 0 18%,
+    rgba(214, 154, 58, 0.08) 42%,
+    transparent 70%
+  );
+}
+
+.poolTable {
+  opacity: 0.26;
+  background: radial-gradient(
+    closest-side at 49% 64%,
+    rgba(222, 170, 77, 0.22),
+    rgba(214, 154, 58, 0.07) 58%,
+    transparent
+  );
+}
+
+.poolFile {
+  inset: 4% 4% 6% 6%;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 78% 82% at 42% 48%,
+    rgba(236, 191, 109, 0.2) 0 28%,
+    transparent 72%
+  );
+}
+
+.alertWash {
+  opacity: 0;
+  background: rgba(166, 58, 50, 0.16);
+}
+
+.scrim {
+  opacity: 0;
+  background: #0b0d0a;
+}
+
+.vignette {
+  opacity: 0.8;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(0, 0, 0, 0.14) 3px 4px
+    ),
+    radial-gradient(
+      ellipse 120% 92% at 44% 36%,
+      transparent 34%,
+      rgba(5, 6, 5, 0.28) 66%,
+      rgba(3, 4, 3, 0.82) 100%
+    );
+}
+
+@media (max-width: 900px) {
+  .poolWall,
+  .poolTable {
+    opacity: 0.18;
+  }
+}
+
+@media (max-width: 650px) {
+  .poolTable,
+  .poolFile {
+    display: none;
+  }
+
+  .vignette {
+    opacity: 0.55;
+    background: linear-gradient(
+      90deg,
+      rgba(4, 5, 4, 0.44),
+      transparent 35% 82%,
+      rgba(4, 5, 4, 0.38)
+    );
+  }
+}

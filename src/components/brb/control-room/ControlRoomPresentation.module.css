@@ -17,10 +17,11 @@
     filter 500ms ease,
     background-color 500ms ease,
     opacity 300ms ease;
+  isolation: isolate;
 }
 
 .presentation::before {
-  content: "";
+  content: none;
   position: absolute;
   z-index: 7;
   inset: 0;
@@ -36,7 +37,7 @@
 }
 
 .presentation::after {
-  content: "";
+  content: none;
   position: absolute;
   z-index: 6;
   inset: 0;
@@ -162,7 +163,6 @@
 }
 
 .monitorWallSprite {
-  --sprite-scale-override: 3;
   position: absolute;
   z-index: 1;
   top: 50%;
@@ -1142,7 +1142,7 @@
   }
 
   .monitorWallSprite {
-    --sprite-scale-override: 1;
+    --sprite-scale-override: 2;
   }
 
   .staffSprite {

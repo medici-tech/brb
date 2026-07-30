@@ -1,0 +1,65 @@
+/*
+ * State cascade order is deliberate: base presentation state, BRB stage,
+ * shot, then focus. Data attributes are the cross-module selector surface.
+ */
+.stateSurface {
+  isolation: isolate;
+}
+
+.stateSurface :global([data-room-part="monitor-wall"]) {
+  left: 6%;
+  width: min(62%, 590px);
+  transform: none;
+}
+
+.stateSurface :global([data-room-part="status-rail"]) {
+  left: 6%;
+  width: min(46%, 400px);
+  transform: none;
+}
+
+.stateSurface :global([data-room-part="station-analysis"]) {
+  left: 1%;
+  width: 30%;
+  height: 94px;
+}
+
+.stateSurface :global([data-room-part="station-operations"]) {
+  top: 10px;
+  left: 38%;
+  width: 21%;
+  height: 80px;
+}
+
+.stateSurface :global([data-room-part="station-institutions"]) {
+  top: -8px;
+  right: 5%;
+  width: 25%;
+  height: 70px;
+}
+
+.stateSurface :global([data-room-part="operations-table"]) {
+  left: 30%;
+  width: min(40%, 380px);
+  transform: perspective(300px) rotateX(48deg);
+}
+
+.stateSurface :global([data-room-part="brb-chamber"]) {
+  right: 4%;
+  bottom: 18%;
+}
+
+@media (max-width: 900px) {
+  .stateSurface :global([data-room-part="monitor-wall"]) {
+    left: 6%;
+    width: 88%;
+  }
+}
+
+@media (max-width: 650px) {
+  .stateSurface :global([data-room-part="monitor-wall"]) {
+    top: 30px;
+    left: 3%;
+    width: 94%;
+  }
+}

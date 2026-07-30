@@ -376,7 +376,7 @@ button { font: inherit; }
 .state-pressure-strip p { margin: 5px 0 0; color: #92928a; font-size: 10px; line-height: 1.4; }
 .state-pressure-strip .danger-metric { box-shadow: inset 4px 0 0 var(--red-bright); background: #342624; }
 .mobile-situation-brief { display: none; }
-.campaign-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 18px; align-items: stretch; }
+.campaign-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 18px; align-items: start; }
 /* Box geometry (padding, min-height) belongs to SituationWorkspace.module.css.
  * Both selectors land on the same element with equal specificity, so declaring
  * either here made the winner depend on stylesheet order. */

@@ -9,10 +9,14 @@ import {
 import { AmbientMonitorWall } from "./AmbientMonitorWall";
 import { AmbientStaff } from "./AmbientStaff";
 import { BRBChamberProgress } from "./BRBChamberProgress";
+import { PixelSprite } from "@/components/brb/pixel/PixelSprite";
 import type {
   PresentationFocus,
   PresentationModel,
 } from "./presentationStateResolver";
+import lightingStyles from "./roomLighting.module.css";
+import propStyles from "./roomProps.module.css";
+import stateStyles from "./roomState.module.css";
 import styles from "./ControlRoomPresentation.module.css";
 import { useReducedMotion } from "./useReducedMotion";
 
@@ -55,94 +59,146 @@ export function ControlRoomPresentation({
   return (
     <section
       aria-label={`Living control room: ${model.stateLabel}`}
-      className={styles.presentation}
+      className={`${styles.presentation} ${stateStyles.stateSurface}`}
+      data-brb-room=""
       data-active-situation={hasActiveSituation ? "true" : "false"}
       data-focus={focus}
       data-motion={reducedMotion ? "reduced" : "full"}
       data-presentation-state={model.state}
     >
-      <div aria-hidden="true" className={styles.ceiling}>
-        <span />
-        <span />
-        <span />
-      </div>
-
-      <div aria-hidden="true" className={styles.statusRail}>
-        <span>FCD // CONTINUITY FLOOR</span>
-        <i />
-        <span>CHANNEL 04</span>
-      </div>
-
-      <AmbientMonitorWall />
-
-      <AmbientRoomSurfaces />
-
-      <div aria-hidden="true" className={styles.advisorStations}>
-        <div className={`${styles.advisorStation} ${styles.stationLeft}`}>
-          <span>ANALYSIS</span>
-          <i />
-          <b />
+      <div aria-hidden="true" className={propStyles.layerBack}>
+        <div className={styles.ceiling} data-room-part="ceiling">
+          <span />
+          <span />
+          <span />
         </div>
-        <div className={`${styles.advisorStation} ${styles.stationCenter}`}>
-          <span>OPERATIONS</span>
+
+        <div className={styles.statusRail} data-room-part="status-rail">
+          <span>FCD // CONTINUITY FLOOR</span>
           <i />
-          <b />
+          <span>CHANNEL 04</span>
         </div>
-        <div className={`${styles.advisorStation} ${styles.stationRight}`}>
-          <span>INSTITUTIONS</span>
-          <i />
-          <b />
+
+        <AmbientMonitorWall />
+        <AmbientRoomSurfaces />
+      </div>
+
+      <div className={propStyles.layerMid}>
+        <div className={styles.advisorStations} data-room-part="advisor-stations">
+          <div
+            className={`${styles.advisorStation} ${styles.stationLeft}`}
+            data-room-part="station-analysis"
+          >
+            <span>ANALYSIS</span>
+            <i />
+            <b />
+          </div>
+          <div
+            className={`${styles.advisorStation} ${styles.stationCenter}`}
+            data-room-part="station-operations"
+          >
+            <span>OPERATIONS</span>
+            <i />
+            <b />
+          </div>
+          <div
+            className={`${styles.advisorStation} ${styles.stationRight}`}
+            data-room-part="station-institutions"
+          >
+            <span>INSTITUTIONS</span>
+            <i />
+            <b />
+          </div>
+        </div>
+
+        <div className={styles.paperClutter} data-room-part="paper-clutter">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div className={styles.operationsTable} data-room-part="operations-table">
+          <span className={styles.tableMap} />
+          <span className={styles.tableSignal} />
+          <small>CENTRAL OPERATIONS</small>
+        </div>
+
+        {/* Kept OUT of `.operationsTable`: that element carries a 3D perspective
+            transform. A transformed ancestor resamples pixel art. */}
+        <AmbientConferenceDesk />
+        <AmbientServerRack />
+
+        <BRBChamberProgress
+          progress={model.brbProgress}
+          stage={model.brbStage}
+        />
+
+        <div className={styles.staffLayer} data-room-part="staff-layer">
+          <AmbientStaff label="Analyst" position="left" />
+          <AmbientStaff label="Operator" position="center" />
+          <AmbientStaff label="Steward" position="right" />
+          <AmbientStaff label="Staff" position="crossing" />
         </div>
       </div>
 
-      <div aria-hidden="true" className={styles.paperClutter}>
-        <span />
-        <span />
-        <span />
-        <span />
+      <div aria-hidden="true" className={lightingStyles.layerLight}>
+        <span className={lightingStyles.poolWall} />
+        <span className={lightingStyles.poolTable} />
+        <span className={lightingStyles.poolFile} />
+        <span className={lightingStyles.alertWash} />
       </div>
 
-      <div aria-hidden="true" className={styles.operationsTable}>
-        <span className={styles.tableMap} />
-        <span className={styles.tableSignal} />
-        <small>CENTRAL OPERATIONS</small>
-      </div>
-
-      {/* Kept OUT of `.operationsTable`: that element carries a 3D perspective
-          transform, and nesting the lectern inside it projected the sprite through
-          `matrix3d` (48x96 became an 85x65 parallelogram), resampling the pixels.
-          Pixel art has to sit on an untransformed layer to stay on the integer grid. */}
-      <AmbientConferenceDesk />
-      <AmbientServerRack />
-
-      <BRBChamberProgress
-        progress={model.brbProgress}
-        stage={model.brbStage}
-      />
-
-      <div className={styles.staffLayer}>
-        <AmbientStaff label="Analyst" position="left" />
-        <AmbientStaff label="Operator" position="center" />
-        <AmbientStaff label="Steward" position="right" />
-        <AmbientStaff label="Staff" position="crossing" />
-      </div>
-
-      <div aria-hidden="true" className={styles.corporateOverlay}>
-        <span>PRIVATE SYSTEM</span>
-        <i>CONTRACT AUTHORITY</i>
-      </div>
-
-      <div className={styles.ambientCaption}>
-        <span aria-hidden="true" className={styles.captionSignal} />
-        <p>{model.caption}</p>
-        <small>Focus: {focus}</small>
-      </div>
-
-      {displayStateLabel ? (
-        <span className={styles.developmentLabel}>
-          DEV STATE · {model.stateLabel}
+      <div aria-hidden="true" className={propStyles.layerFore}>
+        <span className={propStyles.foreFigureLeft}>
+          <PixelSprite
+            artKey="staffAnalystIdle"
+            className={propStyles.foreFigureSprite ?? ""}
+            frameOffset={1}
+            fallback={
+              <>
+                <i />
+                <b />
+              </>
+            }
+          />
         </span>
-      ) : null}
+        <span className={propStyles.foreFigureRight}>
+          <PixelSprite
+            artKey="staffOperatorIdle"
+            className={propStyles.foreFigureSprite ?? ""}
+            frameOffset={2}
+            fallback={
+              <>
+                <i />
+                <b />
+              </>
+            }
+          />
+        </span>
+        <span className={propStyles.deskEdge} />
+        <span className={lightingStyles.scrim} />
+        <span className={lightingStyles.vignette} />
+      </div>
+
+      <div className={propStyles.layerUi}>
+        <div aria-hidden="true" className={styles.corporateOverlay}>
+          <span>PRIVATE SYSTEM</span>
+          <i>CONTRACT AUTHORITY</i>
+        </div>
+
+        <div className={styles.ambientCaption}>
+          <span aria-hidden="true" className={styles.captionSignal} />
+          <p>{model.caption}</p>
+          <small>Focus: {focus}</small>
+        </div>
+
+        {displayStateLabel ? (
+          <span className={styles.developmentLabel}>
+            DEV STATE · {model.stateLabel}
+          </span>
+        ) : null}
+      </div>
     </section>
   );
 }

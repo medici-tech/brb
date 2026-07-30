@@ -25,6 +25,7 @@ export function BRBChamberProgress({
       aria-label={`BRB chamber ${STAGE_LABELS[stage]}, ${boundedProgress}% complete`}
       className={styles.chamber}
       data-brb-stage={stage}
+      data-room-part="brb-chamber"
       role="img"
     >
       <div aria-hidden="true" className={styles.chamberDoor}>

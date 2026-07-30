@@ -1,0 +1,105 @@
+.layerBack,
+.layerMid,
+.layerFore,
+.layerUi {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.layerBack {
+  z-index: 1;
+}
+
+.layerMid {
+  z-index: 2;
+}
+
+.layerFore {
+  z-index: 4;
+}
+
+.layerUi {
+  z-index: 5;
+}
+
+.layerMid > *,
+.layerUi > * {
+  pointer-events: auto;
+}
+
+.deskEdge {
+  position: absolute;
+  right: -3%;
+  bottom: -1px;
+  left: 18%;
+  height: 11%;
+  opacity: 0.96;
+  background: linear-gradient(180deg, #171914 0 12%, #080a08 13% 100%);
+  clip-path: polygon(5% 24%, 100% 0, 100% 100%, 0 100%);
+  filter: drop-shadow(0 -8px 14px rgba(3, 4, 3, 0.56));
+}
+
+.foreFigureLeft,
+.foreFigureRight {
+  position: absolute;
+  bottom: -3%;
+  width: 112px;
+  height: 205px;
+  opacity: 0.94;
+  filter: drop-shadow(0 0 18px rgba(3, 4, 3, 0.72));
+}
+
+.foreFigureLeft {
+  left: -22px;
+}
+
+.foreFigureRight {
+  right: -42px;
+  height: 176px;
+  opacity: 0.86;
+}
+
+.foreFigureSprite {
+  --sprite-scale-override: 6;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  filter: brightness(0) opacity(0.96);
+}
+
+.foreFigureLeft i,
+.foreFigureRight i {
+  position: absolute;
+  top: 0;
+  left: 38px;
+  width: 42px;
+  height: 46px;
+  border-radius: 46% 54% 42% 48%;
+  background: #050605;
+}
+
+.foreFigureLeft b,
+.foreFigureRight b {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #050605;
+  clip-path: polygon(30% 0, 70% 0, 94% 28%, 84% 100%, 11% 100%, 5% 30%);
+}
+
+@media (max-width: 900px) {
+  .foreFigureLeft,
+  .foreFigureRight {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .deskEdge {
+    height: 7%;
+    opacity: 0.78;
+  }
+}
