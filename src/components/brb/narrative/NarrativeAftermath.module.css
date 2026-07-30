@@ -6,6 +6,7 @@
   padding: 12px;
   border: 1px solid rgb(54 45 36 / 55%);
   background: rgb(237 226 204 / 48%);
+  scroll-margin-block-start: 12px;
 }
 
 .header {

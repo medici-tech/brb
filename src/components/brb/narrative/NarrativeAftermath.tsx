@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, useEffect, useMemo, useState } from "react";
+import { Children, useEffect, useMemo, useRef, useState } from "react";
 import type { TurnBeat } from "@/game/types";
 import { Button } from "@/components/ui/button";
 import { useReducedMotion } from "../control-room/useReducedMotion";
@@ -52,6 +52,8 @@ function beatsForStep(
 export function NarrativeAftermath({ cues, turnBeats }: Props) {
   const [step, setStep] = useState(0);
   const reducedMotion = useReducedMotion();
+  const aftermathRef = useRef<HTMLElement>(null);
+  const revealAfterStepChangeRef = useRef(false);
   const cueKey = cues.map((cue) => cue.decisionId).join("|");
   const timeline = useMemo(
     () => cues.flatMap((cue) =>
@@ -68,19 +70,40 @@ export function NarrativeAftermath({ cues, turnBeats }: Props) {
   );
 
   useEffect(() => {
+    revealAfterStepChangeRef.current = false;
     setStep(0);
   }, [cueKey]);
+
+  useEffect(() => {
+    if (!revealAfterStepChangeRef.current) return;
+    revealAfterStepChangeRef.current = false;
+
+    const frame = window.requestAnimationFrame(() => {
+      aftermathRef.current?.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [reducedMotion, step]);
 
   if (!cue || !beat) return null;
 
   const cueStart = timeline.findIndex((item) => item.cue.decisionId === cue.decisionId);
   const cueStep = Math.max(0, step - cueStart);
+  const showStep = (getNextStep: (currentStep: number) => number) => {
+    revealAfterStepChangeRef.current = true;
+    setStep(getNextStep);
+  };
 
   return (
     <section
       aria-labelledby="narrative-aftermath-title"
       className={styles.aftermath}
       data-aftermath-step={beat.id}
+      ref={aftermathRef}
     >
       <header className={styles.header}>
         <div>
@@ -123,7 +146,7 @@ export function NarrativeAftermath({ cues, turnBeats }: Props) {
       <footer className={styles.controls}>
         <Button
           disabled={step === 0}
-          onClick={() => setStep((current) => Math.max(0, current - 1))}
+          onClick={() => showStep((current) => Math.max(0, current - 1))}
           size="lg"
           type="button"
           variant="quiet"
@@ -134,7 +157,7 @@ export function NarrativeAftermath({ cues, turnBeats }: Props) {
           <>
             <Button
               onClick={() =>
-                setStep((current) =>
+                showStep((current) =>
                   Math.min(timeline.length - 1, current + 1)
                 )
               }
@@ -145,7 +168,7 @@ export function NarrativeAftermath({ cues, turnBeats }: Props) {
               Next beat
             </Button>
             <Button
-              onClick={() => setStep(timeline.length - 1)}
+              onClick={() => showStep(() => timeline.length - 1)}
               size="lg"
               type="button"
               variant="quiet"

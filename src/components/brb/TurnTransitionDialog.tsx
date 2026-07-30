@@ -114,7 +114,12 @@ export function TurnTransitionDialog({
           />
         </details>
         <DialogFooter className="mt-2">
-          <Button variant="dossier" size="lg" onClick={onContinue}>
+          <Button
+            className="h-auto min-h-12 min-w-0 max-w-full whitespace-normal break-words px-4 py-3 text-center sm:w-auto sm:px-6"
+            variant="dossier"
+            size="lg"
+            onClick={onContinue}
+          >
             Continue to {formatCampaignTime(nextTurn)}
           </Button>
         </DialogFooter>

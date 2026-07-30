@@ -44,6 +44,26 @@ async function expectWithinViewport(
   expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
 }
 
+async function expectMostlyVisibleWithin(
+  locator: Locator,
+  container: Locator,
+): Promise<void> {
+  await expect.poll(async () => {
+    const [bounds, containerBounds] = await Promise.all([
+      locator.boundingBox(),
+      container.boundingBox(),
+    ]);
+    if (!bounds || !containerBounds || bounds.height === 0) return 0;
+
+    const visibleTop = Math.max(bounds.y, containerBounds.y);
+    const visibleBottom = Math.min(
+      bounds.y + bounds.height,
+      containerBounds.y + containerBounds.height,
+    );
+    return Math.max(0, visibleBottom - visibleTop) / bounds.height;
+  }).toBeGreaterThanOrEqual(0.8);
+}
+
 test(
   "keeps the Situation actionable at 1280×720 and supports stepped aftermath controls",
   async ({ page }, testInfo) => {
@@ -68,8 +88,12 @@ test(
     await expectWithinViewport(firstAction, viewport);
 
     const aftermath = await commitBudgetCut(page);
-    const scene = aftermath.locator("[data-aftermath-step]");
-    await expect(scene).toHaveAttribute("data-aftermath-step", "setup");
+    const aftermathSection = aftermath.locator("[data-aftermath-step]");
+    const visualScene = aftermath.locator("[data-narrative-location]");
+    await expect(aftermathSection).toHaveAttribute(
+      "data-aftermath-step",
+      "setup",
+    );
     await expect(
       aftermath.getByText("The appropriation arrives incomplete", {
         exact: true,
@@ -77,28 +101,45 @@ test(
     ).toBeVisible();
 
     await aftermath.getByRole("button", { name: "Next beat" }).click();
-    await expect(scene).toHaveAttribute("data-aftermath-step", "action");
+    await expect(aftermathSection).toHaveAttribute(
+      "data-aftermath-step",
+      "action",
+    );
     await expect(
       aftermath.getByText("Programs leave the page", { exact: true }),
     ).toBeVisible();
+    await expectMostlyVisibleWithin(visualScene, aftermath);
 
     await aftermath.getByRole("button", { name: "Previous beat" }).focus();
     await page.keyboard.press("Enter");
-    await expect(scene).toHaveAttribute("data-aftermath-step", "setup");
+    await expect(aftermathSection).toHaveAttribute(
+      "data-aftermath-step",
+      "setup",
+    );
 
     await aftermath.getByRole("button", { name: "Skip to consequence" }).focus();
     await page.keyboard.press("Enter");
-    await expect(scene).toHaveAttribute("data-aftermath-step", "consequence");
+    await expect(aftermathSection).toHaveAttribute(
+      "data-aftermath-step",
+      "consequence",
+    );
     await expect(
       aftermath.getByText("The project is funded in an empty room", {
         exact: true,
       }),
     ).toBeVisible();
+    await expectMostlyVisibleWithin(visualScene, aftermath);
 
     await aftermath.getByRole("button", { name: "Previous beat" }).click();
-    await expect(scene).toHaveAttribute("data-aftermath-step", "action");
+    await expect(aftermathSection).toHaveAttribute(
+      "data-aftermath-step",
+      "action",
+    );
     await aftermath.getByRole("button", { name: "Skip to consequence" }).click();
-    await expect(scene).toHaveAttribute("data-aftermath-step", "consequence");
+    await expect(aftermathSection).toHaveAttribute(
+      "data-aftermath-step",
+      "consequence",
+    );
     await expect(
       aftermath.getByText("Visual consequence entered into the record.", {
         exact: true,
@@ -127,6 +168,24 @@ test(
         exact: true,
       }),
     ).toBeVisible();
+
+    await aftermath.getByRole("button", { name: "Skip to consequence" }).click();
+    await expect(aftermath.locator("[data-aftermath-step]")).toHaveAttribute(
+      "data-aftermath-step",
+      "consequence",
+    );
+    await expectMostlyVisibleWithin(narrativeScene, aftermath);
+
+    const continueButton = aftermath.getByRole("button", {
+      name: /Continue to Campaign Month 2/,
+    });
+    await continueButton.scrollIntoViewIfNeeded();
+    await expectWithinViewport(continueButton, { width: 390, height: 844 });
+    const buttonWidths = await continueButton.evaluate((button) => ({
+      client: button.clientWidth,
+      scroll: button.scrollWidth,
+    }));
+    expect(buttonWidths.scroll).toBeLessThanOrEqual(buttonWidths.client);
 
     const layout = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
