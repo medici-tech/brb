@@ -238,6 +238,11 @@ describe("campaign replay UI", () => {
     render(<ArchiveView archive={createEmptyArchive()} onBack={vi.fn()} />);
     expect(screen.getAllByLabelText(/classified card silhouette/i)).toHaveLength(15);
     expect(screen.queryByText("The Missing Appropriation")).not.toBeInTheDocument();
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/rooms/records-office.png"]',
+      ),
+    ).not.toBeNull();
   });
 
   it("reveals only witnessed Archive choice labels and encounter counts", () => {
@@ -269,6 +274,9 @@ describe("campaign replay UI", () => {
     expect(screen.getByRole("heading", { name: /the ending in numbers/i })).toBeInTheDocument();
     expect(screen.getByText("72 / 100")).toBeInTheDocument();
     expect(screen.queryByText(/narrative weight/i)).not.toBeInTheDocument();
+    expect(
+      document.querySelectorAll('[data-room-object="evidence-load"]'),
+    ).toHaveLength(3);
     fireEvent.click(screen.getByRole("button", { name: /test this theory/i }));
     fireEvent.click(screen.getByRole("button", { name: /open a new file/i }));
     expect(theory).toHaveBeenCalledOnce();

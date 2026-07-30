@@ -346,6 +346,37 @@ button { font: inherit; }
 .confirmation-summary--paper p { color: #55514a; }
 
 .report-shell { max-width: 1120px; }
+.start-brief-grid,
+.records-screen-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 448px;
+  align-items: start;
+  gap: 18px;
+}
+.player-room-scene {
+  position: relative;
+  width: 448px;
+  height: 320px;
+  overflow: hidden;
+  background: var(--console-900);
+  box-shadow:
+    var(--shadow-lift-panel),
+    inset 0 0 0 1px var(--console-line);
+}
+.records-screen-grid > .player-room-scene {
+  position: sticky;
+  top: 18px;
+}
+@media (max-width: 1100px) {
+  .start-brief-grid,
+  .records-screen-grid {
+    grid-template-columns: minmax(0, 1fr) 224px;
+  }
+  .player-room-scene {
+    width: 224px;
+    height: 160px;
+  }
+}
 .primary-button:disabled, .secondary-button:disabled { opacity: .48; cursor: not-allowed; }
 
 
@@ -375,6 +406,24 @@ button { font: inherit; }
   .confirmation-summary .confirmation-warning { grid-column: auto; }
   .lower-grid { grid-template-columns: 1fr; }
   .guide-grid, .glossary-grid { grid-template-columns: 1fr; }
+  .start-brief-grid,
+  .records-screen-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .start-brief-grid > *,
+  .records-screen-grid > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .player-room-scene {
+    position: relative;
+    top: auto;
+    align-self: center;
+    order: 2;
+    max-width: 100%;
+  }
 }
 /* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).
  * Integer-scale sprite sheets only. `pixelated` is declared last so it wins in

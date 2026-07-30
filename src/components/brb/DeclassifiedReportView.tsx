@@ -17,6 +17,7 @@ import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
 import { PlaytestRecapForm } from "./PlaytestRecapForm";
+import { PlayerRoomScene } from "./pixel-room/PlayerRoomScene";
 import {
   DossierPanel,
   ReportMetadata,
@@ -79,14 +80,15 @@ export function DeclassifiedReportView({
           <button className="text-button" type="button" onClick={onArchive}>Intelligence Archive</button>
         </div>
       </header>
-      <DossierPanel
-        eyebrow="CAMPAIGN OUTCOME"
-        title={report.ending.variationTitle ?? report.ending.title}
-        headingLevel="h1"
-        summary={report.ending.description}
-        classification="DECLASSIFIED"
-        className="overflow-visible"
-      >
+      <div className="records-screen-grid">
+        <DossierPanel
+          eyebrow="CAMPAIGN OUTCOME"
+          title={report.ending.variationTitle ?? report.ending.title}
+          headingLevel="h1"
+          summary={report.ending.description}
+          classification="DECLASSIFIED"
+          className="overflow-visible"
+        >
         {report.ending.variationTitle ? <p className="font-semibold text-destructive">Official classification: {report.ending.title}</p> : null}
 
         {legacyReport ? (
@@ -141,6 +143,7 @@ export function DeclassifiedReportView({
                         <strong>{directive.benefit}</strong>
                         <small className="text-destructive">Cost: {directive.warning}</small>
                         <Button
+                          className="h-auto min-h-10 whitespace-normal px-2 text-center leading-4"
                           variant="command"
                           type="button"
                           onClick={() => onClaimDirective?.(id)}
@@ -267,7 +270,15 @@ export function DeclassifiedReportView({
         </section>
 
         {playtestRun && onSaveRecap ? <PlaytestRecapForm key={playtestRun.runId} existing={playtestRun.recap} onSave={onSaveRecap} /> : null}
-      </DossierPanel>
+        </DossierPanel>
+        <aside className="player-room-scene" aria-label="Completed-run records office scene">
+          <PlayerRoomScene
+            variant="records"
+            ariaLabel="Records office. The completed campaign evidence is boxed and under review."
+            evidenceLoad={report.finalSnapshot ? 3 : 2}
+          />
+        </aside>
+      </div>
     </main>
   );
 }

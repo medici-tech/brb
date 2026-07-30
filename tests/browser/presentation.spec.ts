@@ -97,6 +97,6 @@ test("control-room sprites use approved integer display scales", async ({ page }
   for (const sprite of dimensions.filter((entry) => entry.visible)) {
     expect(sprite.widthScale).toBe(sprite.heightScale);
     expect(Number.isInteger(sprite.widthScale)).toBe(true);
-    expect([2, 3, 4, 6]).toContain(sprite.widthScale);
+    expect([1, 2, 3, 4, 6]).toContain(sprite.widthScale);
   }
 });

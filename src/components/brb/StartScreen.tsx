@@ -16,6 +16,7 @@ import {
 import { Button } from "../ui/button";
 import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
+import { PlayerRoomScene } from "./pixel-room/PlayerRoomScene";
 import {
   ArchetypeCard,
   DossierPanel,
@@ -65,12 +66,13 @@ export function StartScreen({
         </div>
       </header>
 
-      <Hero
-        eyebrow="OPERATIONAL BRIEF"
-        title={<>Build the machine.<br />Decide what it costs.</>}
-        summary="Permanently commit scarce political resources to a dangerous national project, then decide whether the state can survive its activation."
-        stamp="TOP SECRET"
-      >
+      <div className="start-brief-grid">
+        <Hero
+          eyebrow="OPERATIONAL BRIEF"
+          title={<>Build the machine.<br />Decide what it costs.</>}
+          summary="Permanently commit scarce political resources to a dangerous national project, then decide whether the state can survive its activation."
+          stamp="TOP SECRET"
+        >
         <aside className="grid max-w-3xl gap-2 border-l-4 border-destructive bg-[rgba(89,73,49,.07)] px-4 py-3.5" aria-label="Campaign objective and loss conditions">
           <strong>Your objective</strong>
           <p className="m-0 leading-6 text-dossier-ink/80">Raise Engineering, Access, Legitimacy, and Stability to 50, then activate the BRB.</p>
@@ -107,7 +109,14 @@ export function StartScreen({
             <p className="mt-3 mb-0 max-w-xl text-[13px] text-dossier-ink/70">Resume or clear the active file from Internal Playtest before starting another run.</p>
           </>
         ) : null}
-      </Hero>
+        </Hero>
+        <aside className="player-room-scene" aria-label="Intake office scene">
+          <PlayerRoomScene
+            variant="intake"
+            ariaLabel="Federal intake office. Two officials prepare the operational brief."
+          />
+        </aside>
+      </div>
 
       <DossierPanel
         className="my-6"

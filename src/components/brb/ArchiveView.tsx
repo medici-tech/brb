@@ -7,6 +7,7 @@ import {
   type RouteId,
 } from "../../game/types";
 import { CreditsDialog } from "./CreditsDialog";
+import { PlayerRoomScene } from "./pixel-room/PlayerRoomScene";
 import {
   ConsolePanel,
   DossierPanel,
@@ -35,28 +36,37 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
         </div>
       </header>
 
-      <DossierPanel
-        eyebrow="KNOWLEDGE + LIMITED AUTHORITY"
-        title="What has been witnessed cannot be unwitnessed."
-        headingLevel="h1"
-        summary={`${countLabel(totalEncounters, "card encounter")} recorded. Completed files also build Clearance toward optional, one-use campaign Directives.`}
-      >
-        <div
-          className="grid gap-px border border-[color:var(--paper-line)] bg-[color:var(--paper-line)] sm:grid-cols-3"
-          aria-label="Archive discovery progress"
+      <div className="records-screen-grid">
+        <DossierPanel
+          eyebrow="KNOWLEDGE + LIMITED AUTHORITY"
+          title="What has been witnessed cannot be unwitnessed."
+          headingLevel="h1"
+          summary={`${countLabel(totalEncounters, "card encounter")} recorded. Completed files also build Clearance toward optional, one-use campaign Directives.`}
         >
-          {[
-            [`${discoveredCards} / ${SITUATION_CARDS.length}`, "cards"],
-            [`${discoveredRoutes} / ${Object.keys(ROUTE_DEFINITIONS).length}`, "routes"],
-            [`${discoveredEndings} / ${Object.keys(ENDING_COPY).length}`, "endings"],
-          ].map(([value, label]) => (
-            <span className="brb-telemetry block bg-[color:var(--paper-200)] p-4 text-[10px] tracking-[0.08em] text-dossier-ink/75 uppercase" key={label}>
-              <strong className="mb-1.5 block text-xl text-dossier-ink">{value}</strong>
-              {label}
-            </span>
-          ))}
-        </div>
-      </DossierPanel>
+          <div
+            className="grid gap-px border border-[color:var(--paper-line)] bg-[color:var(--paper-line)] sm:grid-cols-3"
+            aria-label="Archive discovery progress"
+          >
+            {[
+              [`${discoveredCards} / ${SITUATION_CARDS.length}`, "cards"],
+              [`${discoveredRoutes} / ${Object.keys(ROUTE_DEFINITIONS).length}`, "routes"],
+              [`${discoveredEndings} / ${Object.keys(ENDING_COPY).length}`, "endings"],
+            ].map(([value, label]) => (
+              <span className="brb-telemetry block bg-[color:var(--paper-200)] p-4 text-[10px] tracking-[0.08em] text-dossier-ink/75 uppercase" key={label}>
+                <strong className="mb-1.5 block text-xl text-dossier-ink">{value}</strong>
+                {label}
+              </span>
+            ))}
+          </div>
+        </DossierPanel>
+        <aside className="player-room-scene" aria-label="Archive records office scene">
+          <PlayerRoomScene
+            variant="records"
+            ariaLabel={`Archive records office. ${archive.processedRunIds.length} completed files fill the shelves and evidence boxes.`}
+            evidenceLoad={Math.min(3, archive.processedRunIds.length)}
+          />
+        </aside>
+      </div>
 
       <section className="mt-12" aria-labelledby="legacy-directives-title">
         <SectionHeading

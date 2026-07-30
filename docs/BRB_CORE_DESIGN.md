@@ -166,9 +166,11 @@ The itch.io prototype is not the full BRB game. It proves only four things:
 
 - One desktop-first responsive browser campaign screen with the active Situation as
   the primary playfield
-- Three-quarter top-down aftermath scenes that show Setup → Action → Consequence
+- A fixed-camera orthographic continuity facility (16px LimeZu tile grid) beside the
+  Situation dossier; dossier text and controls stay outside the illustrated room
+- Fully orthographic aftermath rooms that show Setup → Action → Consequence
   without giving the player an avatar or adding movement
-- Six reusable political locations and canonical-state-derived control-room scars
+- Six reusable political locations and canonical-state-derived facility scars
 - Declassified Report and Intelligence Archive v1
 - Strong consequence feedback
 - Local active-run save, latest report, replay intent, and knowledge-plus-Directive archive
@@ -187,7 +189,7 @@ Keep four layers separate so the prototype can grow without a rewrite:
 
 1. **Simulation:** pure TypeScript for valid actions, state transitions, costs, Situation Cards, echoes, advisors, Corporation logic, reports, and endings. No React imports.
 2. **Content:** typed data or JSON-compatible definitions for cards, advisors, archetypes, scenarios, deposits, moves, routes, and endings.
-3. **Presentation:** React components for screens, top-down narrative scenes, animation,
-   audio, input, tooltips, and consequence display. Scene selection derives from
-   canonical state and decision history but is not persisted as gameplay state.
+3. **Presentation:** React components for screens, orthographic `PixelRoom` scenes,
+   animation, audio, input, tooltips, and consequence display. Scene selection derives
+   from canonical state and decision history but is not persisted as gameplay state.
 4. **Platform:** adapters for browser saves now and desktop, Steam, iOS, analytics, and store integration later.

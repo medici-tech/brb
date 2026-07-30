@@ -173,6 +173,11 @@ describe("guided playtest UI", () => {
     expect(screen.getByText(/intel \+10.*trust −8.*capacity \+8.*engineering \+5/i)).toBeInTheDocument();
     expect(screen.getAllByText(/situations seen more often/i)).toHaveLength(3);
     expect(screen.getAllByRole("button", { name: /open .* file/i })).toHaveLength(3);
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/rooms/intake-office.png"]',
+      ),
+    ).not.toBeNull();
   });
 
   it("equips one unlocked Directive or preserves the no-Directive baseline", () => {
