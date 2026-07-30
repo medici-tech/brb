@@ -223,7 +223,6 @@ body {
  * headline inherited the body face. The two giant numerals are display
  * typography, not telemetry — small labels and stamps stay mono. */
 h1, h2, h3,
-.hero::before,
 .threat-number,
 .watch-meter > strong {
   font-family: var(--font-brb-display), "Barlow Condensed", "Arial Narrow", sans-serif;
@@ -258,9 +257,8 @@ button { font: inherit; }
  * corner soiling, edge darkening, two non-harmonic tooth periods (3px and
  * 7px — matching periods moiré against each other), and a grain mask that
  * breaks up stamp and redaction ink so it does not read as a bordered div.
- * `.paper-panel::after` is the only pseudo-element available here;
- * `.hero::before` is spent on the ghost wordmark. Anything needing a third
- * layer uses the `.sheet-marks` span instead. */
+ * `.paper-panel::after` is the only pseudo-element available here. Anything
+ * needing another layer uses a real, aria-hidden presentation element. */
 /* `.paper-surface` is material ONLY — never layout. `.paper-panel` adds the
  * positioning context. Keeping them apart matters: applying `.paper-panel` to
  * a `position: fixed` element (the confirm dialog) silently overrode `fixed`
@@ -315,14 +313,6 @@ button { font: inherit; }
   -webkit-mask-size: 160px; mask-size: 160px;
   display: inline-block; transform: rotate(-.25deg);
 }
-.hero { min-height: 430px; padding: clamp(38px, 7vw, 92px); overflow: hidden; }
-.hero::before { content: "BRB"; position: absolute; right: -38px; bottom: -118px; font-weight: 800; font-size: clamp(230px, 36vw, 500px); line-height: 1; color: rgba(49,45,37,.055); }
-.hero h1 { max-width: 900px; margin: 18px 0; font-size: clamp(50px, 8.5vw, 112px); line-height: .95; letter-spacing: -.012em; }
-.hero-copy { max-width: 680px; font-size: clamp(17px, 2vw, 22px); line-height: 1.5; color: #45453f; }
-.mission-brief { display: grid; gap: 7px; max-width: 760px; margin-top: 22px; padding: 16px 18px; border-left: 4px solid var(--red); background: rgba(89,73,49,.07); }
-.mission-brief strong { font-size: 17px; }
-.mission-brief p, .mission-brief small { margin: 0; color: #504d45; line-height: 1.5; }
-.mission-brief small { font-size: 12px; }
 .stamp {
   --stamp-color: var(--red);
   --stamp-angle: -4deg;
@@ -339,25 +329,10 @@ button { font: inherit; }
 .objective { display: grid; gap: 8px; max-width: 720px; margin: 25px 0 0; border-left: 4px solid var(--red); padding: 12px 16px; background: rgba(162,45,40,.08); font-weight: 600; }
 .objective span { color: var(--red); }
 .objective.compact { max-width: none; margin: 0 0 20px; color: var(--ink); background: var(--paper-deep); }
-.start-cta { display: inline-flex; align-items: center; margin-top: 18px; text-decoration: none; }
-.resume-button { margin-top: 26px; }
-.saved-run-notice { max-width: 560px; margin: 12px 0 0; color: #67635a; font-size: 13px; }
 .primary-button, .secondary-button { min-height: 46px; padding: 11px 18px; border: 1px solid var(--ink); cursor: pointer; font-weight: 700; }
 .primary-button { color: white; background: var(--red); border-color: var(--red); }
 .primary-button:hover { background: #81231f; }
 .secondary-button { color: var(--ink); background: transparent; }
-.section-heading { margin: 58px 0 22px; }
-.section-heading h2 { margin: 8px 0 0; font-size: clamp(28px, 4vw, 45px); }
-.archetype-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.archetype-card { position: relative; min-height: 410px; display: flex; flex-direction: column; padding: 30px; border: 1px solid #454640; background: #1e211f; }
-.archetype-card h3 { margin: 44px 0 10px; font-size: 31px; }
-.archetype-card > p { color: #b8b7ad; line-height: 1.55; }
-.archetype-card dl { margin: 12px 0 28px; }
-.archetype-card dl div { border-top: 1px solid #42433e; padding: 10px 0; }
-.archetype-card dt { color: #8e8d84; font: 10px var(--font-brb-mono), monospace; text-transform: uppercase; letter-spacing: .12em; }
-.archetype-card dd { margin: 5px 0 0; font-size: 13px; line-height: 1.4; }
-.archetype-card button { margin-top: auto; }
-.card-index { position: absolute; top: 22px; right: 26px; color: #74746d; font: 32px var(--font-brb-mono), monospace; }
 
 .metric-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; margin-bottom: 8px; background: #3d3f3b; border: 1px solid #3d3f3b; }
 .metric { position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 11px 14px 13px; background: #202320; }
@@ -496,12 +471,6 @@ button { font: inherit; }
 .report-shell { max-width: 1120px; }
 .primary-button:disabled, .secondary-button:disabled { opacity: .48; cursor: not-allowed; }
 
-.directive-loadout { margin: 24px 0 40px; padding: clamp(24px,4vw,40px); }
-.directive-loadout h2 { margin: 8px 0; font-size: clamp(26px,4vw,42px); }
-.directive-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 20px; }
-.directive-options button, .directive-replay-lock { display: grid; gap: 7px; padding: 14px; text-align: left; color: var(--ink); border: 1px solid var(--line); background: rgba(255,255,255,.2); }
-.directive-options button.selected { outline: 3px solid var(--red); outline-offset: 2px; }
-.directive-options span, .directive-replay-lock span { color: #706c63; font-size: 12px; line-height: 1.4; }
 .campaign-directive { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 12px 0; padding: 14px 18px; color: var(--cream); border-left: 4px solid var(--signal); background: #202320; }
 .campaign-directive h2, .campaign-directive p { margin: 0; }
 .campaign-directive h2 { font-size: 18px; }
@@ -511,7 +480,6 @@ button { font: inherit; }
 .journal-shell { max-width: 1180px; }
 
 @media (max-width: 980px) {
-  .archetype-grid, .directive-options { grid-template-columns: 1fr 1fr; }
   .campaign-grid, .lower-grid { grid-template-columns: 1fr; }
   .operations-column .dark-panel { height: auto; }
   .advisor-list { grid-template-columns: 1fr; }
@@ -532,10 +500,7 @@ button { font: inherit; }
   .campaign-shell > .lower-grid { order: 8; }
   .masthead { align-items: flex-start; padding-block: 15px; }
   .header-actions { justify-content: flex-start; gap: 8px 12px; }
-  .hero { min-height: 0; padding: 34px 24px; }
   .stamp { position: static; display: inline-block; margin-bottom: 22px; }
-  .mission-brief { padding: 13px 14px; }
-  .archetype-grid, .directive-options { grid-template-columns: 1fr; }
   .campaign-directive { align-items: flex-start; flex-direction: column; }
   .metric-strip { grid-template-columns: repeat(5,minmax(108px,1fr)); overflow-x: auto; }
   .state-pressure-strip { grid-template-columns: repeat(4,minmax(148px,1fr)); overflow-x: auto; }
