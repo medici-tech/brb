@@ -112,19 +112,25 @@ export function ConfirmActionDialog({ trigger, title, description, summary, conf
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="brb-design-system brb-console-grid max-h-[calc(100dvh-2rem)] min-w-0 overflow-x-hidden overflow-y-auto rounded-sm border-border bg-console shadow-[8px_8px_0_rgba(0,0,0,0.45)]">
+      {/* The confirm step is a stamped authorization slip laid on the desk, not
+        * a console box. Every commitment in the game passes through here, so it
+        * is the one surface that most has to agree with the paper screens
+        * behind it. */}
+      <DialogContent className="brb-design-system paper-surface max-h-[calc(100dvh-2rem)] min-w-0 overflow-x-hidden overflow-y-auto rounded-none border-[color:var(--paper-line)] text-[color:var(--paper-ink)] shadow-[var(--shadow-lift-sheet)]">
+        <span aria-hidden="true" className="absolute top-0 left-7 h-3 w-20 bg-destructive/75" />
+        <span aria-hidden="true" className="sheet-marks" />
         <DialogHeader className="min-w-0">
-          <StatusBadge tone={tone} className="mb-3">Confirmation required</StatusBadge>
-          <DialogTitle className="brb-display text-4xl leading-none font-semibold">{title}</DialogTitle>
-          <DialogDescription className="pt-2 text-sm leading-6 text-muted-foreground">{description}</DialogDescription>
+          <StatusBadge tone={tone} surface="paper" className="mb-3 self-start">Confirmation required</StatusBadge>
+          <DialogTitle className="brb-display text-4xl leading-none font-semibold text-[color:var(--paper-ink)]">{title}</DialogTitle>
+          <DialogDescription className="pt-2 text-sm leading-6 text-[color:var(--ink)]/72">{description}</DialogDescription>
         </DialogHeader>
-        {summary ? <div className="confirmation-summary">{summary}</div> : null}
+        {summary ? <div className="confirmation-summary confirmation-summary--paper">{summary}</div> : null}
         <DialogFooter className="mt-3 min-w-0 flex-wrap">
-          <DialogClose asChild><Button variant="quiet">{cancelLabel}</Button></DialogClose>
+          <DialogClose asChild><Button variant="dossier">{cancelLabel}</Button></DialogClose>
           {secondaryConfirmAction ? (
             <DialogClose asChild>
               <Button
-                variant="command"
+                variant="dossier"
                 disabled={secondaryConfirmAction.disabled}
                 onClick={() => {
                   setOpen(false);
@@ -135,7 +141,7 @@ export function ConfirmActionDialog({ trigger, title, description, summary, conf
               </Button>
             </DialogClose>
           ) : null}
-          <DialogClose asChild><Button variant={tone === "critical" ? "critical" : "command"} disabled={confirmAction.disabled} onClick={() => {
+          <DialogClose asChild><Button variant={tone === "critical" ? "critical" : "authorize"} disabled={confirmAction.disabled} onClick={() => {
             setOpen(false);
             confirmAction.onSelect?.();
           }}>{Icon ? <Icon aria-hidden="true" /> : null}{confirmAction.label}</Button></DialogClose>

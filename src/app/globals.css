@@ -128,6 +128,13 @@
     0 6px 12px rgba(6, 7, 5, 0.28),
     0 18px 30px rgba(6, 7, 5, 0.2);
 
+  /* ── Grain ─────────────────────────────────────────────────────────────
+   * One inline-SVG turbulence field, reused three ways: paper tooth, stamp
+   * ink, and redaction ink. Masking a stamp with it is the single technique
+   * that stops a CSS stamp reading as a bordered div — real rubber-stamp ink
+   * breaks up where the pad did not make contact. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.1'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+
   /* ── Motion + focus ────────────────────────────────────────────────────── */
   --focus-ring: var(--red-bright);
   --t-fast: 160ms;
@@ -147,10 +154,17 @@
   font-family: var(--font-brb-body), "IBM Plex Sans", sans-serif;
 }
 
-.brb-design-system *,
-.brb-design-system *::before,
-.brb-design-system *::after {
+/* A border-color DEFAULT, not an override. `:where()` zeroes the specificity so
+ * any utility (or a paper surface's own ink border) still wins — the unwrapped
+ * version tied with Tailwind utilities and, loading later, silently beat them,
+ * which put console-grey borders on paper. */
+:where(.brb-design-system) :where(*, *::before, *::after) {
   border-color: var(--border);
+}
+
+/* Paper surfaces default to ink hairlines instead. */
+:where(.paper-surface, .paper-panel) :where(*, *::before, *::after) {
+  border-color: color-mix(in oklab, var(--paper-ink) 35%, transparent);
 }
 
 .brb-design-system ::selection {
@@ -239,9 +253,68 @@ button { font: inherit; }
 .glossary-grid strong { color: var(--cream); }
 .glossary-grid p { margin-bottom: 0; color: #aaa99f; font-size: 12px; line-height: 1.5; }
 .glossary-grid b { color: #d7cdbb; }
-.paper-panel { position: relative; color: var(--ink); background: var(--paper); border: 1px solid var(--paper-100); box-shadow: var(--shadow-lift-sheet); }
-.paper-panel::after { content: ""; pointer-events: none; position: absolute; inset: 0; opacity: .18; background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(58,47,32,.05) 3px 4px); }
-.paper-panel > * { position: relative; z-index: 1; }
+/* ── Dossier material ─────────────────────────────────────────────────────
+ * A sheet is an object, not a rectangle. Four techniques, all CSS:
+ * corner soiling, edge darkening, two non-harmonic tooth periods (3px and
+ * 7px — matching periods moiré against each other), and a grain mask that
+ * breaks up stamp and redaction ink so it does not read as a bordered div.
+ * `.paper-panel::after` is the only pseudo-element available here;
+ * `.hero::before` is spent on the ghost wordmark. Anything needing a third
+ * layer uses the `.sheet-marks` span instead. */
+/* `.paper-surface` is material ONLY — never layout. `.paper-panel` adds the
+ * positioning context. Keeping them apart matters: applying `.paper-panel` to
+ * a `position: fixed` element (the confirm dialog) silently overrode `fixed`
+ * with `relative`, because both are single-class selectors and this file loads
+ * after the Tailwind utilities. */
+.paper-panel, .paper-surface { color: var(--ink); background: var(--paper); border: 1px solid var(--paper-100); box-shadow: var(--shadow-lift-sheet); }
+.paper-panel { position: relative; }
+.paper-panel::after, .paper-surface::after {
+  content: ""; pointer-events: none; position: absolute; inset: 0; opacity: .5;
+  background:
+    radial-gradient(64px 64px at 0 0, rgba(58,47,32,.15), transparent 72%),
+    radial-gradient(64px 64px at 100% 0, rgba(58,47,32,.12), transparent 72%),
+    radial-gradient(64px 64px at 0 100%, rgba(58,47,32,.13), transparent 72%),
+    radial-gradient(64px 64px at 100% 100%, rgba(58,47,32,.16), transparent 72%),
+    linear-gradient(to right, rgba(58,47,32,.10), transparent 3%, transparent 97%, rgba(58,47,32,.10)),
+    linear-gradient(to bottom, rgba(58,47,32,.07), transparent 2%, transparent 98%, rgba(58,47,32,.09)),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(58,47,32,.026) 3px 4px),
+    repeating-linear-gradient(90deg, transparent 0 7px, rgba(58,47,32,.011) 7px 8px);
+}
+.paper-panel > *, .paper-surface > * { position: relative; z-index: 1; }
+
+/* Registration marks — eight hairlines at the corners. Reads as a printed
+ * document at zero asset cost. */
+.sheet-marks {
+  content: ""; pointer-events: none; position: absolute; inset: 16px; z-index: 1; opacity: .4;
+  background:
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 0 / 14px 1px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 0 / 1px 14px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 100% 0 / 14px 1px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 100% 0 / 1px 14px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 100% / 14px 1px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 100% / 1px 14px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 100% 100% / 14px 1px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 100% 100% / 1px 14px no-repeat;
+}
+
+/* Case slug — real run data, not lorem. An artifact carries its own number. */
+.case-slug {
+  position: absolute; top: 18px; right: 22px; z-index: 1; margin: 0;
+  color: var(--ink); opacity: .45;
+  font: 400 9px/1 var(--font-brb-mono), monospace; letter-spacing: .18em; text-transform: uppercase;
+}
+
+/* Sanctioned dividers. A box must earn its border; most rules are enough. */
+.rule-hair { border: 0; border-top: 1px solid var(--paper-line); opacity: .45; margin: 18px 0; }
+.rule-dashed { border: 0; border-top: 1px dashed var(--paper-line); margin: 18px 0; }
+.rule-double { border: 0; border-top: 2px solid var(--paper-line); box-shadow: 0 3px 0 -2px var(--paper-line); margin: 18px 0; }
+
+.redacted {
+  color: transparent; background: var(--paper-ink); padding: 0 .28em;
+  -webkit-mask-image: var(--paper-grain); mask-image: var(--paper-grain);
+  -webkit-mask-size: 160px; mask-size: 160px;
+  display: inline-block; transform: rotate(-.25deg);
+}
 .hero { min-height: 430px; padding: clamp(38px, 7vw, 92px); overflow: hidden; }
 .hero::before { content: "BRB"; position: absolute; right: -38px; bottom: -118px; font-weight: 800; font-size: clamp(230px, 36vw, 500px); line-height: 1; color: rgba(49,45,37,.055); }
 .hero h1, .report-paper > h1, .archive-intro h1 { max-width: 900px; margin: 18px 0; font-size: clamp(50px, 8.5vw, 112px); line-height: .95; letter-spacing: -.012em; }
@@ -250,7 +323,19 @@ button { font: inherit; }
 .mission-brief strong { font-size: 17px; }
 .mission-brief p, .mission-brief small { margin: 0; color: #504d45; line-height: 1.5; }
 .mission-brief small { font-size: 12px; }
-.stamp { position: absolute; right: 6%; top: 55px; padding: 8px 12px 6px; border: 3px solid var(--red); color: var(--red); font: 700 17px/1 var(--font-brb-mono), monospace; letter-spacing: .13em; transform: rotate(-4deg); }
+.stamp {
+  --stamp-color: var(--red);
+  --stamp-angle: -4deg;
+  position: absolute; right: 6%; top: 55px; padding: 8px 12px 6px;
+  border: 3px solid var(--stamp-color); color: var(--stamp-color);
+  font: 700 17px/1 var(--font-brb-mono), monospace; letter-spacing: .13em;
+  transform: rotate(var(--stamp-angle));
+  -webkit-mask-image: var(--paper-grain); mask-image: var(--paper-grain);
+  -webkit-mask-size: 180px; mask-size: 180px;
+}
+.stamp-classified { --stamp-color: var(--paper-ink); --stamp-angle: 2.5deg; }
+.stamp-authorized { --stamp-color: #4f6b41; --stamp-angle: -7deg; }
+.stamp-expired { --stamp-color: #6d685e; --stamp-angle: 5deg; }
 .objective { display: grid; gap: 8px; max-width: 720px; margin: 25px 0 0; border-left: 4px solid var(--red); padding: 12px 16px; background: rgba(162,45,40,.08); font-weight: 600; }
 .objective span { color: var(--red); }
 .objective.compact { max-width: none; margin: 0 0 20px; color: var(--ink); background: var(--paper-deep); }
@@ -307,10 +392,10 @@ button { font: inherit; }
 .choice-list button { display: grid; gap: 5px; text-align: left; color: var(--ink); background: transparent; border: 1px solid #9c927f; padding: 16px 18px; cursor: pointer; }
 .choice-list button:hover { background: rgba(89,73,49,.08); border-color: var(--ink); }
 .choice-list button span { font-weight: 700; }.choice-list small { color: #747168; }
-.consequence-box { margin-top: 30px; padding: 20px; border: 1px dashed #867e70; background: rgba(54,49,40,.04); }
+.consequence-box { margin-top: 30px; padding: 4px 0 4px 18px; border-left: 4px solid var(--paper-line); }
 .consequence-box > span { color: var(--red); }.consequence-box p { margin: 7px 0; }.consequence-box summary { cursor: pointer; color: #555149; font-size: 13px; }
 .result-groups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-top: 12px; }
-.result-group { padding: 12px; border: 1px solid rgba(74,67,57,.25); background: rgba(255,255,255,.2); }
+.result-group { padding: 2px 0 2px 14px; border-left: 3px solid color-mix(in oklab, var(--paper-line) 70%, transparent); }
 .result-group strong { font-size: 13px; }
 .result-group ul { display: flex; flex-wrap: wrap; gap: 5px; margin: 9px 0 0; padding: 0; list-style: none; }
 .result-group li { padding: 4px 6px; color: #3f3c36; border: 1px solid #a69c8a; font: 600 10px var(--font-brb-mono), monospace; }
@@ -319,7 +404,7 @@ button { font: inherit; }
 .turn-transition-dialog > * { min-width: 0; max-width: 100%; }
 .turn-transition-dialog h2, .turn-transition-dialog p { overflow-wrap: anywhere; }
 .turn-beat-sequence { display: grid; min-width: 0; max-width: 100%; gap: 10px; margin-top: 6px; }
-.turn-beat { position: relative; width: 100%; min-width: 0; max-width: 100%; padding: 14px 16px 14px 20px; overflow: hidden; border: 1px solid rgba(74,67,57,.28); background: rgba(255,255,255,.18); }
+.turn-beat { position: relative; width: 100%; min-width: 0; max-width: 100%; padding: 14px 16px 14px 20px; overflow: hidden; }
 .turn-beat::before { position: absolute; inset: 0 auto 0 0; width: 4px; content: ""; background: #867e70; }
 .turn-beat-label { margin: 0 0 4px !important; color: #6a645a; font: 700 10px var(--font-brb-mono), monospace; letter-spacing: .12em; }
 .turn-beat h3 { margin: 0; overflow-wrap: anywhere; font-size: 18px; line-height: 1.2; }
@@ -329,10 +414,10 @@ button { font: inherit; }
 .turn-beat-improvement::before { background: #596b43; }
 .turn-beat-discovery { background: rgba(137,112,63,.09); }
 .turn-beat-discovery::before { background: #8c713f; }
-.turn-beat-milestone { padding-block: 18px; border-color: rgba(113,88,42,.58); background: linear-gradient(100deg, rgba(158,125,57,.2), rgba(255,255,255,.15)); }
+.turn-beat-milestone { padding-block: 18px; background: linear-gradient(100deg, rgba(158,125,57,.16), transparent 62%); }
 .turn-beat-milestone::before { width: 6px; background: #9a742b; }
 .turn-beat-milestone h3 { font-size: 22px; }
-.turn-beat-problem { border-color: rgba(122,38,30,.42); background: rgba(122,38,30,.08); }
+.turn-beat-problem { background: rgba(122,38,30,.06); }
 .turn-beat-problem::before { background: var(--red); }
 .exact-turn-audit { margin-top: 12px; border-top: 1px dashed #867e70; }
 .exact-turn-audit > summary { padding: 13px 2px 0; cursor: pointer; color: #555149; font: 700 11px var(--font-brb-mono), monospace; text-transform: uppercase; letter-spacing: .08em; }
@@ -419,6 +504,13 @@ button { font: inherit; }
 .confirmation-summary p { overflow-wrap: anywhere; margin: 6px 0 0; color: #aaa99f; font-size: 12px; line-height: 1.45; }
 .confirmation-summary .confirmation-warning { grid-column: 1 / -1; border-left: 3px solid var(--red-bright); }
 .confirmation-summary .confirmation-directive { grid-column: 1 / -1; border-left: 3px solid var(--signal); }
+/* Paper variant. The base is a dark console grid; inside the paper-and-ink
+ * confirm dialog it would frame a dark block in a light sheet. Hairline-table
+ * treatment instead of a filled box — the summary is tabular data. */
+.confirmation-summary--paper { color: var(--ink); background: var(--paper-line); border-color: var(--paper-line); }
+.confirmation-summary--paper section { background: color-mix(in oklab, var(--paper-200) 88%, white); }
+.confirmation-summary--paper strong { color: var(--ink); }
+.confirmation-summary--paper p { color: #55514a; }
 
 .report-shell { max-width: 1120px; }
 .report-paper { padding: clamp(35px, 7vw, 90px); }
@@ -464,7 +556,7 @@ button { font: inherit; }
 .experiment-reminder { max-width: 760px; color: #4e4b44; font-weight: 600; line-height: 1.55; }
 .report-actions { display: flex; gap: 10px; margin: 25px 0 12px; }
 .directive-draft { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-top: 20px; }
-.directive-draft article { display: grid; gap: 10px; padding: 20px; border: 1px solid var(--line); background: rgba(255,255,255,.18); }
+.directive-draft article { display: grid; gap: 10px; padding: 4px 0 4px 18px; border-left: 4px solid var(--paper-line); }
 .directive-draft article > span { font: 700 9px var(--font-brb-mono), monospace; letter-spacing: .1em; text-transform: uppercase; }
 .directive-draft article h3, .directive-draft article p { margin: 0; }
 .directive-draft article small { color: #7d302b; }

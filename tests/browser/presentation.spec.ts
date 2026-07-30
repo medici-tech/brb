@@ -28,7 +28,7 @@ async function collectOffBrandFaces(page: Page): Promise<string[]> {
       if (!element.textContent?.trim()) continue;
       if (element.getAttribute("aria-hidden") === "true") continue;
       const resolved = getComputedStyle(element).fontFamily;
-      const first = resolved.split(",")[0].trim().replace(/^["']|["']$/g, "");
+      const first = (resolved.split(",")[0] ?? "").trim().replace(/^["']|["']$/g, "");
       if (!approved.includes(first)) {
         offBrand.add(`${first} on <${element.tagName.toLowerCase()}>`);
       }
