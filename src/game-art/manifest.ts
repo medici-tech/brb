@@ -113,11 +113,10 @@ export const ART = {
     expectedWidth: 96,
     expectedHeight: 32,
   },
-  // Intended source: 2_Characters/Character_Generator/0_Premade_Characters/16x16
-  //   → seated variant (confirm frame count; some seated sets are 1–6 frames).
-  staffStewardSeated: {
-    key: "staffStewardSeated",
-    src: `${ART_BASE_PATH}/staff/steward-seated.png`,
+  // Steward station — front-idle strip. Desk layering supplies seated occlusion.
+  staffStewardIdle: {
+    key: "staffStewardIdle",
+    src: `${ART_BASE_PATH}/staff/steward-idle.png`,
     frameWidth: CHARACTER_FRAME_WIDTH,
     frameHeight: CHARACTER_FRAME_HEIGHT,
     frameCount: CHARACTER_FRAME_COUNT,
@@ -126,11 +125,22 @@ export const ART = {
     expectedWidth: 96,
     expectedHeight: 32,
   },
-  // Intended source: 2_Characters/Character_Generator/0_Premade_Characters/16x16
-  //   → walk cycle, single facing cropped to 96x32.
-  staffCrossingWalk: {
-    key: "staffCrossingWalk",
-    src: `${ART_BASE_PATH}/staff/crossing-walk.png`,
+  // Crossing courier — walk-right for left-to-right one-way travel.
+  staffCrossingWalkRight: {
+    key: "staffCrossingWalkRight",
+    src: `${ART_BASE_PATH}/staff/crossing-walk-right.png`,
+    frameWidth: CHARACTER_FRAME_WIDTH,
+    frameHeight: CHARACTER_FRAME_HEIGHT,
+    frameCount: CHARACTER_FRAME_COUNT,
+    fps: 8,
+    scale: 3,
+    expectedWidth: 96,
+    expectedHeight: 32,
+  },
+  // Crossing courier — walk-left for right-to-left one-way travel.
+  staffCrossingWalkLeft: {
+    key: "staffCrossingWalkLeft",
+    src: `${ART_BASE_PATH}/staff/crossing-walk-left.png`,
     frameWidth: CHARACTER_FRAME_WIDTH,
     frameHeight: CHARACTER_FRAME_HEIGHT,
     frameCount: CHARACTER_FRAME_COUNT,
@@ -141,16 +151,16 @@ export const ART = {
   },
 
   // ── Environment (mostly static tiles / props) ─────────────────────────────
-  // Source: 3_Animated_objects/16x16/spritesheets/animated_security_camera_right.png.
+  // Source: animated_security_camera_right.gif timing reproduced from its PNG strip.
   envSecurityCamera: {
     key: "envSecurityCamera",
     src: `${ART_BASE_PATH}/environment/security-camera.png`,
     frameWidth: 16,
     frameHeight: 16,
-    frameCount: 10,
-    fps: 2,
+    frameCount: 18,
+    fps: 10,
     scale: 3,
-    expectedWidth: 160,
+    expectedWidth: 288,
     expectedHeight: 16,
   },
   // Source: 1_Interiors/16x16/Theme_Sorter_Singles/13_Conference_Hall_Singles/
@@ -189,6 +199,68 @@ export const ART = {
     scale: 3,
     expectedWidth: 16,
     expectedHeight: 16,
+  },
+
+  // ── Narrative locations ──────────────────────────────────────────────────
+  // Oversight chamber broadcast camera / public feed.
+  envOversightBroadcast: {
+    key: "envOversightBroadcast",
+    src: `${ART_BASE_PATH}/narrative/oversight-broadcast.png`,
+    frameWidth: 48,
+    frameHeight: 32,
+    frameCount: 24,
+    fps: 10,
+    scale: 2,
+    expectedWidth: 1152,
+    expectedHeight: 32,
+  },
+  // Secure briefing evidence safe.
+  envSecureSafe: {
+    key: "envSecureSafe",
+    src: `${ART_BASE_PATH}/narrative/secure-safe.png`,
+    frameWidth: 16,
+    frameHeight: 32,
+    frameCount: 6,
+    fps: 10,
+    scale: 2,
+    expectedWidth: 96,
+    expectedHeight: 32,
+  },
+  // Worksite toolbox, sequenced to preserve the source GIF's two hold frames.
+  envInfrastructureToolbox: {
+    key: "envInfrastructureToolbox",
+    src: `${ART_BASE_PATH}/narrative/infrastructure-toolbox.png`,
+    frameWidth: 32,
+    frameHeight: 48,
+    frameCount: 22,
+    fps: 10,
+    scale: 2,
+    expectedWidth: 704,
+    expectedHeight: 48,
+  },
+  // Corporation office door, sequenced to preserve open/closed holds.
+  envCorporateDoor: {
+    key: "envCorporateDoor",
+    src: `${ART_BASE_PATH}/narrative/corporate-door.png`,
+    frameWidth: 48,
+    frameHeight: 32,
+    frameCount: 22,
+    fps: 10,
+    scale: 2,
+    expectedWidth: 1056,
+    expectedHeight: 32,
+  },
+  // Civic perimeter barrier, sequenced to preserve open/closed holds.
+  envCivicBarrier: {
+    key: "envCivicBarrier",
+    src: `${ART_BASE_PATH}/narrative/civic-barrier.png`,
+    frameWidth: 80,
+    frameHeight: 80,
+    frameCount: 22,
+    fps: 10,
+    scale: 1,
+    expectedWidth: 1760,
+    expectedHeight: 80,
   },
 } satisfies Record<string, ArtEntry>;
 

@@ -31,19 +31,32 @@ const INTERIORS_PACK = "moderninteriors-win";
 /** Pixel rectangle to crop out of the source sheet. */
 type Crop = { readonly width: number; readonly height: number; readonly x: number; readonly y: number };
 
+/** Deterministic left-to-right frame extraction from a cropped (or full) sheet. */
+export type FrameSequence = {
+  readonly frameWidth: number;
+  readonly frameHeight: number;
+  /** Zero-based source frame indices, written in this order into the output strip. */
+  readonly indices: readonly number[];
+};
+
 export type CurationStep = {
   /** Source file, relative to `BRB Assets/` (INTERIORS_PACK prefix optional). */
   readonly source: string;
   /** Optional crop; omit to copy the source through unchanged. */
   readonly crop?: Crop;
+  /**
+   * Optional deterministic frame sequence. Applied after `crop` (or to the full
+   * source). Produces a horizontal strip of `indices.length` frames.
+   */
+  readonly frameSequence?: FrameSequence;
   /** Human-readable provenance note for the log + future auditing. */
   readonly note: string;
 };
 
 /**
  * Curation table — one entry per manifest key. These selections and crops were
- * verified against the supplied pack on 2026-07-29. Character strips are 96x32
- * (16x32 × 6 frames) cut from a wider premade sheet.
+ * verified against the supplied pack on 2026-07-29 / 2026-07-30. Character strips
+ * are 96x32 (16x32 × 6 frames) cut from a wider premade sheet.
  */
 export const CURATION: Record<ArtKey, CurationStep> = {
   // Wall of monitors — complete 11-frame, 64×48-per-frame strip.
@@ -69,21 +82,32 @@ export const CURATION: Record<ArtKey, CurationStep> = {
     note: "Premade char 02, front-idle strip → 6×(16×32).",
   },
   // Steward — front-idle strip (seated variant deferred; true sit rows come later).
-  staffStewardSeated: {
+  staffStewardIdle: {
     source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_03.png",
     crop: { width: 96, height: 32, x: 0, y: 32 },
     note: "Premade char 03, front-idle strip (row y=32) → 6×(16×32).",
   },
-  // Crossing pedestrian — a walk cycle strip, single facing.
-  staffCrossingWalk: {
+  // Crossing courier — walk-right strip for left-to-right travel.
+  staffCrossingWalkRight: {
     source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_04.png",
-    crop: { width: 96, height: 32, x: 0, y: 64 },
-    note: "Premade char 04, walk-down strip (row y=64) → 6×(16×32).",
+    crop: { width: 96, height: 32, x: 0, y: 128 },
+    note: "Premade char 04, walk-right strip (row y=128) → 6×(16×32).",
   },
-  // Security camera — panning CCTV animation, first 4 frames.
+  // Crossing courier — walk-left strip for right-to-left travel.
+  staffCrossingWalkLeft: {
+    source: "2_Characters/Character_Generator/0_Premade_Characters/16x16/Premade_Character_04.png",
+    crop: { width: 96, height: 32, x: 0, y: 160 },
+    note: "Premade char 04, walk-left strip (row y=160) → 6×(16×32).",
+  },
+  // Security camera — preserve the source GIF's 0.5s endpoint holds at 10 fps.
   envSecurityCamera: {
     source: "3_Animated_objects/16x16/spritesheets/animated_security_camera_right.png",
-    note: "Right-facing CCTV pan → 10×(16×16) frames.",
+    frameSequence: {
+      frameWidth: 16,
+      frameHeight: 16,
+      indices: [0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 6, 7, 8, 9],
+    },
+    note: "Right-facing CCTV pan → 18×(16×16) frames reproducing the 1.8-second GIF timing.",
   },
   // Conference desk/lectern — static prop from the conference-hall singles.
   envConferenceDesk: {
@@ -110,6 +134,44 @@ export const CURATION: Record<ArtKey, CurationStep> = {
     // interior of the 64px-wide run of the same wall on the same row instead.
     crop: { width: 16, height: 16, x: 16, y: 492 },
     note: "Neutral institutional wall panel, gutter-free interior → one opaque 16×16 tile.",
+  },
+  envOversightBroadcast: {
+    source: "3_Animated_objects/16x16/spritesheets/animated_TV_reportage.png",
+    note: "Television reportage camera → 24×(48×32) frames for the oversight chamber.",
+  },
+  envSecureSafe: {
+    source: "3_Animated_objects/16x16/spritesheets/animated_safe_empty.png",
+    note: "Secure evidence safe → 6×(16×32) frames for compartmented briefings.",
+  },
+  envInfrastructureToolbox: {
+    source:
+      "modernexteriors-win/Modern_Exteriors_16x16/Animated_16x16/Animated_sheets_16x16/Worksite_toolbox_full_16x16.png",
+    frameSequence: {
+      frameWidth: 32,
+      frameHeight: 48,
+      indices: [0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 8, 9, 10, 11, 12, 13],
+    },
+    note: "Worksite toolbox → 22×(32×48) frames preserving the supplied GIF holds.",
+  },
+  envCorporateDoor: {
+    source:
+      "modernexteriors-win/Modern_Exteriors_16x16/Animated_16x16/Animated_sheets_16x16/Office_Door_Lime_Corp_1_16x16.png",
+    frameSequence: {
+      frameWidth: 48,
+      frameHeight: 32,
+      indices: [0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 8, 9, 10, 11, 12, 13],
+    },
+    note: "Corporation office door → 22×(48×32) frames preserving closed/open holds.",
+  },
+  envCivicBarrier: {
+    source:
+      "modernexteriors-win/Modern_Exteriors_16x16/Animated_16x16/Animated_sheets_16x16/Automatic_Barrier_1_16x16.png",
+    frameSequence: {
+      frameWidth: 80,
+      frameHeight: 80,
+      indices: [0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 8, 9, 10, 11, 12, 13],
+    },
+    note: "Civic automatic barrier → 22×(80×80) frames preserving open/closed holds.",
   },
 };
 
@@ -149,12 +211,15 @@ function outputPath(key: ArtKey): string {
   return path.join(PUBLIC_ROOT, ART[key].src);
 }
 
-function curate(key: ArtKey, convertCmd: string[]): void {
-  const step = CURATION[key];
-  const source = resolveSource(step.source);
-  const dest = outputPath(key);
-  mkdirSync(path.dirname(dest), { recursive: true });
-
+/**
+ * Build ImageMagick argv that writes `dest` from `source` according to the step.
+ * Exported for unit tests so frame sequencing stays deterministic without I/O.
+ */
+export function buildCurationConvertArgs(
+  step: CurationStep,
+  source: string,
+  dest: string,
+): string[] {
   const cropArgs = step.crop
     ? [
         "-crop",
@@ -162,17 +227,69 @@ function curate(key: ArtKey, convertCmd: string[]): void {
         "+repage",
       ]
     : [];
-  execFileSync(
-    convertCmd[0]!,
-    [
-      ...convertCmd.slice(1),
-      source,
-      ...cropArgs,
-      "-strip",
-      dest,
-    ],
-    { stdio: "inherit" },
-  );
+
+  if (!step.frameSequence) {
+    return [source, ...cropArgs, "-strip", dest];
+  }
+
+  const { frameWidth, frameHeight, indices } = step.frameSequence;
+  if (indices.length === 0) {
+    throw new UsageError("frameSequence.indices must contain at least one frame.");
+  }
+
+  // Load + optional crop into mpr:sheet, then clone named frames and append.
+  // `-clone 0` is required; `+clone` inside later parentheses can latch onto a
+  // prior 1-frame crop and fail geometry checks.
+  const sequenceOps: string[] = [];
+  for (const index of indices) {
+    sequenceOps.push(
+      "(",
+      "mpr:sheet",
+      "-crop",
+      `${frameWidth}x${frameHeight}+${index * frameWidth}+0`,
+      "+repage",
+      ")",
+    );
+  }
+
+  return [
+    source,
+    ...cropArgs,
+    "-write",
+    "mpr:sheet",
+    "+delete",
+    ...sequenceOps,
+    "+append",
+    "-strip",
+    dest,
+  ];
+}
+
+function curate(key: ArtKey, convertCmd: string[]): void {
+  const step = CURATION[key];
+  const source = resolveSource(step.source);
+  const dest = outputPath(key);
+  mkdirSync(path.dirname(dest), { recursive: true });
+
+  const args = buildCurationConvertArgs(step, source, dest);
+  execFileSync(convertCmd[0]!, [...convertCmd.slice(1), ...args], {
+    stdio: "inherit",
+  });
+
+  const entry = ART[key];
+  if (step.frameSequence) {
+    const expectedFrames = step.frameSequence.indices.length;
+    if (entry.frameCount !== expectedFrames) {
+      throw new UsageError(
+        `${key}: manifest frameCount ${entry.frameCount} does not match sequenced ${expectedFrames} frames.`,
+      );
+    }
+    if (entry.expectedWidth !== step.frameSequence.frameWidth * expectedFrames) {
+      throw new UsageError(
+        `${key}: manifest expectedWidth ${entry.expectedWidth} does not match sequenced strip width.`,
+      );
+    }
+  }
 
   console.error(
     `✓ ${key}: ${path.relative(PROJECT_ROOT, source)} → ${path.relative(PROJECT_ROOT, dest)}  (${step.note})`,

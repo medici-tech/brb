@@ -9,7 +9,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { CURATION } from "../../scripts/curate-art.js";
+import { CURATION, buildCurationConvertArgs } from "../../scripts/curate-art.js";
 import {
   findDuplicateArtPayloads,
   injectArt,
@@ -61,6 +61,44 @@ describe("BRB art pipeline", () => {
     expect(Object.keys(CURATION).sort()).toEqual(Object.keys(ART).sort());
     expect(new Set(Object.values(ART).map((entry) => entry.src)).size).toBe(
       Object.keys(ART).length,
+    );
+  });
+
+  it("sequences security-camera frames with the supplied endpoint holds", () => {
+    const step = CURATION.envSecurityCamera;
+    expect(step.frameSequence?.indices).toEqual([
+      0, 0, 0, 0, 0, 1, 2, 3, 4,
+      5, 5, 5, 5, 5, 6, 7, 8, 9,
+    ]);
+    expect(ART.envSecurityCamera.frameCount).toBe(18);
+    expect(ART.envSecurityCamera.fps).toBe(10);
+    expect(ART.envSecurityCamera.expectedWidth).toBe(288);
+
+    const args = buildCurationConvertArgs(
+      step,
+      "/tmp/source-camera.png",
+      "/tmp/out-camera.png",
+    );
+    expect(args).toContain("+append");
+    expect(args).toContain("mpr:sheet");
+    expect(args.filter((part) => part === "mpr:sheet")).toHaveLength(19);
+  });
+
+  it("curates distinct left and right crossing walk strips", () => {
+    expect(CURATION.staffCrossingWalkRight.crop).toEqual({
+      width: 96,
+      height: 32,
+      x: 0,
+      y: 128,
+    });
+    expect(CURATION.staffCrossingWalkLeft.crop).toEqual({
+      width: 96,
+      height: 32,
+      x: 0,
+      y: 160,
+    });
+    expect(ART.staffCrossingWalkRight.src).not.toEqual(
+      ART.staffCrossingWalkLeft.src,
     );
   });
 

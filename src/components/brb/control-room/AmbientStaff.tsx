@@ -1,5 +1,6 @@
 import type { ArtKey } from "@/game-art/manifest";
 import { PixelSprite } from "../pixel/PixelSprite";
+import type { StaffLayout } from "./presentationStateResolver";
 import styles from "./ControlRoomPresentation.module.css";
 
 type StaffPosition = "left" | "center" | "right" | "crossing";
@@ -7,19 +8,35 @@ type StaffPosition = "left" | "center" | "right" | "crossing";
 type AmbientStaffProps = {
   position: StaffPosition;
   label: string;
+  crossingDirection?: StaffLayout["crossingDirection"];
 };
 
-// Each control-room post maps to a curated LimeZu sprite. When the runtime art
-// is absent (gitignored / not injected) PixelSprite renders the CSS silhouette
-// fallback below, so the scene still reads.
-const POSITION_ART: Record<StaffPosition, ArtKey> = {
+// Station sprites use role labels (Analysis / Operations / Institutions), not
+// advisor names, so ambient floor staff are not mistaken for The Analyst / etc.
+const POSITION_ART: Record<Exclude<StaffPosition, "crossing">, ArtKey> = {
   left: "staffAnalystIdle",
   center: "staffOperatorIdle",
-  right: "staffStewardSeated",
-  crossing: "staffCrossingWalk",
+  right: "staffStewardIdle",
 };
 
-export function AmbientStaff({ position, label }: AmbientStaffProps) {
+function crossingArtKey(
+  direction: StaffLayout["crossingDirection"] = "left-to-right",
+): ArtKey {
+  return direction === "right-to-left"
+    ? "staffCrossingWalkLeft"
+    : "staffCrossingWalkRight";
+}
+
+export function AmbientStaff({
+  position,
+  label,
+  crossingDirection = "left-to-right",
+}: AmbientStaffProps) {
+  const artKey =
+    position === "crossing"
+      ? crossingArtKey(crossingDirection)
+      : POSITION_ART[position];
+
   return (
     <span
       aria-hidden="true"
@@ -28,7 +45,7 @@ export function AmbientStaff({ position, label }: AmbientStaffProps) {
       title={label}
     >
       <PixelSprite
-        artKey={POSITION_ART[position]}
+        artKey={artKey}
         className={styles.staffSprite ?? ""}
         fallback={
           <>
