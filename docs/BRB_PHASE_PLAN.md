@@ -65,10 +65,11 @@ Use 3,000-run simulations for routine comparisons of common outcomes, duration, 
 conditions, places consultation and Situation choices ahead of supporting systems, repeats
 exact routine effects in confirmation, preserves qualitative/classified Situation
 disclosure, and shows activation and advisor thresholds. After each commitment, a
-player-stepped three-quarter top-down scene shows Setup → Action → Consequence while the
+player-stepped orthographic aftermath scene shows Setup → Action → Consequence while the
 linked written record preserves exact provenance. Six reusable political locations and
-canonical-state-derived control-room scars make major outcomes visible without adding
-movement or another rules engine. The complete attributed audit remains available on
+canonical-state-derived facility scars make major outcomes visible without adding
+movement or another rules engine. The Campaign and Ending surfaces share one fixed
+continuity-facility camera on the 16px LimeZu grid. The complete attributed audit remains available on
 demand, and reports retain a versioned final-state snapshot. This prepares rather than
 replaces the Phase 3 external onboarding gate.
 

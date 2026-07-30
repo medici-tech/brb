@@ -193,7 +193,7 @@ Invalid values fail closed and return `null`; they do not get merged into a new 
 
 All decisions, weighted draws, echoes, routes, endings, reports, and archive merges remain
 pure TypeScript under `src/game`. React owns display, browser input, and local-storage
-orchestration. The top-down aftermath resolver reads existing `DecisionRecord`
+orchestration. The orthographic aftermath resolver reads existing `DecisionRecord`
 (including structured `subject` facts), `TurnResolution`, and final `GameState` values;
 its current beat and persistent visual marks are presentation-only and unpersisted. This
 makes the simulator use the same rules as the browser and keeps later packaging from
