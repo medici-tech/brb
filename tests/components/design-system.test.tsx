@@ -7,9 +7,19 @@ import {
   ConfirmActionDialog,
   DecisionOption,
   FileIndexCard,
+  GuidedObjective,
+  Hero,
+  JournalSlot,
   ProgressTrack,
   RedactedText,
+  ReportMetadata,
+  ReportOutcomeSummary,
+  ReportSection,
+  ReportStat,
+  ReportStatGrid,
   StatusBadge,
+  TurnBeat,
+  TurnBeatSequence,
 } from "../../src/components/brb/ui/index.js";
 import { Button } from "../../src/components/ui/button.js";
 
@@ -84,5 +94,40 @@ describe("BRB design system", () => {
     fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(confirm).not.toHaveBeenCalled();
+  });
+
+  it("renders the production surface vocabulary with semantic landmarks", () => {
+    render(
+      <>
+        <Hero eyebrow="Operational brief" title="Build the machine." summary="Decide what it costs." />
+        <GuidedObjective eyebrow="Month one" title="Assess the file" description="Consult, then commit." />
+        <TurnBeatSequence>
+          <TurnBeat label="01 · Improvement" title="The position improved" tone="improvement" />
+        </TurnBeatSequence>
+        <JournalSlot order="01" eyebrow="Technocrat · Pending" title="Natural run">
+          <p>Follow the current strategy.</p>
+        </JournalSlot>
+        <ReportOutcomeSummary
+          result={<span>Result · Victory</span>}
+          reasonTitle="Why this run ended"
+          reason="The BRB was activated."
+          rule="Public control survived."
+          nextTitle="Try this instead"
+          nextStep="Spend less leverage."
+        />
+        <ReportStatGrid>
+          <ReportStat label="Stress" value="40 / 100" />
+        </ReportStatGrid>
+        <ReportMetadata items={[{ label: "Doctrine", value: "Technocrat" }]} />
+        <ReportSection eyebrow="Turning point" title="A decision was made." />
+      </>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Build the machine." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Assess the file" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "The position improved" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Natural run" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Campaign result explained" })).toBeInTheDocument();
+    expect(screen.getByText("Technocrat")).toBeInTheDocument();
   });
 });

@@ -25,14 +25,24 @@ import {
   DossierPanel,
   EmptyState,
   FileIndexCard,
+  GuidedObjective,
+  Hero,
+  JournalSlot,
   LoadingState,
   MetricStrip,
   OutcomeNotice,
   ProgressTrack,
   RedactedText,
+  ReportMetadata,
+  ReportOutcomeSummary,
+  ReportSection,
+  ReportStat,
+  ReportStatGrid,
   SectionHeading,
   StatusBadge,
   ThreatPanel,
+  TurnBeat,
+  TurnBeatSequence,
 } from "@/components/brb/ui";
 import type { BrbStat, BrbTone } from "@/components/brb/ui";
 import { Button } from "@/components/ui/button";
@@ -156,6 +166,60 @@ function MockBriefing() {
 function ComponentLibrary() {
   return (
     <div className="space-y-16">
+      <section>
+        <SectionHeading eyebrow="Production surfaces" title="The gallery uses the same pieces as the game" />
+        <div className="space-y-6">
+          <Hero
+            eyebrow="Operational brief"
+            title={<>Build the machine.<br />Decide what it costs.</>}
+            summary="A reusable opening surface for the campaign fantasy, objective, and first action."
+            stamp="Top secret"
+          />
+          <GuidedObjective
+            eyebrow="Assess the file"
+            title="Consult optionally, then commit."
+            description="This compact paper instruction keeps the current player verb visible."
+            compact
+          />
+          <TurnBeatSequence>
+            <TurnBeat label="01 · Improvement" title="The commitment improved your position." tone="improvement" description="Every result remains attributed to the decision that caused it." />
+            <TurnBeat label="02 · Milestone" title="Access entered its final build stage." tone="milestone" description="Milestones receive emphasis without becoming a second rules system." />
+            <TurnBeat label="03 · Problem" title="The Corporation used the delay." tone="problem" description="Danger motion and color are reserved for actual pressure." />
+          </TurnBeatSequence>
+          <JournalSlot order="01" eyebrow="Technocrat · Pending" title="Natural run" action={<Button variant="command">Start guided run</Button>}>
+            <p>Follow the strategy that feels strongest without consulting simulation output.</p>
+          </JournalSlot>
+        </div>
+      </section>
+
+      <section>
+        <SectionHeading eyebrow="Report structures" title="Campaign evidence shares one paper grammar" />
+        <div className="brb-paper-texture border border-dossier p-6 text-dossier-ink sm:p-8">
+          <ReportOutcomeSummary
+            result={<StatusBadge tone="stable">Result · Victory</StatusBadge>}
+            reasonTitle="Why this run ended"
+            reason="The BRB was activated under public authority."
+            rule="Institutions and political pressure remained inside the safe limits."
+            nextTitle="Try this instead"
+            nextStep="Spend less advisor leverage in the final stretch."
+          />
+          <ReportStatGrid className="mt-6">
+            <ReportStat label="Stress" value="42 / 100" helper="Trust remains stable." />
+            <ReportStat label="Panic" value="18 / 100" helper="State remains operational." />
+            <ReportStat label="Institutions" value="67 / 100" helper="Public capacity preserved." />
+            <ReportStat label="Corporation Progress" value="31 / 100" helper="No capture condition." />
+          </ReportStatGrid>
+          <ReportMetadata items={[
+            { label: "Doctrine", value: "Technocrat" },
+            { label: "Legacy Directive", value: "None equipped" },
+            { label: "Replay code", value: "19740912" },
+          ]} />
+          <ReportSection eyebrow="Story-defining choice · Month 4" title="The hearing was opened to the public.">
+            This decision created the strongest delayed story consequence in the run.
+          </ReportSection>
+        </div>
+      </section>
+
       <section>
         <SectionHeading eyebrow="Dossier surfaces" title="Files carry warmth; systems carry pressure" />
         <div className="grid gap-5 lg:grid-cols-3">
