@@ -46,7 +46,7 @@
 }
 
 .presentation[data-motion="reduced"] :global([data-room-actor="courier"]) {
-  animation: none;
+  animation: none !important;
 }
 
 @keyframes corridor-right {

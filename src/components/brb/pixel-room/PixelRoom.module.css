@@ -1,8 +1,16 @@
 .viewport {
+  /* Preferred integer display scale. The canvas then fit-scales to the actual
+     viewport width so a narrower host never crops the fixed camera. */
   --pixel-room-scale: 2;
+  container-type: inline-size;
+  container-name: pixel-room;
   position: relative;
-  width: calc(var(--pixel-room-width) * var(--pixel-room-scale) * 1px);
-  height: calc(var(--pixel-room-height) * var(--pixel-room-scale) * 1px);
+  width: min(
+    100%,
+    calc(var(--pixel-room-width) * var(--pixel-room-scale) * 1px)
+  );
+  aspect-ratio: var(--pixel-room-width) / var(--pixel-room-height);
+  height: auto;
   max-width: 100%;
   overflow: hidden;
   background: #101719;
@@ -13,12 +21,14 @@
   image-rendering: pixelated;
   contain: layout paint;
 }
+
 .canvas {
   position: absolute;
   inset: 0 auto auto 0;
   width: calc(var(--pixel-room-width) * 1px);
   height: calc(var(--pixel-room-height) * 1px);
-  transform: scale(var(--pixel-room-scale));
+  /* 100cqi is the laid-out viewport width, so scale is 2, 1, or a fit factor. */
+  transform: scale(calc(100cqi / var(--pixel-room-width)));
   transform-origin: top left;
   overflow: hidden;
   isolation: isolate;
@@ -77,6 +87,7 @@
 
 .light {
   position: absolute;
+  inset: 0;
   z-index: 100;
   pointer-events: none;
   background: rgba(37, 52, 37, 0.42);

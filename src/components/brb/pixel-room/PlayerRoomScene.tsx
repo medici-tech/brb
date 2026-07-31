@@ -1,3 +1,6 @@
+"use client";
+
+import { useReducedMotion } from "@/components/brb/control-room/useReducedMotion";
 import { PixelRoom } from "./PixelRoom";
 import { ROOM_DEFINITIONS } from "./roomDefinitions";
 import type { RoomActor, RoomLayer } from "./roomTypes";
@@ -13,6 +16,7 @@ export function PlayerRoomScene({
   ariaLabel,
   evidenceLoad = 0,
 }: PlayerRoomSceneProps) {
+  const reducedMotion = useReducedMotion();
   const intake = ROOM_DEFINITIONS.intake.anchors;
   const records = ROOM_DEFINITIONS.records.anchors;
   const actors: RoomActor[] =
@@ -97,6 +101,7 @@ export function PlayerRoomScene({
       actors={actors}
       layers={layers}
       lighting="calm"
+      reducedMotion={reducedMotion}
     />
   );
 }

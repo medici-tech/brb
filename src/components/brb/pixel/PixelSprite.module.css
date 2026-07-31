@@ -55,9 +55,15 @@
   background-position-x: 0;
 }
 
-:global([data-tempo="reading"]) :global([data-room-part^="staff-"]) .animated,
+/* Longer duration = slower loops while the Situation dossier is being read. */
+:global([data-tempo="reading"]) {
+  --room-tempo: 1.85;
+}
+
+/* Ending / still tempo parks every sheet on its deliberate frozen pose. */
 :global([data-tempo="still"]) .animated {
-  animation-play-state: paused;
+  animation: none !important;
+  background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
 }
 
 /* Offscreen probe <img> used only to detect a 404 on the sheet. It must never

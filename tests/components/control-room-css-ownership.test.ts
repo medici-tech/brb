@@ -29,12 +29,16 @@ describe("orthographic control-room CSS contract", () => {
     expect(productionCss).not.toMatch(/--sprite-scale-override:\s*[3-9]/);
   });
 
-  it("scales only the complete room canvas by desktop 2x or narrow 1x", () => {
+  it("scales the complete room canvas and fit-scales instead of cropping", () => {
     const renderer = read(path.join(PIXEL_ROOM, "PixelRoom.module.css"));
 
     expect(renderer).toMatch(/--pixel-room-scale:\s*2/);
     expect(renderer).toMatch(/--pixel-room-scale:\s*1/);
-    expect(renderer).toMatch(/transform:\s*scale\(var\(--pixel-room-scale\)\)/);
+    expect(renderer).toMatch(/container-type:\s*inline-size/);
+    expect(renderer).toMatch(
+      /transform:\s*scale\(calc\(100cqi\s*\/\s*var\(--pixel-room-width\)\)\)/,
+    );
+    expect(renderer).toMatch(/aspect-ratio:\s*var\(--pixel-room-width\)/);
     expect(renderer).toMatch(/--sprite-scale-override:\s*1/);
     expect(renderer).toMatch(/@media \(max-width:\s*1180px\)/);
   });
@@ -66,14 +70,29 @@ describe("orthographic control-room CSS contract", () => {
 
     expect(workspace).toMatch(/grid-template-columns:\s*704px/);
     expect(workspace).toMatch(/width:\s*704px/);
-    expect(workspace).toMatch(/height:\s*448px/);
+    expect(workspace).toMatch(/aspect-ratio:\s*352\s*\/\s*224/);
     expect(workspace).toMatch(/width:\s*352px/);
-    expect(workspace).toMatch(/height:\s*224px/);
+    expect(workspace).toMatch(/width:\s*min\(100%,\s*352px\)/);
     expect(workspace).toMatch(/\.dossierColumn\s*\{[\s\S]*order:\s*1/);
     expect(workspace).toMatch(/\.sceneStage\s*\{[\s\S]*order:\s*2/);
     expect(workspace).not.toMatch(/margin:\s*-\d/);
     expect(workspace).not.toMatch(/max-height:\s*120px/);
     expect(workspace).not.toMatch(/\.sceneStage\s*\{[^}]*border:\s*1px/);
+  });
+
+  it("slows ambient loops while reading and freezes still tempo on a pose", () => {
+    const spriteCss = read(
+      path.join(process.cwd(), "src/components/brb/pixel/PixelSprite.module.css"),
+    );
+
+    expect(spriteCss).toMatch(
+      /\[data-tempo="reading"\]\)\s*\{\s*--room-tempo:/,
+    );
+    expect(spriteCss).not.toMatch(/data-room-part/);
+    expect(spriteCss).toMatch(
+      /\[data-tempo="still"\]\)\s*\.animated\s*\{[\s\S]*animation:\s*none/,
+    );
+    expect(spriteCss).toMatch(/--sprite-frozen-frame/);
   });
 
   it("keeps narrative rooms orthographic and free of actor labels", () => {
@@ -96,5 +115,16 @@ describe("orthographic control-room CSS contract", () => {
     );
     expect(narrativeComponent).not.toMatch(/<small>\{actor\.label\}<\/small>/);
     expect(narrativeComponent).toContain("<PixelRoom");
+    expect(narrativeComponent).toContain("envOversightBroadcast");
+    expect(narrativeComponent).not.toMatch(/data-focus-[xy]/);
+  });
+
+  it("wires reduced motion through player-facing room scenes", () => {
+    const playerScene = read(
+      path.join(PIXEL_ROOM, "PlayerRoomScene.tsx"),
+    );
+
+    expect(playerScene).toContain("useReducedMotion");
+    expect(playerScene).toMatch(/reducedMotion=\{reducedMotion\}/);
   });
 });

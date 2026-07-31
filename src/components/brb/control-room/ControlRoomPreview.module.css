@@ -90,7 +90,9 @@
 .previewRoom {
   position: relative;
   width: 704px;
-  height: 448px;
+  max-width: 100%;
+  aspect-ratio: 352 / 224;
+  height: auto;
   overflow: hidden;
 }
 
@@ -129,12 +131,11 @@
 
 @media (max-width: 1180px) {
   .previewStage {
-    grid-template-columns: 352px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 352px) minmax(0, 1fr);
   }
 
   .previewRoom {
     width: 352px;
-    height: 224px;
   }
 
   .previewFile {
@@ -170,7 +171,7 @@
   .previewRoom {
     order: 2;
     align-self: center;
-    max-width: 100%;
+    width: min(100%, 352px);
   }
 
   .previewFile {

@@ -133,21 +133,25 @@ always builds and runs, with or without the curated art.**
 - **Typography:** Barlow Condensed owns display headings and large state numerals;
   IBM Plex Sans owns prose and controls; IBM Plex Mono owns telemetry, case numbers,
   stamps, and short labels.
-- **Pixel scales:** every room canvas is authored at 1× source pixels. Desktop displays
-  the complete canvas at 2×; narrow layouts (`max-width: 1180px`) keep 1×. Do not apply
-  per-sprite scale overrides inside a room.
+- **Pixel scales:** every room canvas is authored at 1× source pixels. Desktop prefers
+  the complete canvas at 2×; narrow layouts (`max-width: 1180px`) prefer 1×. Hosts may
+  fit-scale the **whole canvas** via container query (`100cqi / sourceWidth`) so a
+  narrower phone never crops the fixed camera. Do not apply per-sprite scale overrides
+  inside a room.
 - **Composition:** illustrated spaces use `PixelRoom` with integer tile anchors. No
-  perspective or fractional transform may wrap a sprite or the room canvas (whole-canvas
-  integer upscale via `transform: scale(N)` is the only allowed scale step).
+  perspective transform may wrap a sprite. Whole-canvas scale is the only allowed scale
+  step; sprites stay at source 1× relative to the canvas.
 - **Shots:** `PresentationModel.shot` still drives tempo and sequencing labels
   (operations, Situation, consultation, commitment, milestone, ending). It must **not**
   crop the camera, hide room layers, or change which facility areas are visible.
-- **Motion:** ambient loops slow while reading, commitment responses are brief, corridor
-  staff appear only on deterministic standby turns, ending tableaux are still, and
-  reduced motion removes room animation and transitions.
+- **Motion:** `data-tempo="reading"` sets `--room-tempo` so ambient sheet loops slow
+  while the Situation dossier is open; commitment responses are brief; corridor staff
+  appear only on deterministic standby turns; `data-tempo="still"` parks every sheet on
+  its frozen pose; reduced motion removes room animation and transitions.
 - **Campaign layout:** desktop places the **704×448** facility (22×14 tiles at 2×) beside
   the Situation dossier. Narrow widths stack the dossier first and the complete
-  **352×224** facility second. Never overlap or crop the dossier into the room.
+  **352×224** facility second (fit-scaled if the host is narrower). Never overlap or
+  crop the dossier into the room.
 - **Accessibility:** in-room labels are removed. State is exposed through the room
   `aria-label` and the existing external meters, dossier copy, and controls.
 

@@ -356,7 +356,9 @@ button { font: inherit; }
 .player-room-scene {
   position: relative;
   width: 448px;
-  height: 320px;
+  max-width: 100%;
+  aspect-ratio: 224 / 160;
+  height: auto;
   overflow: hidden;
   background: var(--console-900);
   box-shadow:
@@ -370,11 +372,10 @@ button { font: inherit; }
 @media (max-width: 1180px) {
   .start-brief-grid,
   .records-screen-grid {
-    grid-template-columns: minmax(0, 1fr) 224px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 224px);
   }
   .player-room-scene {
     width: 224px;
-    height: 160px;
   }
 }
 .primary-button:disabled, .secondary-button:disabled { opacity: .48; cursor: not-allowed; }
@@ -422,7 +423,7 @@ button { font: inherit; }
     top: auto;
     align-self: center;
     order: 2;
-    max-width: 100%;
+    width: min(100%, 224px);
   }
 }
 /* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).

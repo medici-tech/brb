@@ -34,7 +34,9 @@
 .roomStage {
   position: relative;
   width: 704px;
-  height: 448px;
+  max-width: 100%;
+  aspect-ratio: 352 / 224;
+  height: auto;
   overflow: hidden;
   background: var(--console-900);
   box-shadow:
@@ -94,12 +96,11 @@
 
 @media (max-width: 1180px) {
   .stage {
-    grid-template-columns: 352px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 352px) minmax(0, 1fr);
   }
 
   .roomStage {
     width: 352px;
-    height: 224px;
   }
 
   .caption {
@@ -137,7 +138,7 @@
   .roomStage {
     order: 2;
     align-self: center;
-    max-width: 100%;
+    width: min(100%, 352px);
   }
 
   .caption h1 {

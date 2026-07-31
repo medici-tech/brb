@@ -201,8 +201,6 @@ export function NarrativeScene({
       data-institutional-condition={persistentMarks.institutionalCondition}
       data-motion={reducedMotion ? "reduced" : "full"}
       data-narrative-location={location}
-      data-focus-x={beat.focus.x}
-      data-focus-y={beat.focus.y}
     >
       <div className={styles.sceneRoom}>
         <PixelRoom
