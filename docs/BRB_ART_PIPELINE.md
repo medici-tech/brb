@@ -144,10 +144,12 @@ always builds and runs, with or without the curated art.**
 - **Shots:** `PresentationModel.shot` still drives tempo and sequencing labels
   (operations, Situation, consultation, commitment, milestone, ending). It must **not**
   crop the camera, hide room layers, or change which facility areas are visible.
-- **Motion:** `data-tempo="reading"` sets `--room-tempo` so ambient sheet loops slow
-  while the Situation dossier is open; commitment responses are brief; corridor staff
+- **Motion:** `data-tempo` controls sprite animation speed; corridor staff
   appear only on deterministic standby turns; `data-tempo="still"` parks every sheet on
   its frozen pose; reduced motion removes room animation and transitions.
+- **Staff poses:** staff sprites use `frameOffset` derived from advisor relationship
+  state to show working, concerned, or stressed body language. Poses reinforce advisor
+  tension without revealing exact meter values.
 - **Campaign layout:** desktop places the **704×448** facility (22×14 tiles at 2×) beside
   the Situation dossier. Narrow widths stack the dossier first and the complete
   **352×224** facility second (fit-scaled if the host is narrower). Never overlap or
@@ -174,6 +176,39 @@ scope.
 
 `/dev/control-room` previews the facility across presentation states. The route remains
 excluded from production builds.
+
+## Animation tempo
+
+The `data-tempo` attribute on the presentation root modulates sprite animation speed
+via the `--room-tempo` CSS variable. Longer values slow loops; shorter values speed
+them up; `still` freezes entirely.
+
+| Tempo | `--room-tempo` | Context |
+| --- | ---: | --- |
+| `ambient` | 1.0 | Default calm operations |
+| `reading` | 1.85 | Active Situation card or consultation phase |
+| `response` | 0.85 | Commitment or milestone resolution |
+| `critical` | 0.7 | Crisis or institutional-failure state |
+| `still` | frozen | Ending tableau |
+
+The resolver in `presentationStateResolver.ts` maps game state to tempo. Shot takes
+precedence: ending → still, commitment/milestone → response, situation/consultation →
+reading. If no shot overrides, presentation state provides the fallback: crisis or
+institutional-failure → critical, otherwise ambient.
+
+## Staff poses
+
+Staff sprites reflect advisor relationship state through `frameOffset`:
+
+| Pose | Frame | Trigger |
+| --- | ---: | --- |
+| `calm` | 0 | Departed advisor (won't render) |
+| `working` | 1 | Normal engaged state |
+| `concerned` | 3 | Loyalty ≤ 45, alignment ≤ 35, or leverage ≥ 70 |
+| `stressed` | 5 | Loyalty ≤ 32 (near departure) |
+
+Thresholds are declared in `presentationThresholds.ts`. The pose reinforces advisor
+tension without revealing exact meter values.
 
 ## Narrative scene architecture
 
