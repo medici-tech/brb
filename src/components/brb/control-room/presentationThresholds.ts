@@ -28,6 +28,16 @@ export type PresentationThresholds = {
     crossingInterval: number;
     crossingOffset: number;
   };
+  staffPose: {
+    /** Loyalty at or below this triggers stressed pose (near departure). */
+    stressedLoyaltyMaximum: number;
+    /** Loyalty at or below this triggers concerned pose. */
+    concernedLoyaltyMaximum: number;
+    /** Alignment at or below this triggers concerned pose. */
+    concernedAlignmentMaximum: number;
+    /** Leverage at or above this triggers concerned pose. */
+    highLeverageMinimum: number;
+  };
 };
 
 /**
@@ -65,5 +75,11 @@ export const PRESENTATION_THRESHOLDS = {
   staffSchedule: {
     crossingInterval: 4,
     crossingOffset: 2,
+  },
+  staffPose: {
+    stressedLoyaltyMaximum: 32,
+    concernedLoyaltyMaximum: 45,
+    concernedAlignmentMaximum: 35,
+    highLeverageMinimum: 70,
   },
 } as const satisfies PresentationThresholds;

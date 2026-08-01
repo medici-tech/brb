@@ -15,6 +15,7 @@ import {
   type PresentationShot,
   type PresentationState,
   type PresentationTempo,
+  type StaffPose,
 } from "./presentationStateResolver";
 import type { EndingId } from "@/game/types";
 import type {
@@ -75,6 +76,7 @@ const STAFF_OPTIONS: PresentationModel["staffLayout"]["mode"][] = [
   "reduced",
   "skeleton",
 ];
+const POSE_OPTIONS: StaffPose[] = ["calm", "working", "concerned", "stressed"];
 const ADVISOR_OPTIONS = ["analyst", "fixer", "steward"] as const;
 
 export function ControlRoomPreview() {
@@ -96,6 +98,7 @@ export function ControlRoomPreview() {
     useState<PresentationModel["staffLayout"]["mode"]>("full");
   const [departedAdvisors, setDepartedAdvisors] =
     useState<PersistentRoomMarks["departedAdvisors"]>([]);
+  const [staffPose, setStaffPose] = useState<StaffPose>("working");
   const copy = PRESENTATION_STATE_COPY[state];
   const brbStage = getBrbVisualStage(progress);
   const model: PresentationModel = {
@@ -114,6 +117,11 @@ export function ControlRoomPreview() {
       mode: staffMode,
       crossingVisible: !activeSituation,
       crossingDirection: "left-to-right",
+    },
+    staffPoses: {
+      analyst: staffPose,
+      fixer: staffPose,
+      steward: staffPose,
     },
     persistentRoomMarks: {
       emergencyLevel:
@@ -323,6 +331,21 @@ export function ControlRoomPreview() {
             }}
           >
             {STAFF_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Staff pose
+          <select
+            aria-label="Staff pose"
+            value={staffPose}
+            onChange={(event) => {
+              setStaffPose(event.target.value as StaffPose);
+            }}
+          >
+            {POSE_OPTIONS.map((option) => (
               <option key={option} value={option}>{option}</option>
             ))}
           </select>

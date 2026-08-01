@@ -5,6 +5,7 @@ import type {
   EndingId,
   GameState,
 } from "../../../game/types";
+import { ADVISOR_IDS } from "../../../game/types";
 import {
   PRESENTATION_THRESHOLDS,
   type PresentationThresholds,
@@ -53,6 +54,20 @@ export type BrbVisualStage =
   | "unstable"
   | "activation-ready";
 
+/** Presentation-relevant subset of advisor state for visual pose derivation. */
+export type AdvisorVisualState = {
+  readonly loyalty: number;
+  readonly alignment: number;
+  readonly leverage: number;
+  readonly active: boolean;
+};
+
+/**
+ * Visual pose for a staff sprite, derived from advisor relationship state.
+ * Reinforces advisor tension by showing body language that matches meters.
+ */
+export type StaffPose = "calm" | "working" | "concerned" | "stressed";
+
 export type PresentationInputs = {
   stress: number;
   panic: number;
@@ -68,6 +83,7 @@ export type PresentationInputs = {
   pendingMilestone: boolean;
   ending: EndingId | null;
   persistentRoomMarks?: PersistentRoomMarks;
+  advisorStates: Record<AdvisorId, AdvisorVisualState>;
 };
 
 export type PresentationModel = {
@@ -83,6 +99,7 @@ export type PresentationModel = {
   paperLoad: PaperLoad;
   endingId: EndingId | null;
   staffLayout: StaffLayout;
+  staffPoses: Record<AdvisorId, StaffPose>;
   persistentRoomMarks?: PersistentRoomMarks;
 };
 
@@ -122,6 +139,17 @@ export function derivePresentationInputs(
     >
   > = {},
 ): PresentationInputs {
+  const advisorStates = {} as Record<AdvisorId, AdvisorVisualState>;
+  for (const id of ADVISOR_IDS) {
+    const advisor = state.advisors[id];
+    advisorStates[id] = {
+      loyalty: advisor.loyalty,
+      alignment: advisor.alignment,
+      leverage: advisor.leverage,
+      active: advisor.active,
+    };
+  }
+
   return {
     stress: state.pressures.stress,
     panic: state.pressures.panic,
@@ -137,6 +165,7 @@ export function derivePresentationInputs(
     pendingMilestone: intent.pendingMilestone ?? false,
     ending: intent.ending ?? state.ending?.id ?? null,
     persistentRoomMarks: derivePersistentRoomMarks(state),
+    advisorStates,
   };
 }
 
@@ -256,6 +285,51 @@ export function resolveStaffLayout(
   };
 }
 
+/**
+ * Derive the visual pose for a staff sprite based on advisor relationship state.
+ *
+ * The pose reflects tension levels without revealing exact meter values:
+ * - `stressed`: loyalty near departure threshold, most urgent body language
+ * - `concerned`: low loyalty, low alignment, or high leverage
+ * - `working`: normal engaged state
+ * - `calm`: relaxed baseline (currently renders same as working)
+ */
+export function resolveStaffPose(
+  advisorState: Readonly<AdvisorVisualState>,
+  thresholds: PresentationThresholds = PRESENTATION_THRESHOLDS,
+): StaffPose {
+  if (!advisorState.active) {
+    return "calm";
+  }
+
+  const { staffPose } = thresholds;
+
+  if (advisorState.loyalty <= staffPose.stressedLoyaltyMaximum) {
+    return "stressed";
+  }
+
+  if (
+    advisorState.loyalty <= staffPose.concernedLoyaltyMaximum
+    || advisorState.alignment <= staffPose.concernedAlignmentMaximum
+    || advisorState.leverage >= staffPose.highLeverageMinimum
+  ) {
+    return "concerned";
+  }
+
+  return "working";
+}
+
+function resolveStaffPoses(
+  inputs: Readonly<PresentationInputs>,
+  thresholds: PresentationThresholds = PRESENTATION_THRESHOLDS,
+): Record<AdvisorId, StaffPose> {
+  return {
+    analyst: resolveStaffPose(inputs.advisorStates.analyst, thresholds),
+    fixer: resolveStaffPose(inputs.advisorStates.fixer, thresholds),
+    steward: resolveStaffPose(inputs.advisorStates.steward, thresholds),
+  };
+}
+
 export function resolvePresentationModel(
   inputs: Readonly<PresentationInputs>,
   thresholds: PresentationThresholds = PRESENTATION_THRESHOLDS,
@@ -286,6 +360,7 @@ export function resolvePresentationModel(
     paperLoad: resolvePaperLoad(inputs.turn, thresholds),
     endingId: inputs.ending,
     staffLayout: resolveStaffLayout(inputs, state, shot, thresholds),
+    staffPoses: resolveStaffPoses(inputs, thresholds),
     ...(inputs.persistentRoomMarks
       ? { persistentRoomMarks: inputs.persistentRoomMarks }
       : {}),

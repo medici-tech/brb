@@ -13,6 +13,7 @@ import type {
   PaperLoad,
   PresentationFocus,
   PresentationModel,
+  StaffPose,
 } from "./presentationStateResolver";
 import styles from "./ControlRoomPresentation.module.css";
 import { useReducedMotion } from "./useReducedMotion";
@@ -26,6 +27,22 @@ type ControlRoomPresentationProps = {
 };
 
 type RoomLighting = "calm" | "strained" | "crisis" | "failure";
+
+/**
+ * Map staff poses to sprite frame offsets.
+ *
+ * Each idle strip has 6 frames (0-5). Different frames show different
+ * body language to reinforce advisor relationship tension:
+ * - calm/working: relaxed, engaged (frames 0-1)
+ * - concerned: visible tension (frames 2-3)
+ * - stressed: urgent, near departure (frames 4-5)
+ */
+const POSE_FRAME_OFFSETS: Record<StaffPose, number> = {
+  calm: 0,
+  working: 1,
+  concerned: 3,
+  stressed: 5,
+};
 
 /**
  * Tile anchors are declared once on the room definition. Read them here rather
@@ -202,11 +219,13 @@ function roomActors(model: PresentationModel): RoomActor[] {
       || (model.staffLayout.mode === "reduced" && person.id !== "steward")
       || (model.staffLayout.mode === "skeleton" && person.id === "fixer");
     if (occupied && !departed.has(person.id)) {
+      const pose = model.staffPoses[person.id];
       actors.push({
         id: person.id,
         artKey: person.artKey,
         position: person.position,
         motion: "idle",
+        frameOffset: POSE_FRAME_OFFSETS[pose],
       });
     }
   }
