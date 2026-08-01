@@ -56,8 +56,18 @@
 }
 
 /* Longer duration = slower loops while the Situation dossier is being read. */
-:global([data-tempo="reading"]) {
+:global([data-tempo="reading"]) .root {
   --room-tempo: 1.85;
+}
+
+/* Slightly faster loops during commitment resolution for responsive feedback. */
+:global([data-tempo="response"]) .root {
+  --room-tempo: 0.85;
+}
+
+/* Faster, urgent loops during crisis or institutional failure. */
+:global([data-tempo="critical"]) .root {
+  --room-tempo: 0.7;
 }
 
 /* Ending / still tempo parks every sheet on its deliberate frozen pose. */
