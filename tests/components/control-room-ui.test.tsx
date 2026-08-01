@@ -27,6 +27,11 @@ const calmModel: PresentationModel = {
     crossingVisible: false,
     crossingDirection: "left-to-right",
   },
+  staffPoses: {
+    analyst: "working",
+    fixer: "working",
+    steward: "working",
+  },
 };
 
 const originalMatchMedia = window.matchMedia;

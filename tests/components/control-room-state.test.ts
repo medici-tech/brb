@@ -30,6 +30,11 @@ function calmInputs(
     pendingCommitment: false,
     pendingMilestone: false,
     ending: null,
+    advisorStates: {
+      analyst: { loyalty: 60, alignment: 55, leverage: 10, active: true },
+      fixer: { loyalty: 60, alignment: 55, leverage: 10, active: true },
+      steward: { loyalty: 60, alignment: 55, leverage: 10, active: true },
+    },
     ...overrides,
   };
 }
@@ -274,5 +279,37 @@ describe("control room presentation resolver", () => {
 
     expect(state).toEqual(before);
     expect(frozenInputs).toEqual(inputs);
+  });
+
+  it("derives staff poses from advisor states in presentation model", () => {
+    const model = resolvePresentationModel(calmInputs({
+      advisorStates: {
+        analyst: { loyalty: 30, alignment: 55, leverage: 10, active: true },
+        fixer: { loyalty: 60, alignment: 55, leverage: 10, active: true },
+        steward: { loyalty: 60, alignment: 55, leverage: 75, active: true },
+      },
+    }));
+    expect(model.staffPoses.analyst).toBe("stressed");
+    expect(model.staffPoses.fixer).toBe("working");
+    expect(model.staffPoses.steward).toBe("concerned");
+  });
+
+  it("derives working poses for advisors with healthy meters", () => {
+    const model = resolvePresentationModel(calmInputs());
+    expect(model.staffPoses.analyst).toBe("working");
+    expect(model.staffPoses.fixer).toBe("working");
+    expect(model.staffPoses.steward).toBe("working");
+  });
+
+  it("extracts advisor states from game state in derivePresentationInputs", () => {
+    const state = createGame(505);
+    state.advisors.analyst.loyalty = 25;
+    state.advisors.fixer.leverage = 80;
+
+    const inputs = derivePresentationInputs(state, null);
+
+    expect(inputs.advisorStates.analyst.loyalty).toBe(25);
+    expect(inputs.advisorStates.fixer.leverage).toBe(80);
+    expect(inputs.advisorStates.steward.active).toBe(true);
   });
 });

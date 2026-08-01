@@ -86,7 +86,7 @@ describe("orthographic control-room CSS contract", () => {
     );
 
     expect(spriteCss).toMatch(
-      /\[data-tempo="reading"\]\)\s*\{\s*--room-tempo:/,
+      /\[data-tempo="reading"\]\)\s*\.root\s*\{\s*--room-tempo:/,
     );
     expect(spriteCss).not.toMatch(/data-room-part/);
     expect(spriteCss).toMatch(
