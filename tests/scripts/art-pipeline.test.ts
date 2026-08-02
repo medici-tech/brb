@@ -8,6 +8,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { crc32, deflateSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   CURATION,
@@ -20,9 +21,12 @@ import {
   ROOM_RECIPES,
 } from "../../scripts/room-recipes.js";
 import {
+  ART_TARGET,
   findDuplicateArtPayloads,
   injectArt,
+  prepareArt,
   readPngDimensions,
+  validateArtDirectory,
   validateArtPng,
 } from "../../scripts/inject-art.js";
 import { ART } from "../../src/game-art/manifest.js";
@@ -37,13 +41,38 @@ function makeTemporaryDirectory(): string {
 }
 
 function fakePng(width: number, height: number, discriminator = 0): Buffer {
-  const bytes = Buffer.alloc(25);
-  PNG_SIGNATURE.copy(bytes, 0);
-  bytes.write("IHDR", 12, "ascii");
-  bytes.writeUInt32BE(width, 16);
-  bytes.writeUInt32BE(height, 20);
-  bytes[24] = discriminator;
-  return bytes;
+  const chunk = (type: string, data: Buffer): Buffer => {
+    const header = Buffer.alloc(8);
+    header.writeUInt32BE(data.length, 0);
+    header.write(type, 4, "ascii");
+    const checksum = Buffer.alloc(4);
+    checksum.writeUInt32BE(
+      crc32(Buffer.concat([Buffer.from(type, "ascii"), data])) >>> 0,
+      0,
+    );
+    return Buffer.concat([header, data, checksum]);
+  };
+
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(width, 0);
+  header.writeUInt32BE(height, 4);
+  header[8] = 8;
+  header[9] = 6;
+
+  const stride = width * 4 + 1;
+  const pixels = Buffer.alloc(stride * height);
+  for (let row = 0; row < height; row += 1) {
+    pixels[row * stride] = 0;
+  }
+  pixels[1] = discriminator;
+  pixels[4] = 255;
+
+  return Buffer.concat([
+    PNG_SIGNATURE,
+    chunk("IHDR", header),
+    chunk("IDAT", deflateSync(pixels)),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
 }
 
 function writeFakePrivateSource(root: string, omitKey?: string): void {
@@ -87,13 +116,20 @@ describe("BRB art pipeline", () => {
       );
       const args = buildRoomCompositeConvertArgs(
         recipe,
-        "/private/floor.png",
-        "/private/wall.png",
+        {
+          floor: "/private/floor.png",
+          wallFace: "/private/wall.png",
+          wallCrown: "/private/wall-crown.png",
+        },
         furniture,
         "/private/room.png",
       );
       expect(args.at(-2)).toBe("-strip");
       expect(args.at(-1)).toBe("/private/room.png");
+      // Every room must carry at least one far-edge crown band; that band is
+      // the only thing that makes the shell read as architecture.
+      expect(recipe.wallBands.length).toBeGreaterThan(0);
+      expect(args).toContain("tile:/private/wall-crown.png");
       for (const placement of recipe.furniture) {
         expect(Number.isInteger(placement.x)).toBe(true);
         expect(Number.isInteger(placement.y)).toBe(true);
@@ -189,6 +225,18 @@ describe("BRB art pipeline", () => {
     );
   });
 
+  it("rejects truncated and CRC-corrupt PNG payloads", () => {
+    const complete = fakePng(16, 16);
+    const truncated = complete.subarray(0, complete.length - 4);
+    const corrupt = Buffer.from(complete);
+    corrupt[20] = corrupt[20]! ^ 1;
+
+    expect(() => readPngDimensions(truncated)).toThrow(
+      /truncated|complete.+structure/i,
+    );
+    expect(() => readPngDimensions(corrupt)).toThrow(/crc/i);
+  });
+
   it("detects duplicate binary payloads", () => {
     const same = fakePng(16, 16);
     expect(
@@ -217,6 +265,51 @@ describe("BRB art pipeline", () => {
       expect(existsSync(installed)).toBe(true);
       expect(readFileSync(installed).length).toBeGreaterThanOrEqual(24);
     }
+  });
+
+  it("recognizes a complete local curation without reinjecting it", async () => {
+    const root = makeTemporaryDirectory();
+    const target = path.join(root, "public-assets-brb");
+    writeFakePrivateSource(target);
+
+    expect(validateArtDirectory(target)).toBe(Object.keys(ART).length);
+    await expect(prepareArt({ targetRoot: target })).resolves.toEqual({
+      mode: "licensed",
+      origin: "local",
+      count: Object.keys(ART).length,
+    });
+  });
+
+  it("validates the installed runtime art when a local curation is present", () => {
+    if (!existsSync(ART_TARGET)) return;
+    expect(validateArtDirectory()).toBe(Object.keys(ART).length);
+  });
+
+  it("allows an absent art directory only when licensed art is not required", async () => {
+    const root = makeTemporaryDirectory();
+    const target = path.join(root, "public-assets-brb");
+
+    await expect(prepareArt({ targetRoot: target })).resolves.toEqual({
+      mode: "fallback",
+      origin: "absent",
+      count: 0,
+    });
+    await expect(
+      prepareArt({ targetRoot: target, requireArt: true }),
+    ).rejects.toThrow(/licensed art is required for visual qa/i);
+  });
+
+  it("rejects a partial local curation instead of mixing art and fallbacks", async () => {
+    const root = makeTemporaryDirectory();
+    const target = path.join(root, "public-assets-brb");
+    writeFakePrivateSource(target, "envWall");
+
+    expect(() => validateArtDirectory(target)).toThrow(
+      /envWall: missing control-room\/environment\/wall\.png/i,
+    );
+    await expect(prepareArt({ targetRoot: target })).rejects.toThrow(
+      /local curated art is incomplete or invalid/i,
+    );
   });
 
   it("fails closed when a configured source is incomplete", async () => {
