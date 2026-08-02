@@ -16,6 +16,20 @@ type PixelRoomProps = {
   readonly testId?: string;
 };
 
+/**
+ * A stable 0..1 loop offset for the sprite at this tile.
+ *
+ * Sprites all mount in the same frame, so identical sheets would otherwise run
+ * in lockstep and the room would blink as one object. Derived from the tile
+ * coordinate (not `Math.random`) so the phase is deterministic: the same room
+ * always looks the same, and the server and client agree during hydration. The
+ * multipliers are coprime with the modulus so neighbouring tiles land far apart
+ * in the cycle rather than in a visible diagonal wave.
+ */
+function spritePhase(x: number, y: number): number {
+  return ((x * 7 + y * 13) % 17) / 17;
+}
+
 function positionStyle(
   x: number,
   y: number,
@@ -25,6 +39,7 @@ function positionStyle(
     left: `${x * 16}px`,
     top: `${y * 16}px`,
     zIndex,
+    ["--sprite-phase" as string]: spritePhase(x, y),
   };
 }
 
@@ -128,6 +143,7 @@ export function PixelRoom({
         {definition.lightingZones.map((zone) => (
           <span
             className={styles.light}
+            data-light-zone={zone.id}
             style={lightingZoneStyle(
               zone.position.x,
               zone.position.y,

@@ -35,8 +35,24 @@ describe("orthographic control-room CSS contract", () => {
     expect(renderer).toMatch(/--pixel-room-scale:\s*2/);
     expect(renderer).toMatch(/--pixel-room-scale:\s*1/);
     expect(renderer).toMatch(/container-type:\s*inline-size/);
+    // The fit is still measured off the container, but it is no longer applied
+    // raw: an upscale must land on a whole number or every sprite resamples.
     expect(renderer).toMatch(
-      /transform:\s*scale\(calc\(100cqi\s*\/\s*var\(--pixel-room-width\)\)\)/,
+      /--pixel-room-fit:\s*calc\(100cqi\s*\/\s*\(var\(--pixel-room-width\)\s*\*\s*1px\)\)/,
+    );
+    expect(renderer).toMatch(
+      /transform:\s*scale\(var\(--pixel-room-render-scale\)\)/,
+    );
+    expect(renderer).toMatch(
+      /round\(down,\s*var\(--pixel-room-fit\),\s*1\)/,
+    );
+    // Shrinking below 1× must stay continuous — the next integer step down is
+    // 0.5×, which would halve the room on a phone.
+    expect(renderer).toMatch(/min\(var\(--pixel-room-fit\),\s*1\)/);
+    // The unsnapped fit has to survive as the fallback for engines without
+    // `round()`, or the declaration drops and the room renders at 1×.
+    expect(renderer).toMatch(
+      /--pixel-room-render-scale:\s*var\(--pixel-room-fit\)/,
     );
     expect(renderer).toMatch(/aspect-ratio:\s*var\(--pixel-room-width\)/);
     expect(renderer).toMatch(/--sprite-scale-override:\s*1/);
@@ -63,7 +79,7 @@ describe("orthographic control-room CSS contract", () => {
     expect(presentation).toMatch(/prefers-reduced-motion:\s*reduce/);
   });
 
-  it("keeps the dossier outside the full fixed camera at both integer scales", () => {
+  it("keeps the complete fixed camera outside the dossier and leads with the phone feed", () => {
     const workspace = read(
       path.join(CONTROL_ROOM, "SituationWorkspace.module.css"),
     );
@@ -73,9 +89,10 @@ describe("orthographic control-room CSS contract", () => {
     expect(workspace).toMatch(/aspect-ratio:\s*352\s*\/\s*224/);
     expect(workspace).toMatch(/width:\s*352px/);
     expect(workspace).toMatch(/width:\s*min\(100%,\s*352px\)/);
-    expect(workspace).toMatch(/\.dossierColumn\s*\{[\s\S]*order:\s*1/);
-    expect(workspace).toMatch(/\.sceneStage\s*\{[\s\S]*order:\s*2/);
+    expect(workspace).toMatch(/\.dossierColumn\s*\{[\s\S]*order:\s*2/);
+    expect(workspace).toMatch(/\.sceneStage\s*\{[\s\S]*order:\s*1/);
     expect(workspace).not.toMatch(/margin:\s*-\d/);
+    expect(workspace).not.toMatch(/aspect-ratio:\s*auto/);
     expect(workspace).not.toMatch(/max-height:\s*120px/);
     expect(workspace).not.toMatch(/\.sceneStage\s*\{[^}]*border:\s*1px/);
   });
@@ -86,7 +103,9 @@ describe("orthographic control-room CSS contract", () => {
     );
 
     expect(spriteCss).toMatch(
-      /\[data-tempo="reading"\]\)\s*\{\s*--room-tempo:/,
+      // Must keep a local class: a bare :global(...) block fails the CSS Modules
+      // purity check and breaks `next build`.
+      /\[data-tempo="reading"\]\)\s+\.animated\s*\{\s*--room-tempo:/,
     );
     expect(spriteCss).not.toMatch(/data-room-part/);
     expect(spriteCss).toMatch(

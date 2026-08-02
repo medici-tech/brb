@@ -45,6 +45,51 @@ describe("PixelRoom", () => {
     });
   });
 
+  it("gives co-located sprites distinct, deterministic loop phases", () => {
+    const layers = [
+      { id: "a", artKey: "monitorServer", position: { x: 3, y: 1 } },
+      { id: "b", artKey: "monitorServer", position: { x: 4, y: 1 } },
+      { id: "c", artKey: "monitorServer", position: { x: 5, y: 1 } },
+    ] as const;
+    const renderRoom = () =>
+      render(
+        <PixelRoom
+          definition={ROOM_DEFINITIONS.facility}
+          ariaLabel="Continuity facility."
+          layers={[...layers]}
+        />,
+      );
+
+    const first = renderRoom();
+    const phases = [...layers].map(
+      (layer) =>
+        first.container
+          .querySelector<HTMLElement>(`[data-room-object="${layer.id}"]`)!
+          .style.getPropertyValue("--sprite-phase"),
+    );
+
+    // Identical sheets mounted in the same frame must not share a phase, or the
+    // whole bank blinks as one object.
+    expect(new Set(phases).size).toBe(phases.length);
+    for (const phase of phases) {
+      expect(Number(phase)).toBeGreaterThanOrEqual(0);
+      expect(Number(phase)).toBeLessThan(1);
+    }
+
+    // Derived from the tile, not randomised: a re-render — and the server's
+    // markup during hydration — must produce the same offsets.
+    first.unmount();
+    const second = renderRoom();
+    expect(
+      [...layers].map(
+        (layer) =>
+          second.container
+            .querySelector<HTMLElement>(`[data-room-object="${layer.id}"]`)!
+            .style.getPropertyValue("--sprite-phase"),
+      ),
+    ).toEqual(phases);
+  });
+
   it("fails visually closed to a flat schematic when private room art is absent", () => {
     const { container } = render(
       <PixelRoom
