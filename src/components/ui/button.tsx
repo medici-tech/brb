@@ -5,7 +5,7 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-mono text-xs font-semibold tracking-[0.08em] uppercase whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-45 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-xs font-mono text-xs font-semibold tracking-[0.08em] uppercase whitespace-nowrap transition-all outline-none disabled:pointer-events-none disabled:opacity-45 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -13,28 +13,33 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border bg-background shadow-[var(--shadow-hard-sm)] hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         command:
-          "border border-signal/70 bg-signal/10 text-signal shadow-[3px_3px_0_rgba(0,0,0,0.35)] hover:bg-signal hover:text-primary-foreground active:translate-x-px active:translate-y-px active:shadow-none",
+          "border border-signal/70 bg-signal/10 text-signal shadow-[var(--shadow-hard-sm)] hover:bg-signal hover:text-primary-foreground active:translate-x-px active:translate-y-px active:shadow-none",
         dossier:
           "border border-dossier-ink/45 bg-transparent text-dossier-ink hover:bg-dossier-ink hover:text-dossier",
+        // The filled counterpart to `dossier`: the affirmative action on a paper
+        // surface. `command` and `quiet` both carry console-lit colour and go
+        // unreadable on cream.
+        authorize:
+          "border border-[color:var(--paper-ink)] bg-[color:var(--paper-ink)] text-[color:var(--paper-200)] shadow-[var(--shadow-hard-sm)] hover:bg-[color:var(--ink)]/85 active:translate-x-px active:translate-y-px active:shadow-none",
         critical:
-          "border border-destructive bg-destructive text-white shadow-[3px_3px_0_#641f1a] hover:bg-[#8f3029] active:translate-x-px active:translate-y-px active:shadow-none",
+          "border border-destructive bg-destructive text-white shadow-[var(--shadow-hard-sm)] hover:bg-[color:var(--red-bright)] active:translate-x-px active:translate-y-px active:shadow-none",
         quiet:
           "border border-border bg-transparent text-foreground hover:border-signal/70 hover:bg-signal/10 hover:text-signal",
       },
       size: {
         default: "h-11 px-4 py-2 has-[>svg]:px-3",
-        xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-10 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-        lg: "h-12 rounded-md px-6 text-sm has-[>svg]:px-4",
+        xs: "h-6 gap-1 rounded-xs px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-10 gap-1.5 rounded-xs px-3 has-[>svg]:px-2.5",
+        lg: "h-12 rounded-xs px-6 text-sm has-[>svg]:px-4",
         icon: "size-11",
-        "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
+        "icon-xs": "size-6 rounded-xs [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-10",
         "icon-lg": "size-12",
       },

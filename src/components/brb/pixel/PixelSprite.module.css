@@ -1,0 +1,116 @@
+/* PixelSprite primitive styles.
+ *
+ * The animation keyframe lives beside the class that references it so CSS
+ * Modules scopes both names together. The `.pixelated` rendering utility stays
+ * global because room sprites and other pixel art share it. */
+
+/* Box size and background geometry are DERIVED from four custom properties that
+ * the component sets inline (`--sprite-frame-w`, `--sprite-frame-h`,
+ * `--sprite-frames`, `--sprite-scale`) plus `--sprite-frozen-frame`.
+ *
+ * Only the raw source numbers come from JS; every pixel measurement is computed
+ * here in CSS. That is what makes responsive art possible without blurring: a
+ * breakpoint (or any consumer class) overrides `--sprite-scale` with a different
+ * INTEGER and the box, the sheet, the frozen-frame offset and the animation
+ * travel all retune together. Never set a fractional scale — pixel art must be
+ * upscaled by whole numbers or it resamples. */
+.root {
+  display: inline-block;
+  position: relative;
+  /* Resolution order: a consumer/breakpoint `--sprite-scale-override` wins, else
+     the manifest default the component sets inline. Consumers must set the
+     OVERRIDE, never `--sprite-scale` — the component cannot write that one
+     inline without outranking every stylesheet rule. Integers only. */
+  --sprite-scale: var(--sprite-scale-override, var(--sprite-scale-base, 1));
+  --sprite-frozen-frame: 0;
+  /* One rendered frame. */
+  --sprite-w: calc(var(--sprite-frame-w) * var(--sprite-scale) * 1px);
+  --sprite-h: calc(var(--sprite-frame-h) * var(--sprite-scale) * 1px);
+  /* The full strip, which is what `background-size` must span. */
+  --sprite-strip-w: calc(var(--sprite-w) * var(--sprite-frames));
+  /* Consumed by the `brb-pixel-sprite` keyframe below: travel one whole strip
+     to the left, stepped into `frameCount` discrete jumps. */
+  --pixel-sprite-travel: calc(var(--sprite-strip-w) * -1);
+
+  width: var(--sprite-w);
+  height: var(--sprite-h);
+  background-repeat: no-repeat;
+  background-size: var(--sprite-strip-w) var(--sprite-h);
+  background-position-y: 0;
+  /* Static / reduced-motion / explicit-pose renders park on one frame. The
+     animated case overrides this with `background-position-x: 0`. */
+  background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
+  /* Keep pixels crisp when integer-scaled. `pixelated` last so it wins in modern
+     browsers; `-webkit-optimize-contrast` is only a fallback for engines without it. */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+}
+
+.animated {
+  animation-name: brb-pixel-sprite;
+  animation-duration: calc(var(--sprite-duration) * var(--room-tempo, 1));
+  animation-timing-function: steps(1); /* overridden inline with the real step count */
+  animation-iteration-count: infinite;
+  /* Start each sheet part-way into its own loop.
+   *
+   * Every sprite in a room mounts in the same frame, so without this they all
+   * begin at frame 0 and stay locked together: the whole room blinks in unison,
+   * which reads as one animation rather than a room full of independent
+   * machines. `--sprite-phase` is a 0..1 fraction supplied by the room from the
+   * sprite's tile position — deterministic, so it is stable across renders and
+   * identical on server and client. The negative delay seeks into the loop
+   * rather than postponing its start. */
+  animation-delay: calc(
+    var(--sprite-duration) * var(--room-tempo, 1) * var(--sprite-phase, 0) * -1
+  );
+  /* An animating strip always plays from frame 0; the keyframe drives position-x. */
+  background-position-x: 0;
+}
+
+@keyframes brb-pixel-sprite {
+  from { background-position-x: 0; }
+  to { background-position-x: var(--pixel-sprite-travel, 0px); }
+}
+
+/* Longer duration = slower loops while the Situation dossier is being read.
+ * The variable is set on the animating element itself: a bare `:global(...)`
+ * block has no local class, and CSS Modules rejects it as an impure selector. */
+:global([data-tempo="reading"]) .animated {
+  --room-tempo: 1.85;
+}
+
+/* Ending / still tempo parks every sheet on its deliberate frozen pose. */
+:global([data-tempo="still"]) .animated {
+  animation: none !important;
+  background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
+}
+
+/* Offscreen probe <img> used only to detect a 404 on the sheet. It must never
+ * be visible (a broken sheet would otherwise show a broken-image glyph). */
+.probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* When a data-motion="reduced" ancestor is present, belt-and-suspenders freeze
+ * the animation even if the inline animation string somehow slipped through.
+ * The ancestor check runs in an effect, so on the first paint `.animated` may
+ * still be applied — park those renders on the chosen stable pose rather than
+ * whatever frame 0 happens to be. */
+:global([data-motion="reduced"]) .animated {
+  animation: none !important;
+  background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated {
+    animation: none !important;
+    background-position-x: calc(var(--sprite-w) * var(--sprite-frozen-frame) * -1);
+  }
+}

@@ -1,0 +1,134 @@
+.scene {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  color: #f1e8d6;
+  border: 1px solid rgba(87, 79, 60, 0.72);
+  background: #0d1211;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.35);
+}
+
+.sceneRoom {
+  display: grid;
+  min-height: 320px;
+  place-items: center;
+  overflow: hidden;
+  padding: 0;
+  background: #0d1211;
+}
+
+.pixelRoom {
+  flex: none;
+}
+
+.scene[data-motion="full"] :global([data-motion-cue="enter"]) {
+  animation: scene-enter 560ms steps(4) both;
+}
+
+.scene[data-motion="full"] :global([data-motion-cue="exit"]),
+.scene[data-motion="full"] :global([data-motion-cue="withdraw"]) {
+  animation: scene-withdraw 560ms steps(4) both;
+}
+
+.scene[data-motion="full"] :global([data-motion-cue="cross"]) {
+  animation: scene-cross 800ms steps(4) both;
+}
+
+.scene[data-motion="full"] :global([data-motion-cue="confront"]),
+.scene[data-motion="full"] :global([data-motion-cue="address"]),
+.scene[data-motion="full"] :global([data-motion-cue="work"]) {
+  animation: scene-emphasis 420ms steps(2) 2;
+}
+
+.sceneCaption {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-height: 94px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid rgba(194, 142, 64, 0.5);
+  background: #10171b;
+}
+
+.sceneCaption span {
+  color: #d79d46;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sceneCaption strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(18px, 2.6vw, 30px);
+  line-height: 1;
+}
+
+.sceneCaption p {
+  max-width: 74ch;
+  margin: 0;
+  color: #c9c3b7;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.scene[data-motion="reduced"] *,
+.scene[data-motion="reduced"] *::before,
+.scene[data-motion="reduced"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@keyframes scene-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scene-withdraw {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0.25;
+    transform: translateX(32px);
+  }
+}
+
+@keyframes scene-cross {
+  from {
+    transform: translateX(-32px);
+  }
+  to {
+    transform: translateX(32px);
+  }
+}
+
+@keyframes scene-emphasis {
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 1180px) {
+  .sceneRoom {
+    min-height: 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene *,
+  .scene *::before,
+  .scene *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

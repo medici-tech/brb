@@ -58,7 +58,7 @@ The latest implemented-rule checkpoint records 1.47% activation and 0.10% Civic 
 
 ### P2 — Complexity is concentrated in a few authority files
 
-The largest current files are `src/game/engine.ts` (1,203 lines), the control-room CSS module (1,159), `src/game/content.ts` (758), `src/game/types.ts` (739), and `src/game/validation.ts` (546). Size alone is not a defect: these files own real domains and their tests are green. Avoid a broad Phase 2 refactor. Extract only when one balance or rules change repeatedly touches unrelated concerns in the same file.
+The largest current files are `src/game/engine.ts` (~808 lines), `src/game/types.ts` (~635), `src/game/content.ts` (~592), `src/game/validation.ts` (~405), and the facility presentation component (~336). The former monolithic control-room CSS modules were replaced by the orthographic `PixelRoom` pipeline; do not restore layered perspective room CSS. Size alone is not a defect: these files own real domains and their tests are green. Avoid a broad Phase 2 refactor. Extract only when one balance or rules change repeatedly touches unrelated concerns in the same file.
 
 ### P2 — The pure-engine boundary is convention-enforced
 

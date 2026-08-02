@@ -191,7 +191,13 @@ Invalid values fail closed and return `null`; they do not get merged into a new 
 
 ## Architecture boundary
 
-All decisions, weighted draws, echoes, routes, endings, reports, and archive merges remain pure TypeScript under `src/game`. React owns display, browser input, and local-storage orchestration. This makes the simulator use the same rules as the browser and keeps later packaging from changing game logic.
+All decisions, weighted draws, echoes, routes, endings, reports, and archive merges remain
+pure TypeScript under `src/game`. React owns display, browser input, and local-storage
+orchestration. The orthographic aftermath resolver reads existing `DecisionRecord`
+(including structured `subject` facts), `TurnResolution`, and final `GameState` values;
+its current beat and persistent visual marks are presentation-only and unpersisted. This
+makes the simulator use the same rules as the browser and keeps later packaging from
+changing game logic.
 
 The Next.js App Router build uses static export. Hosting and itch.io publishing remain Phase 4 work.
 

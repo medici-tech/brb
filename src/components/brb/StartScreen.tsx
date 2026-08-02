@@ -13,7 +13,17 @@ import {
   type LegacyDirectiveId,
   type ReplayIntent,
 } from "../../game/types";
+import { Button } from "../ui/button";
+import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
+import { PlayerRoomScene } from "./pixel-room/PlayerRoomScene";
+import {
+  ArchetypeCard,
+  DossierPanel,
+  GuidedObjective,
+  Hero,
+  SectionHeading,
+} from "./ui";
 
 type Props = {
   savedRun: GameState | null;
@@ -50,23 +60,23 @@ export function StartScreen({
         <p className="eyebrow">Federal Continuity Directorate · File BRB-01</p>
         <div className="header-actions">
           <HowToPlayDialog />
-          {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Internal Playtest</button> : null}
+          <CreditsDialog />
+          {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Playtest Journal</button> : null}
           <button className="text-button" type="button" onClick={onOpenArchive}>Intelligence Archive</button>
         </div>
       </header>
 
-      <section className="hero paper-panel">
-        <div className="stamp">TOP SECRET</div>
-        <p className="file-label">OPERATIONAL BRIEF</p>
-        <h1>Build the machine.<br />Decide what it costs.</h1>
-        <p className="hero-copy">
-          Permanently commit scarce political resources to a dangerous national project,
-          then decide whether the state can survive its activation.
-        </p>
-        <aside className="mission-brief" aria-label="Campaign objective and loss conditions">
+      <div className="start-brief-grid">
+        <Hero
+          eyebrow="OPERATIONAL BRIEF"
+          title={<>Build the machine.<br />Decide what it costs.</>}
+          summary="Permanently commit scarce political resources to a dangerous national project, then decide whether the state can survive its activation."
+          stamp="TOP SECRET"
+        >
+        <aside className="grid max-w-3xl gap-2 border-l-4 border-destructive bg-[rgba(89,73,49,.07)] px-4 py-3.5" aria-label="Campaign objective and loss conditions">
           <strong>Your objective</strong>
-          <p>Raise Engineering, Access, Legitimacy, and Stability to 50, then activate the BRB.</p>
-          <small>
+          <p className="m-0 leading-6 text-dossier-ink/80">Raise Engineering, Access, Legitimacy, and Stability to 50, then activate the BRB.</p>
+          <small className="text-xs leading-5 text-dossier-ink/75">
             The campaign ends if Corporation Progress reaches 100, Panic reaches 100,
             Institutions reaches 0, or every advisor leaves. It also ends if your
             advisors take over: one at Leverage 85 seizes control, or two at 50 or
@@ -75,82 +85,92 @@ export function StartScreen({
           </small>
         </aside>
         {!savedRun ? (
-          <button
-            className="primary-button start-cta"
+          <Button
+            className="mt-5"
+            variant="authorize"
             type="button"
             onClick={() => document.getElementById("choose-director")?.scrollIntoView({ behavior: "auto", block: "start" })}
           >
             Choose an operating doctrine
-          </button>
+          </Button>
         ) : null}
         {replayIntent ? (
-          <aside className="objective">
-            <span>COUNTERFACTUAL OBJECTIVE</span>
-            {replayIntent.experiment}
-          </aside>
+          <GuidedObjective
+            className="mt-6 max-w-3xl"
+            eyebrow="COUNTERFACTUAL OBJECTIVE"
+            title={replayIntent.experiment}
+            description=""
+            compact
+          />
         ) : null}
         {savedRun ? (
           <>
-            <button className="primary-button resume-button" onClick={onResume}>
+            <Button className="mt-7" variant="authorize" onClick={onResume}>
               Resume file · {formatCampaignTime(savedRun.turn)}
-            </button>
-            <p className="saved-run-notice">Resume or clear the active file from Internal Playtest before starting another run.</p>
+            </Button>
+            <p className="mt-3 mb-0 max-w-xl text-[13px] text-dossier-ink/70">Resume or clear the active file from the Playtest Journal before starting another run.</p>
           </>
         ) : null}
-      </section>
+        </Hero>
+        <aside className="player-room-scene" aria-label="Intake office scene">
+          <PlayerRoomScene
+            variant="intake"
+            ariaLabel="Federal intake office. Two officials prepare the operational brief."
+          />
+        </aside>
+      </div>
 
-      <section className="directive-loadout paper-panel" aria-labelledby="directive-loadout-title">
-        <p className="file-label">LEGACY DIRECTIVE · OPTIONAL</p>
-        <h2 id="directive-loadout-title">Carry one authorization into the next file.</h2>
-        <p>
-          An equipped Directive can modify one commitment during the campaign. It remains
-          permanently unlocked and is not consumed.
-        </p>
+      <DossierPanel
+        className="my-6"
+        eyebrow="LEGACY DIRECTIVE · OPTIONAL"
+        title="Carry one authorization into the next file."
+        titleId="directive-loadout-title"
+        summary="An equipped Directive can modify one commitment during the campaign. It remains permanently unlocked and is not consumed."
+      >
         {replayIntent ? (
-          <div className="directive-replay-lock">
+          <div className="grid gap-2 border border-[color:var(--paper-line)] bg-white/20 p-4">
             <strong>Replay loadout</strong>
-            <span>
+            <span className="text-xs leading-5 text-dossier-ink/70">
               {replayDirective
                 ? `${replayDirective.title} · ${replayDirective.benefit} · ${replayDirective.warning}`
                 : "No Directive equipped"}
             </span>
           </div>
         ) : (
-          <div className="directive-options" role="group" aria-label="Choose a Legacy Directive">
-            <button
+          <div className="grid gap-2 md:grid-cols-3" role="group" aria-label="Choose a Legacy Directive">
+            <Button
               type="button"
-              className={selectedDirectiveId === null ? "selected" : ""}
+              variant="dossier"
+              className={`h-auto min-h-16 flex-col items-start text-left whitespace-normal ${selectedDirectiveId === null ? "outline-3 outline-destructive outline-offset-2" : ""}`}
               aria-pressed={selectedDirectiveId === null}
               onClick={() => setSelectedDirectiveId(null)}
             >
               <strong>No Directive</strong>
-              <span>Preserve the baseline campaign.</span>
-            </button>
+              <span className="text-xs leading-5 opacity-70">Preserve the baseline campaign.</span>
+            </Button>
             {unlockedDirectiveIds.map((id) => {
               const directive = LEGACY_DIRECTIVES[id];
               return (
-                <button
+                <Button
                   type="button"
-                  className={selectedDirectiveId === id ? "selected" : ""}
+                  variant="dossier"
+                  className={`h-auto min-h-16 flex-col items-start text-left whitespace-normal ${selectedDirectiveId === id ? "outline-3 outline-destructive outline-offset-2" : ""}`}
                   aria-pressed={selectedDirectiveId === id}
                   key={id}
                   onClick={() => setSelectedDirectiveId(id)}
                 >
                   <strong>{directive.title} · {directive.rarity}</strong>
-                  <span>{directive.benefit} · {directive.warning}</span>
-                </button>
+                  <span className="text-xs leading-5 opacity-70">{directive.benefit} · {directive.warning}</span>
+                </Button>
               );
             })}
           </div>
         )}
-      </section>
+      </DossierPanel>
 
-      <section aria-labelledby="choose-director" className="archetype-section">
-        <div className="section-heading">
-          <p className="file-label">SELECT OPERATING DOCTRINE</p>
-          <h2 id="choose-director">Who are you when the pressure starts?</h2>
-        </div>
-        <div className="archetype-grid">
+      <section className="mt-14" aria-labelledby="choose-director">
+        <SectionHeading eyebrow="SELECT OPERATING DOCTRINE" title="Who are you when the pressure starts?" titleId="choose-director" />
+        <div className="grid gap-4 lg:grid-cols-3">
           {(Object.keys(ARCHETYPES) as ArchetypeId[]).map((id) => {
             const archetype = ARCHETYPES[id];
             const startingChanges = [
@@ -164,23 +184,26 @@ export function StartScreen({
               }),
             ];
             return (
-              <article className="archetype-card" key={id}>
-                <span className="card-index">0{Object.keys(ARCHETYPES).indexOf(id) + 1}</span>
-                <h3>{archetype.name}</h3>
-                <p>{archetype.description}</p>
-                <dl>
-                  <div><dt>Starting position</dt><dd>{startingChanges.join(" · ")}</dd></div>
-                  <div><dt>Situations seen more often</dt><dd>{archetype.favoredCardType} files</dd></div>
-                  <div><dt>Liability</dt><dd>{archetype.liability}</dd></div>
-                </dl>
-                <button
-                  className="primary-button"
-                  disabled={newRunBlocked}
-                  onClick={() => onStart(id, replayIntent?.legacyDirectiveId ?? selectedDirectiveId)}
-                >
-                  Open {archetype.name} File
-                </button>
-              </article>
+              <ArchetypeCard
+                index={`0${Object.keys(ARCHETYPES).indexOf(id) + 1}`}
+                title={archetype.name}
+                description={archetype.description}
+                details={[
+                  { label: "Starting position", value: startingChanges.join(" · ") },
+                  { label: "Situations seen more often", value: `${archetype.favoredCardType} files` },
+                  { label: "Liability", value: archetype.liability },
+                ]}
+                action={(
+                  <Button
+                    variant="critical"
+                    disabled={newRunBlocked}
+                    onClick={() => onStart(id, replayIntent?.legacyDirectiveId ?? selectedDirectiveId)}
+                  >
+                    Open {archetype.name} File
+                  </Button>
+                )}
+                key={id}
+              />
             );
           })}
         </div>

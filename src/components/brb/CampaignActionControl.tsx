@@ -10,7 +10,7 @@ import type {
   MajorAction,
   StateDelta,
 } from "../../game/types";
-import { ConfirmActionDialog } from "./ui/decisions";
+import { ActionControl, ConfirmActionDialog } from "./ui/decisions";
 
 type Props = {
   state: GameState;
@@ -75,44 +75,35 @@ export function CampaignActionControl({
   );
   const recommended = recommendation?.actionKey === actionKey(action);
   const activatesBrb = action.type === "activate_brb";
+  const disabledReason = preview.disabledReason
+    ? directiveAvailable && !directiveError
+      ? `${preview.disabledReason} The equipped Directive can make this commitment available.`
+      : preview.disabledReason
+    : undefined;
   const trigger = (
-    <button
-      type="button"
-      className={[
-        "action-control",
-        compact ? "compact-action" : "",
-        className,
-        recommended ? "recommended-action" : "",
-      ].filter(Boolean).join(" ")}
+    <ActionControl
+      className={className}
+      compact={compact}
+      condensedMetadata={action.type === "resolve_card"}
+      cost={
+        preview.costs.length > 0
+          ? `${preview.costs.join(" · ")}${preview.permanent ? " · permanently deposited" : ""}`
+          : "This month’s commitment"
+      }
+      delayedConsequence={preview.delayedConsequence ?? undefined}
       disabled={disabled}
-    >
-      <span className="action-title">
-        {preview.label}
-        {recommended ? <em>{ADVISORS[recommendation.advisorId].name} advises</em> : null}
-      </span>
-      <small>
-        {preview.costs.length > 0
-          ? `Cost: ${preview.costs.join(" · ")}${preview.permanent ? " · permanently deposited" : ""}`
-          : "Cost: this month’s commitment"}
-      </small>
-      <span className="action-result">{preview.result}</span>
-      {preview.knownChanges && preview.knownChanges.length > 0 ? (
-        <span className="action-known">
-          Exact immediate changes: {preview.knownChanges.join(" · ")}
-        </span>
-      ) : null}
-      {preview.risk ? <span className="action-risk">Risk: {preview.risk}</span> : null}
-      {preview.delayedConsequence ? (
-        <span className="action-echo">{preview.delayedConsequence}</span>
-      ) : null}
-      {preview.disabledReason ? (
-        <span className="action-disabled">
-          {directiveAvailable && !directiveError
-            ? `${preview.disabledReason} The equipped Directive can make this commitment available.`
-            : preview.disabledReason}
-        </span>
-      ) : null}
-    </button>
+      disabledReason={disabledReason}
+      knownChanges={preview.knownChanges ?? undefined}
+      recommendation={
+        recommended && recommendation
+          ? `${ADVISORS[recommendation.advisorId].name} advises`
+          : undefined
+      }
+      result={preview.result}
+      risk={preview.risk ?? undefined}
+      surface={action.type === "resolve_card" ? "paper" : "console"}
+      title={preview.label}
+    />
   );
 
   return (

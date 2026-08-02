@@ -364,6 +364,26 @@ export type RouteState = {
   transitions: RouteTransition[];
 };
 
+/**
+ * Structured game-fact discriminator for a recorded decision.
+ * Presentation layers may derive scene keys from this; they must not parse
+ * `summary` prose. Null remains valid for legacy saves that predate the field.
+ */
+export type DecisionSubject =
+  | { kind: "card"; cardId: string; choiceId: string }
+  | { kind: "deposit"; track: TrackKey; size: "standard" | "large" }
+  | {
+    kind: "counter";
+    strategy: CorporationStrategy;
+    outcome: "correct" | "wrong";
+  }
+  | { kind: "advisor"; advisorId: AdvisorId }
+  | { kind: "consult"; advisorId: AdvisorId }
+  | { kind: "recover"; resource: ResourceKey }
+  | { kind: "faction" }
+  | { kind: "institutions" }
+  | { kind: "activate" };
+
 export type DecisionRecord = {
   id: string;
   turn: number;
@@ -371,6 +391,8 @@ export type DecisionRecord = {
   summary: string;
   cardId: string | null;
   choiceId: string | null;
+  /** Structured action facts; preferred over parsing `summary`. */
+  subject: DecisionSubject | null;
   echoHints: string[];
   echoTypes: EchoType[];
   flagsCreated: string[];

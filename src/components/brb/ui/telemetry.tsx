@@ -37,7 +37,11 @@ export function MetricReadout({ stat, className }: MetricReadoutProps) {
   const progress = numericValue !== null && stat.maximum ? Math.min(100, Math.max(0, (numericValue / stat.maximum) * 100)) : null;
   const TrendIcon = stat.trend?.startsWith("+") ? ArrowUpRight : stat.trend?.startsWith("-") ? ArrowDownRight : Minus;
   return (
-    <div className={cn("relative min-w-0 overflow-hidden border border-border bg-console p-4", className)}>
+    <div className={cn(
+      "relative min-w-0 overflow-hidden border border-border bg-console p-4",
+      tone === "critical" && "bg-destructive/10 shadow-[inset_4px_0_0_var(--red-bright)]",
+      className,
+    )}>
       <div className="flex items-start justify-between gap-3">
         <span className="brb-telemetry text-[9px] tracking-[0.14em] text-muted-foreground uppercase">{stat.label}</span>
         {stat.trend ? <span className="brb-telemetry flex items-center text-[10px] text-phosphor"><TrendIcon className="mr-1 size-3" aria-hidden="true" />{stat.trend}</span> : null}
@@ -49,9 +53,27 @@ export function MetricReadout({ stat, className }: MetricReadoutProps) {
   );
 }
 
-export function MetricStrip({ stats, className }: { stats: BrbStat[]; className?: string }) {
+const metricColumns = {
+  3: "md:grid-cols-3 xl:grid-cols-3",
+  4: "md:grid-cols-2 xl:grid-cols-4",
+  5: "md:grid-cols-3 xl:grid-cols-5",
+} as const;
+
+export function MetricStrip({
+  stats,
+  columns = 5,
+  label = "Operational metrics",
+  tabIndex,
+  className,
+}: {
+  stats: BrbStat[];
+  columns?: keyof typeof metricColumns;
+  label?: string;
+  tabIndex?: number;
+  className?: string;
+}) {
   return (
-    <section aria-label="Operational metrics" className={cn("grid grid-cols-2 gap-px border border-border bg-border md:grid-cols-3 xl:grid-cols-5", className)}>
+    <section aria-label={label} tabIndex={tabIndex} className={cn("grid grid-cols-1 gap-px border border-border bg-border sm:grid-cols-2", metricColumns[columns], className)}>
       {stats.map((stat) => <MetricReadout key={stat.label} stat={stat} className="border-0" />)}
     </section>
   );
@@ -61,13 +83,27 @@ type ProgressTrackProps = {
   label: string;
   value: number;
   maximum: number;
+  progressLabel?: string;
   description?: string;
   tone?: BrbTone;
   status?: string;
   actions?: BrbAction[];
+  controls?: ReactNode;
+  footer?: ReactNode;
 };
 
-export function ProgressTrack({ label, value, maximum, description, tone = "informational", status, actions = [] }: ProgressTrackProps) {
+export function ProgressTrack({
+  label,
+  value,
+  maximum,
+  progressLabel,
+  description,
+  tone = "informational",
+  status,
+  actions = [],
+  controls,
+  footer,
+}: ProgressTrackProps) {
   const percent = Math.min(100, Math.max(0, (value / maximum) * 100));
   return (
     <section className="border-b border-border py-5 last:border-b-0" aria-label={`${label} track`}>
@@ -81,8 +117,10 @@ export function ProgressTrack({ label, value, maximum, description, tone = "info
           {status ? <div className="mt-2"><StatusBadge tone={tone}>{status}</StatusBadge></div> : null}
         </div>
       </div>
-      <Progress value={percent} aria-label={`${label}: ${value} of ${maximum}`} className="mt-4 h-1.5 rounded-none bg-raised" indicatorClassName={indicatorTone[tone]} />
+      <Progress value={percent} aria-label={progressLabel ?? `${label}: ${value} of ${maximum}`} className="mt-4 h-1.5 rounded-none bg-raised" indicatorClassName={indicatorTone[tone]} />
       {actions.length > 0 ? <div className="mt-4 flex flex-col gap-2 sm:flex-row">{actions.map((action, index) => <ActionButton key={action.label} action={action} variant={index === 0 ? "command" : "quiet"} />)}</div> : null}
+      {controls ? <div className="mt-4 grid gap-2">{controls}</div> : null}
+      {footer ? <div className="mt-3 text-[11px] leading-4 text-muted-foreground">{footer}</div> : null}
     </section>
   );
 }
@@ -90,26 +128,38 @@ export function ProgressTrack({ label, value, maximum, description, tone = "info
 type ThreatPanelProps = {
   label?: string;
   progress: number;
-  threatLevel: string;
-  posture: string;
+  progressDisplay?: ReactNode;
+  threatLevel?: string;
+  posture?: string;
   briefingItems?: string[];
+  children?: ReactNode;
   footer?: ReactNode;
 };
 
-export function ThreatPanel({ label = "Corporation watch", progress, threatLevel, posture, briefingItems = [], footer }: ThreatPanelProps) {
+export function ThreatPanel({
+  label = "Corporation watch",
+  progress,
+  progressDisplay,
+  threatLevel,
+  posture,
+  briefingItems = [],
+  children,
+  footer,
+}: ThreatPanelProps) {
   return (
     <section className="brb-console-grid border border-destructive/45 bg-console p-5" aria-label={label}>
       <div className="flex items-center justify-between gap-4">
-        <p className="brb-telemetry m-0 text-[10px] tracking-[0.16em] text-[#e98479] uppercase">{label}</p>
+        <p className="brb-telemetry m-0 text-[10px] tracking-[0.16em] text-destructive-soft uppercase">{label}</p>
         <AlertTriangle className="size-4 text-destructive" aria-hidden="true" />
       </div>
       <div className="mt-6 flex items-end justify-between gap-5">
-        <div className="brb-telemetry text-6xl leading-none font-semibold text-foreground">{progress}<span className="text-xl text-muted-foreground">%</span></div>
-        <StatusBadge tone="critical">{threatLevel}</StatusBadge>
+        <div className="brb-telemetry text-6xl leading-none font-semibold text-foreground">{progressDisplay ?? <>{progress}<span className="text-xl text-muted-foreground">%</span></>}</div>
+        {threatLevel ? <StatusBadge tone="critical">{threatLevel}</StatusBadge> : null}
       </div>
       <Progress value={progress} aria-label={`${label}: ${progress}%`} className="mt-5 h-2 rounded-none bg-raised" indicatorClassName="bg-destructive" />
-      <div className="mt-5 flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><Activity className="size-4 text-signal" aria-hidden="true" />Current posture: <strong className="text-foreground">{posture}</strong></div>
+      {posture ? <div className="mt-5 flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><Activity className="size-4 text-signal" aria-hidden="true" />Current posture: <strong className="text-foreground">{posture}</strong></div> : null}
       {briefingItems.length > 0 ? <ul className="mt-4 space-y-2 pl-4 text-xs leading-5 text-muted-foreground">{briefingItems.map((item) => <li key={item}>{item}</li>)}</ul> : null}
+      {children ? <div className="mt-5 border-t border-border">{children}</div> : null}
       {footer ? <div className="mt-5 border-t border-border pt-4">{footer}</div> : null}
     </section>
   );

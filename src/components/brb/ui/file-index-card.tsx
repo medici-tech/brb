@@ -1,6 +1,7 @@
 import { FileArchive, FileLock2, FileQuestion, ScanSearch } from "lucide-react";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import type { ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
 import { RedactedText } from "./dossier";
 import { StatusBadge } from "./status-badge";
@@ -12,6 +13,11 @@ type FileIndexCardProps = {
   state: FileIndexState;
   title?: string;
   metadata?: string;
+  hiddenTitle?: ReactNode;
+  ariaLabel?: string;
+  expandable?: boolean;
+  showStatus?: boolean;
+  children?: ReactNode;
   className?: string;
 };
 
@@ -22,24 +28,59 @@ const stateCopy: Record<FileIndexState, { label: string; icon: typeof FileArchiv
   unavailable: { label: "Unavailable", icon: FileQuestion },
 };
 
-export function FileIndexCard({ fileId, state, title, metadata, className }: FileIndexCardProps) {
+export function FileIndexCard({
+  fileId,
+  state,
+  title,
+  metadata,
+  hiddenTitle,
+  ariaLabel,
+  expandable = false,
+  showStatus = true,
+  children,
+  className,
+}: FileIndexCardProps) {
   const Icon = stateCopy[state].icon;
   const isHidden = state !== "discovered";
-  return (
-    <Card className={cn("relative min-h-44 gap-0 overflow-hidden rounded-sm border-border bg-console py-0", isHidden && "brb-console-grid", state === "discovered" && "border-t-2 border-t-signal", className)}>
-      <CardHeader className="flex-row items-start justify-between gap-4 p-4">
+  const header = (
+    <>
+      <div className="flex items-start justify-between gap-4 p-4">
         <div>
           <span className="brb-telemetry text-[9px] tracking-[0.15em] text-muted-foreground uppercase">{fileId}</span>
           <h3 className="brb-display mt-5 mb-0 text-2xl leading-none font-semibold text-foreground">
-            {state === "discovered" ? title : state === "redacted" ? <RedactedText blocks={2} revealToScreenReaders={false} /> : "Access denied"}
+            {state === "discovered"
+              ? title
+              : hiddenTitle ?? (state === "redacted"
+                ? <RedactedText blocks={2} revealToScreenReaders={false} />
+                : "Access denied")}
           </h3>
         </div>
         <Icon className="size-5 text-muted-foreground" aria-hidden="true" />
-      </CardHeader>
-      <CardContent className="mt-auto border-t border-border p-4">
-        <StatusBadge tone={state === "discovered" ? "stable" : "classified"}>{stateCopy[state].label}</StatusBadge>
-        <p className="brb-telemetry mt-3 mb-0 text-[9px] tracking-[0.08em] text-muted-foreground uppercase">{metadata ?? (isHidden ? "No recoverable evidence" : "Evidence indexed")}</p>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="mt-auto border-t border-border p-4">
+        {showStatus ? <StatusBadge tone={state === "discovered" ? "stable" : "classified"}>{stateCopy[state].label}</StatusBadge> : null}
+        <p className={cn("brb-telemetry mb-0 text-[9px] tracking-[0.08em] text-muted-foreground uppercase", showStatus && "mt-3")}>
+          {metadata ?? (isHidden ? "No recoverable evidence" : "Evidence indexed")}
+        </p>
+      </div>
+    </>
+  );
+  const rootClassName = cn(
+    "relative flex min-h-44 flex-col overflow-hidden rounded-sm border border-border bg-console",
+    isHidden && "brb-console-grid opacity-60",
+    state === "discovered" && "border-t-2 border-t-signal",
+    className,
+  );
+
+  return expandable ? (
+    <details aria-label={ariaLabel} className={rootClassName}>
+      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{header}</summary>
+      {children ? <div className="border-t border-border p-4">{children}</div> : null}
+    </details>
+  ) : (
+    <article aria-label={ariaLabel} className={rootClassName}>
+      {header}
+      {children ? <div className="border-t border-border p-4">{children}</div> : null}
+    </article>
   );
 }

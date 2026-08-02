@@ -1,93 +1,391 @@
 .situationWorkspace {
   position: relative;
-  min-height: 620px;
-  overflow: hidden;
-  padding: 0;
+  display: grid;
+  grid-template-columns: 704px minmax(360px, 1fr);
+  grid-template-areas:
+    "rail rail"
+    "scene dossier";
+  align-items: start;
+  column-gap: 18px;
+  row-gap: 10px;
+  width: 100%;
+  min-height: 0;
   color: var(--cream);
-  border: 1px solid #454a3b;
-  background: #10130f;
-  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
-  isolation: isolate;
+  scroll-margin-top: 16px;
+}
+
+.situationWorkspace:focus {
+  outline: none;
+}
+
+.situationWorkspace:focus .workspaceRail {
+  border-color: color-mix(in oklab, var(--signal) 72%, transparent);
+  box-shadow:
+    inset 3px 0 0 var(--signal),
+    0 0 0 2px color-mix(in oklab, var(--focus-ring) 52%, transparent);
+}
+
+.workspaceRail {
+  grid-area: rail;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 34px;
+  padding: 7px 10px;
+  color: color-mix(in oklab, var(--cream) 72%, transparent);
+  border-block: 1px solid color-mix(in oklab, var(--console-line) 76%, transparent);
+  background:
+    linear-gradient(90deg, rgba(214, 154, 58, 0.06), transparent 26%),
+    color-mix(in oklab, var(--console-700) 88%, black);
+  box-shadow: inset 3px 0 0 color-mix(in oklab, var(--signal) 72%, transparent);
+  font-family: var(--font-brb-mono), monospace;
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.railIdentity,
+.liveFeed {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.railIdentity i,
+.liveFeed i {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--phosphor);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--phosphor) 70%, transparent);
+}
+
+.railCaption {
+  overflow: hidden;
+  color: color-mix(in oklab, var(--cream) 52%, transparent);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspaceRail strong {
+  color: var(--signal);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sceneStage {
+  grid-area: scene;
+  position: relative;
+  width: 704px;
+  max-width: 100%;
+  aspect-ratio: 352 / 224;
+  height: auto;
+  overflow: hidden;
+  background: var(--console-900);
+  box-shadow:
+    var(--shadow-lift-panel),
+    inset 0 0 0 1px var(--console-line);
+}
+
+.roomReadout {
+  position: absolute;
+  z-index: 5;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 7px 10px;
+  color: color-mix(in oklab, var(--cream) 82%, transparent);
+  border: 1px solid rgba(214, 154, 58, 0.18);
+  border-left: 3px solid var(--signal);
+  background:
+    linear-gradient(90deg, rgba(214, 154, 58, 0.08), transparent 36%),
+    rgba(8, 12, 11, 0.9);
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  font-family: var(--font-brb-mono), monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.roomReadout strong {
+  overflow: hidden;
+  color: var(--signal);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dossierColumn {
+  grid-area: dossier;
+  min-width: 0;
+  container-type: inline-size;
 }
 
 .noActiveFile {
-  position: absolute;
-  z-index: 10;
-  top: 43%;
-  left: 3.5%;
-  width: min(38%, 330px);
-  padding: 16px 18px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 448px;
+  padding: clamp(24px, 3vw, 42px);
+  overflow: hidden;
   color: var(--dossier-ink);
   border: 1px solid rgba(245, 234, 214, 0.7);
   border-left: 4px solid var(--red);
   background:
-    repeating-linear-gradient(0deg, transparent 0 4px, rgba(32, 31, 25, 0.035) 4px 5px),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 4px,
+      rgba(32, 31, 25, 0.035) 4px 5px
+    ),
     var(--dossier);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35);
-  transform: rotate(-0.35deg);
+  box-shadow: var(--shadow-lift-sheet);
+}
+
+.noActiveFile::before {
+  content: "00";
+  position: absolute;
+  right: -12px;
+  bottom: -58px;
+  color: var(--dossier-ink);
+  font-family: var(--font-brb-display), sans-serif;
+  font-size: 220px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.045;
+  pointer-events: none;
+}
+
+.noActiveFile > * {
+  position: relative;
+  z-index: 1;
 }
 
 .noActiveFile h1 {
-  margin: 6px 0;
-  font-size: clamp(24px, 3vw, 38px);
-  line-height: 1;
+  margin: 8px 0;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 0.95;
   letter-spacing: -0.035em;
 }
 
 .noActiveFile p:not(:first-child) {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   color: #555149;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.standbyRouting {
+  display: grid;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in oklab, var(--dossier-ink) 28%, transparent);
+}
+
+.standbyRouting span {
+  font-family: var(--font-brb-mono), monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.standbyRouting strong {
+  font-family: var(--font-brb-display), sans-serif;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.standbyRouting p {
+  margin: 2px 0 0 !important;
+  font-family: var(--font-brb-mono), monospace;
+  font-size: 9px !important;
+  letter-spacing: 0.08em;
+  line-height: 1.5 !important;
+  text-transform: uppercase;
 }
 
 .activeFile {
-  position: relative;
-  z-index: 10;
-  width: calc(100% - clamp(24px, 5vw, 72px));
-  min-height: calc(620px - clamp(24px, 5vw, 72px));
-  margin: clamp(12px, 2.5vw, 36px);
-  padding: clamp(26px, 4vw, 52px);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  min-height: 448px;
+  margin: 0;
+  padding: 0;
+  box-shadow: var(--shadow-lift-sheet);
 }
 
-.inactiveResult {
-  position: relative;
-  z-index: 10;
-  width: min(72%, 720px);
-  margin: 370px auto 28px;
-  padding: 18px;
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.38);
+.activeFile > div {
+  padding: clamp(20px, 2.5vw, 32px);
 }
 
-@media (max-width: 900px) {
-  .noActiveFile {
-    width: 46%;
+.activeFile header {
+  gap: 12px;
+}
+
+.activeFile h1 {
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.activeFile header p:not(:first-child) {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.activeFileBody {
+  margin-top: 12px;
+  padding-top: 14px;
+}
+
+.actionRequired {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  color: color-mix(in oklab, var(--dossier-ink) 78%, transparent);
+  border-left: 3px solid var(--red);
+  background: color-mix(in oklab, var(--red) 7%, transparent);
+  font-family: var(--font-brb-mono), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.choiceList {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.choiceList > * {
+  height: 100%;
+}
+
+@container (min-width: 600px) {
+  .choiceList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
   }
 }
 
-@media (max-width: 650px) {
+@media (prefers-reduced-motion: no-preference) {
+  .activeFile {
+    animation: file-set-down 260ms var(--ease-out) both;
+  }
+}
+
+@keyframes file-set-down {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.inactiveResult {
+  width: 100%;
+  margin: 14px 0 0;
+  padding: 18px;
+  color: var(--paper-ink);
+  border: 1px solid var(--paper-100);
+  background: var(--paper-200);
+  box-shadow: var(--shadow-lift-panel);
+}
+
+@media (max-width: 1180px) {
   .situationWorkspace {
-    min-height: 0;
+    grid-template-columns: minmax(0, 352px) minmax(0, 1fr);
+  }
+
+  .sceneStage {
+    width: 352px;
+  }
+
+  .activeFile {
+    min-height: 224px;
+  }
+
+  .noActiveFile {
+    min-height: 224px;
+  }
+}
+
+@media (max-width: 760px) {
+  .situationWorkspace {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
-  .noActiveFile {
-    top: 42%;
-    width: 58%;
+  .workspaceRail {
+    order: 0;
+    width: 100%;
+  }
+
+  .railCaption {
+    display: none;
+  }
+
+  .dossierColumn {
+    order: 2;
+    width: 100%;
+  }
+
+  .sceneStage {
+    order: 1;
+    align-self: center;
+    width: min(100%, 352px);
+  }
+
+  .roomReadout {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    gap: 8px;
+    padding: 6px 8px;
+    letter-spacing: 0.07em;
   }
 
   .activeFile {
-    width: 100%;
     min-height: 0;
-    margin: 0;
-    padding: 20px;
+  }
+
+  .activeFileBody {
+    margin-top: 0;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .choiceList {
+    margin: 20px 0;
   }
 
   .inactiveResult {
-    width: 100%;
-    margin: 0;
+    margin-bottom: 0;
   }
 }

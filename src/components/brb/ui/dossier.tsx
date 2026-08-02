@@ -82,27 +82,44 @@ export function ArtworkPlaceholder({ label = "Placeholder intelligence artwork",
 type DossierPanelProps = {
   eyebrow: string;
   title: string;
+  headingLevel?: "h1" | "h2";
+  titleId?: string;
   summary?: string;
   classification?: string;
   children?: ReactNode;
   footer?: ReactNode;
   className?: string;
+  headerClassName?: string;
+  bodyClassName?: string;
 };
 
-export function DossierPanel({ eyebrow, title, summary, classification, children, footer, className }: DossierPanelProps) {
+export function DossierPanel({
+  eyebrow,
+  title,
+  headingLevel = "h2",
+  titleId,
+  summary,
+  classification,
+  children,
+  footer,
+  className,
+  headerClassName,
+  bodyClassName,
+}: DossierPanelProps) {
+  const Heading = headingLevel;
   return (
     <article className={cn("brb-paper-texture relative overflow-hidden border border-dossier text-dossier-ink shadow-[6px_6px_0_rgba(0,0,0,0.3)]", className)}>
       <div className="absolute top-0 left-7 h-3 w-20 bg-destructive/75" aria-hidden="true" />
       <div className="p-6 sm:p-8 lg:p-12">
-        <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <header className={cn("flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between", headerClassName)}>
           <div className="max-w-3xl">
             <p className="brb-telemetry m-0 text-[10px] tracking-[0.18em] uppercase opacity-65">{eyebrow}</p>
-            <h2 className="brb-display mt-3 mb-0 text-4xl leading-[0.92] font-semibold tracking-[-0.02em] sm:text-6xl">{title}</h2>
+            <Heading id={titleId} className="brb-display mt-3 mb-0 text-4xl leading-[0.92] font-semibold tracking-[-0.02em] sm:text-6xl">{title}</Heading>
             {summary ? <p className="mt-5 mb-0 max-w-2xl text-base leading-7 opacity-75 sm:text-lg">{summary}</p> : null}
           </div>
           {classification ? <ClassificationStamp>{classification}</ClassificationStamp> : null}
         </header>
-        {children ? <div className="mt-8 border-t border-dossier-ink/25 pt-7">{children}</div> : null}
+        {children ? <div className={cn("mt-8 border-t border-dossier-ink/25 pt-7", bodyClassName)}>{children}</div> : null}
       </div>
       {footer ? <footer className="border-t border-dossier-ink/25 bg-dossier-ink/5 px-6 py-4 sm:px-8 lg:px-12">{footer}</footer> : null}
     </article>

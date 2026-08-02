@@ -1,0 +1,225 @@
+.viewport {
+  /* Preferred integer display scale. The canvas then fit-scales to the actual
+     viewport width so a narrower host never crops the fixed camera. */
+  --pixel-room-scale: 2;
+  container-type: inline-size;
+  container-name: pixel-room;
+  position: relative;
+  width: min(
+    100%,
+    calc(var(--pixel-room-width) * var(--pixel-room-scale) * 1px)
+  );
+  aspect-ratio: var(--pixel-room-width) / var(--pixel-room-height);
+  height: auto;
+  max-width: 100%;
+  overflow: hidden;
+  background: #101719;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(172, 158, 116, 0.46),
+    inset 0 0 0 2px rgba(13, 18, 19, 0.72);
+  image-rendering: pixelated;
+  contain: layout paint;
+}
+
+.canvas {
+  position: absolute;
+  /* Centred rather than pinned: once the scale snaps to a whole number the
+     rendered canvas can be a few pixels narrower than its host, and the
+     leftover has to fall evenly on both sides instead of all on the right. */
+  left: calc(
+    (100cqi - var(--pixel-room-width) * var(--pixel-room-render-scale) * 1px) / 2
+  );
+  top: calc(
+    (
+      100cqi * var(--pixel-room-height) / var(--pixel-room-width)
+        - var(--pixel-room-height) * var(--pixel-room-render-scale) * 1px
+    ) / 2
+  );
+  width: calc(var(--pixel-room-width) * 1px);
+  height: calc(var(--pixel-room-height) * 1px);
+  /* Divide one length by another so scale() receives a unitless number.
+     Dividing 100cqi by the raw unitless width makes the declaration invalid
+     and silently leaves the source canvas at 1× inside a larger room host. */
+  --pixel-room-fit: calc(100cqi / (var(--pixel-room-width) * 1px));
+  --pixel-room-render-scale: var(--pixel-room-fit);
+  transform: scale(var(--pixel-room-render-scale));
+  transform-origin: top left;
+  overflow: hidden;
+  isolation: isolate;
+  image-rendering: pixelated;
+}
+
+/* Snap the fit-scale to a whole number whenever the room is being ENLARGED.
+ *
+ * The raw fit is continuous, so any host that is not exactly an integer multiple
+ * of the source width was upscaling by something like 1.83 — which resamples
+ * every sprite and is the one thing this pixel pipeline is built to avoid. (The
+ * sprite stylesheet states the same rule for `--sprite-scale`; the room canvas
+ * was the hole in it.)
+ *
+ * `max(floor(fit), min(fit, 1))` deliberately leaves the shrinking case alone:
+ *   fit >= 1 → max(floor(fit), 1) = floor(fit), an integer upscale.
+ *   fit  < 1 → max(0, fit)        = fit, unchanged.
+ * Snapping downward too would mean the next legal step below 1× is 0.5×, i.e.
+ * halving the room on a phone to gain crispness it cannot show anyway.
+ *
+ * Guarded because a browser without `round()` must keep the continuous fit
+ * rather than drop the declaration and silently render the room at 1×.
+ */
+@supports (width: round(down, 3px, 2px)) {
+  .canvas {
+    --pixel-room-render-scale: max(
+      round(down, var(--pixel-room-fit), 1),
+      min(var(--pixel-room-fit), 1)
+    );
+  }
+}
+
+.canvas::before,
+.canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Global colour grade sits above actors and props, while named light zones sit
+   above it and can be emphasized by the owning presentation. */
+.canvas::before {
+  z-index: 90;
+  background: rgba(8, 14, 13, 0.18);
+  mix-blend-mode: multiply;
+}
+
+.canvas::after {
+  z-index: 120;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025), transparent 22%),
+    radial-gradient(circle at 50% 45%, transparent 46%, rgba(1, 4, 3, 0.38) 100%);
+  box-shadow: inset 0 0 0 1px rgba(228, 214, 174, 0.08);
+}
+
+.base,
+.object :global(.pixelated),
+.actor :global(.pixelated) {
+  --sprite-scale-override: 1;
+}
+
+.base,
+.schematic {
+  position: absolute;
+  inset: 0;
+  width: calc(var(--pixel-room-width) * 1px);
+  height: calc(var(--pixel-room-height) * 1px);
+}
+
+.schematic {
+  display: block;
+  background-color: #1a2424;
+  background-image:
+    linear-gradient(#303c39 1px, transparent 1px),
+    linear-gradient(90deg, #303c39 1px, transparent 1px);
+  background-size: 16px 16px;
+  box-shadow:
+    inset 0 0 0 16px #2b3431,
+    inset 0 0 0 17px #0c1111;
+}
+
+.object,
+.actor {
+  position: absolute;
+  display: block;
+  line-height: 0;
+}
+
+.objectFallback {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: #65706a;
+  box-shadow: inset 0 0 0 2px #252c2a;
+}
+
+.actorFallback {
+  display: block;
+  width: 16px;
+  height: 32px;
+  background:
+    linear-gradient(#b8aa88 0 7px, #384944 7px 23px, #202a28 23px);
+  box-shadow: inset 0 0 0 1px rgba(10, 12, 12, 0.76);
+}
+
+.light {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(192, 206, 157, 0.22),
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.24;
+  transition:
+    opacity 280ms ease,
+    filter 280ms ease;
+}
+
+.viewport[data-lighting="strained"] .canvas::before {
+  background: rgba(66, 38, 9, 0.2);
+}
+
+.viewport[data-lighting="strained"] .light {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(222, 163, 66, 0.26),
+    transparent 72%
+  );
+  opacity: 0.3;
+}
+
+.viewport[data-lighting="crisis"] .canvas::before {
+  background: rgba(78, 17, 13, 0.27);
+}
+
+.viewport[data-lighting="crisis"] .light {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(221, 94, 76, 0.24),
+    transparent 72%
+  );
+  opacity: 0.34;
+}
+
+.viewport[data-lighting="failure"] .canvas::before {
+  background: rgba(10, 5, 5, 0.54);
+}
+
+.viewport[data-lighting="failure"] .light {
+  opacity: 0.08;
+}
+
+.viewport[data-lighting="failure"] .canvas::after {
+  background: radial-gradient(
+    circle at 50% 44%,
+    rgba(42, 15, 12, 0.04) 24%,
+    rgba(0, 0, 0, 0.68) 100%
+  );
+}
+
+@media (max-width: 1180px) {
+  .viewport {
+    --pixel-room-scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actor {
+    animation: none !important;
+  }
+
+  .light {
+    transition: none;
+  }
+}

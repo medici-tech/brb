@@ -12,12 +12,14 @@ import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation"
 import workspaceStyles from "./control-room/SituationWorkspace.module.css";
 import type { PresentationModel } from "./control-room/presentationStateResolver";
 import { LastTurnResult } from "./LastTurnResult";
+import { DossierPanel } from "./ui";
 
 type Props = {
   state: GameState;
   card: SituationCard | null;
   recommendation: AdvisorRecommendation | null;
   model: PresentationModel;
+  commitSignalKey: string | null;
   resolvedEchoTypes: EchoType[];
   workspaceRef: RefObject<HTMLElement | null>;
   onCommit: (action: MajorAction, options?: CommitOptions) => void;
@@ -28,6 +30,7 @@ export function CampaignSituationWorkspace({
   card,
   recommendation,
   model,
+  commitSignalKey,
   resolvedEchoTypes,
   workspaceRef,
   onCommit,
@@ -37,59 +40,97 @@ export function CampaignSituationWorkspace({
       ref={workspaceRef}
       aria-label="Situation workspace"
       tabIndex={-1}
-      className={`situation-panel ${workspaceStyles.situationWorkspace}`}
+      className={`${workspaceStyles.situationWorkspace} campaign-situation-workspace`}
+      data-situation={card ? "active" : "standby"}
     >
-      <ControlRoomPresentation
-        model={model}
-        turn={state.turn}
-        hasActiveSituation={Boolean(card)}
-      />
-      {card ? (
-        <div className={`paper-panel ${workspaceStyles.activeFile}`}>
-          <div className="panel-heading mobile-duplicate-situation">
-            <div>
-              <p className="file-label">SITUATION DECK</p>
-              <h1>{card.title}</h1>
-            </div>
-            <span className={`classification ${card.rarity}`}>
-              {card.type} · {card.rarity}
-            </span>
-          </div>
-          <p className="situation-copy mobile-duplicate-situation">{card.description}</p>
-          <div className="choice-list">
-            {card.choices.map((choice) => (
-              <CampaignActionControl
-                key={choice.id}
-                state={state}
-                action={{ type: "resolve_card", choiceId: choice.id }}
-                recommendation={recommendation}
-                activeCardTitle={card.title}
-                onCommit={onCommit}
-              />
-            ))}
-          </div>
-          <LastTurnResult
-            resolution={state.lastTurnResolution}
-            echoTypes={resolvedEchoTypes}
-          />
+      <div className={workspaceStyles.workspaceRail} aria-hidden="true">
+        <span className={workspaceStyles.railIdentity}>
+          <i />
+          Situation command
+        </span>
+        <span className={workspaceStyles.railCaption}>{model.caption}</span>
+        <strong>{card ? "Action required" : "Authorization window"}</strong>
+      </div>
+      <div className={workspaceStyles.sceneStage} data-room-stage="">
+        <ControlRoomPresentation
+          model={model}
+          turn={state.turn}
+          hasActiveSituation={Boolean(card)}
+          commitSignalKey={commitSignalKey}
+        />
+        <div
+          aria-hidden="true"
+          className={workspaceStyles.roomReadout}
+          data-mobile-room-readout=""
+        >
+          <span className={workspaceStyles.liveFeed}>
+            <i />
+            Live · Facility 01
+          </span>
+          <strong>{model.stateLabel}</strong>
+          <span>BRB {Math.round(model.brbProgress).toString().padStart(3, "0")}%</span>
         </div>
-      ) : (
-        <>
-          <div className={`${workspaceStyles.noActiveFile} mobile-duplicate-situation`}>
-            <p className="file-label">SITUATION DECK · STANDBY</p>
-            <h1>No active file</h1>
-            <p>The desk is quiet. Choose where to commit the administration.</p>
-          </div>
-          {state.lastTurnResolution ? (
-            <div className={`paper-panel ${workspaceStyles.inactiveResult}`}>
-              <LastTurnResult
-                resolution={state.lastTurnResolution}
-                echoTypes={resolvedEchoTypes}
-              />
+      </div>
+      <div className={workspaceStyles.dossierColumn}>
+        {card ? (
+          <DossierPanel
+            key={card.id}
+            className={workspaceStyles.activeFile ?? ""}
+            eyebrow="SITUATION DECK"
+            title={card.title}
+            headingLevel="h1"
+            summary={card.description}
+            classification={`${card.type} · ${card.rarity}`}
+            bodyClassName={workspaceStyles.activeFileBody ?? ""}
+          >
+            <p className={workspaceStyles.actionRequired}>
+              Action required · choose one of {card.choices.length} responses
+            </p>
+            <div
+              className={workspaceStyles.choiceList}
+              role="group"
+              aria-label="Situation responses"
+            >
+              {card.choices.map((choice) => (
+                <CampaignActionControl
+                  key={choice.id}
+                  state={state}
+                  action={{ type: "resolve_card", choiceId: choice.id }}
+                  recommendation={recommendation}
+                  activeCardTitle={card.title}
+                  onCommit={onCommit}
+                  compact
+                />
+              ))}
             </div>
-          ) : null}
-        </>
-      )}
+            <LastTurnResult
+              resolution={state.lastTurnResolution}
+              echoTypes={resolvedEchoTypes}
+            />
+          </DossierPanel>
+        ) : (
+          <>
+            <div className={workspaceStyles.noActiveFile}>
+              <p className="file-label">SITUATION DECK · STANDBY</p>
+              <h1>No active file</h1>
+              <p>The desk is quiet. Choose where to commit the administration.</p>
+              <aside className={workspaceStyles.standbyRouting}>
+                <span>Next authorization</span>
+                <strong>Choose one monthly commitment.</strong>
+                <p>BRB projects · public operations · resource recovery</p>
+              </aside>
+            </div>
+            {state.lastTurnResolution ? (
+              <div className={workspaceStyles.inactiveResult}>
+                <LastTurnResult
+                  resolution={state.lastTurnResolution}
+                  echoTypes={resolvedEchoTypes}
+                />
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
     </section>
   );
 }

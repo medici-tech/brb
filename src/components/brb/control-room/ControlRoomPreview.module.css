@@ -36,7 +36,7 @@
 .previewControls {
   display: grid;
   max-width: 1400px;
-  grid-template-columns: 1.25fr 1fr 1.2fr 0.8fr 0.8fr;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: 1px;
   margin: 0 auto 18px;
   border: 1px solid var(--border);
@@ -79,23 +79,28 @@
 }
 
 .previewStage {
-  position: relative;
+  display: grid;
   max-width: 1400px;
-  min-height: 700px;
+  grid-template-columns: 704px minmax(360px, 1fr);
+  align-items: start;
+  gap: 18px;
   margin: 0 auto;
+}
+
+.previewRoom {
+  position: relative;
+  width: 704px;
+  max-width: 100%;
+  aspect-ratio: 352 / 224;
+  height: auto;
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: #10130f;
-  isolation: isolate;
 }
 
 .previewFile {
-  position: relative;
-  z-index: 10;
-  width: min(72%, 820px);
-  min-height: 430px;
-  margin: 80px auto;
-  padding: clamp(28px, 5vw, 58px);
+  width: 100%;
+  min-height: 448px;
+  margin: 0;
+  padding: clamp(24px, 3vw, 42px);
 }
 
 .previewFile h2 {
@@ -124,6 +129,20 @@
   text-align: left;
 }
 
+@media (max-width: 1180px) {
+  .previewStage {
+    grid-template-columns: minmax(0, 352px) minmax(0, 1fr);
+  }
+
+  .previewRoom {
+    width: 352px;
+  }
+
+  .previewFile {
+    min-height: 224px;
+  }
+}
+
 @media (max-width: 900px) {
   .previewControls {
     grid-template-columns: 1fr 1fr;
@@ -144,12 +163,26 @@
   }
 
   .previewStage {
-    min-height: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .previewRoom {
+    order: 2;
+    align-self: center;
+    width: min(100%, 352px);
   }
 
   .previewFile {
-    width: calc(100% - 24px);
-    margin: 50px 12px;
+    order: 1;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
     padding: 28px 20px;
+  }
+
+  .previewStandby {
+    order: 1;
   }
 }

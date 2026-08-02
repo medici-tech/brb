@@ -116,16 +116,17 @@ export function CommandSidebar({ title, description, children, triggerLabel = "O
 type SectionHeadingProps = {
   eyebrow: string;
   title: string;
+  titleId?: string;
   description?: string;
   action?: ReactNode;
 };
 
-export function SectionHeading({ eyebrow, title, description, action }: SectionHeadingProps) {
+export function SectionHeading({ eyebrow, title, titleId, description, action }: SectionHeadingProps) {
   return (
     <div className="mb-5 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-3xl">
         <p className="brb-telemetry m-0 text-[10px] tracking-[0.16em] text-signal uppercase">{eyebrow}</p>
-        <h2 className="brb-display mt-2 mb-0 text-3xl leading-none font-semibold sm:text-4xl">{title}</h2>
+        <h2 id={titleId} className="brb-display mt-2 mb-0 text-3xl leading-none font-semibold sm:text-4xl">{title}</h2>
         {description ? <p className="mt-3 mb-0 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p> : null}
       </div>
       {action}

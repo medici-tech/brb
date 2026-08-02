@@ -28,6 +28,13 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
   advisor thresholds, and next-run experiments.
 - The production export loads its existing font families locally and no longer depends on
   Google Fonts during a build.
+- The Campaign now presents the continuity facility as a live command feed with localized,
+  state-driven lighting, a centered operations axis, a cleaner BRB chamber, and distinct
+  calm, crisis, Corporation, activation, and ending treatments.
+- Situation files now share one command rail with the room, make standby authorization and
+  active-response status explicit, and keep costs and risks legible at decision size.
+- The mechanics guide and internal run notebook now appear as the Field Manual and Playtest
+  Journal, while first-turn guidance uses a quieter console brief instead of a second dossier.
 
 ### Fixed
 
@@ -38,6 +45,30 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 - Commitment confirmation dialogs now close before the next React state renders, preventing
   a stale confirmation from covering the aftermath.
 - Long aftermath headings and milestone text remain contained in narrow layouts.
+- Control-room sprite sheets animate again, while reduced-motion users retain deliberate
+  still poses and the full room camera now fills its stage at every supported scale.
+- Phone campaigns lead with the living control room and Situation file, and show all four
+  pressure meters in a contained two-column grid.
+- Rooms read as architecture: every far edge now carries a complete wall segment with a
+  crown and baseboard instead of a single flat interior tile, and each floor is paired to
+  its wall style by measured luminance so the shell is never the same value as the floor.
+- Room furniture no longer uses fragments of larger assemblies. Conference-table end caps
+  were being butted together into a lumpy blob and angled table corner leaves were placed
+  as free-standing props; the worksite and civic perimeter were furnished from the
+  interiors pack's "Basement" sorter, which is a rec room of pool tables and dart boards.
+- Wall-mounted props (maps, boards, notice cabinets, extinguishers) hang on a wall instead
+  of standing in the middle of open floor, and the nine fixed cameras no longer share one
+  interchangeable grey layout.
+- The Archive's records shelves now read as a progression: the three tiers were three
+  equally crammed shelves, so accumulated knowledge was invisible.
+- Room canvases snap any upscale to a whole number, so a container that is not an exact
+  multiple of the source width letterboxes a few pixels instead of resampling every sprite.
+- The corridor courier walks instead of teleporting: its travel is re-timed to one 4px step
+  per walk-cycle frame, replacing a 16px hop every 282ms against an unrelated 8fps stride.
+- Animated sprites are seeded into their own loop phase from their tile position, so a room
+  of independent machines stops blinking in unison.
+- `curate-art.ts` verifies each furniture placement's committed tile size against the real
+  PNG while compositing, so the hand-maintained size table cannot silently drift.
 
 ### Security
 
@@ -46,6 +77,9 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 ### Internal
 
 - Playwright and axe-core are development-only dependencies and do not ship in the game bundle.
+- Development and visual-QA commands now report licensed-art versus fallback mode,
+  reject partial or structurally corrupt local art, and offer a strict browser decode
+  check for the full art manifest. The status command remains read-only.
 - Simulation experiment results remain in `docs/BRB_SIMULATION_LOG.md`; routine refactors and
   test-only work belong here only when they affect players, compatibility, or delivery safety.
 

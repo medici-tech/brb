@@ -5,7 +5,7 @@ This round is a structured self-play audit. It can validate rules defects, pacin
 ## Before starting
 
 1. Run `npm test`, `npm run typecheck`, `npm run build`, and `npm run test:browser`. On a new machine, run `npm run test:browser:install` once before the browser suite.
-2. Open the app and choose **Internal Playtest**.
+2. Open the app and choose **Playtest Journal**.
 3. Complete matrix runs in order. Do not tune balance during a run or between the first three natural-play runs.
 4. Use **Bookmark this moment** immediately when something feels confusing, broken, abrupt, exploitable, or especially satisfying.
 

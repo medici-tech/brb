@@ -73,6 +73,7 @@ import {
   type ConsultationResult,
   type CorporationStrategy,
   type CreateGameOptions,
+  type DecisionSubject,
   type Ending,
   type EndingVariationId,
   type Effects,
@@ -278,6 +279,7 @@ export function consultAdvisor(
         before,
         "advisor",
         "The Steward converted public Trust into emergency Influence.",
+        { kind: "consult", advisorId: "steward" },
       );
       next.decisionHistory.at(-1)?.echoHints.push("The public mandate has been spent, not erased.");
       next.decisionHistory.at(-1)?.echoTypes.push("ending");
@@ -294,6 +296,7 @@ export function consultAdvisor(
         before,
         "advisor",
         "The Fixer received authority to contain the next ignored Situation Card.",
+        { kind: "consult", advisorId: "fixer" },
       );
       next.decisionHistory.at(-1)?.echoHints.push("The Fixer will remember the authority you granted.");
       next.decisionHistory.at(-1)?.echoTypes.push("relationship");
@@ -361,6 +364,7 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
   const before = cloneState(state);
   let corporationBlocked = false;
   let summary = "";
+  let subject: DecisionSubject | null = null;
   if (action.type === "deposit") {
     applyDeposit(state, action.track, action.size);
     if (
@@ -374,6 +378,7 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
       );
     }
     summary = `${action.size === "large" ? "Large" : "Standard"} ${action.track} deposit permanently committed.`;
+    subject = { kind: "deposit", track: action.track, size: action.size };
   } else if (action.type === "resolve_card") {
     return { corporationBlocked, decisionId: resolveCard(state, action.choiceId) };
   } else if (action.type === "counter_corporation") {
@@ -387,15 +392,22 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
       state.corporation.threat = clamp(state.corporation.threat + 5);
       summary = "The counter-operation targeted the wrong strategy.";
     }
+    subject = {
+      kind: "counter",
+      strategy: action.predictedStrategy,
+      outcome: corporationBlocked ? "correct" : "wrong",
+    };
   } else if (action.type === "strengthen_faction") {
     spendResources(state, getActionCost(state, action));
     applyEffects(state, { resources: { trust: 6 }, institutions: 5 });
     summary = "The governing coalition was strengthened.";
+    subject = { kind: "faction" };
   } else if (action.type === "manage_advisor") {
     spendResources(state, getActionCost(state, action));
     state.advisors[action.advisorId].loyalty = clamp(state.advisors[action.advisorId].loyalty + 10);
     state.advisors[action.advisorId].leverage = clamp(state.advisors[action.advisorId].leverage - 6);
     summary = `${ADVISORS[action.advisorId].name} was brought back into line.`;
+    subject = { kind: "advisor", advisorId: action.advisorId };
   } else if (action.type === "recover_resource") {
     const parallelContractors = action.resource === "capacity"
       && state.systemModifiers.includes("parallel_contractors");
@@ -423,6 +435,7 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
       );
     }
     summary = `${action.resource} was recovered while the Corporation used the delay.`;
+    subject = { kind: "recover", resource: action.resource };
   } else if (action.type === "protect_institutions") {
     spendResources(state, getActionCost(state, action));
     applyEffects(state, {
@@ -430,12 +443,20 @@ function applyPlayerAction(state: GameState, action: MajorAction): {
       pressures: { stress: -4, panic: -2 },
     });
     summary = "Institutional safeguards were reinforced.";
+    subject = { kind: "institutions" };
   } else {
     summary = "BRB activation was authorized.";
+    subject = { kind: "activate" };
   }
   return {
     corporationBlocked,
-    decisionId: recordSimpleDecision(state, before, getActionCategory(action), summary),
+    decisionId: recordSimpleDecision(
+      state,
+      before,
+      getActionCategory(action),
+      summary,
+      subject,
+    ),
   };
 }
 

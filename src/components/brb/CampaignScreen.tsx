@@ -25,10 +25,17 @@ import {
   derivePresentationInputs,
   resolvePresentationModel,
 } from "./control-room/presentationStateResolver";
+import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
 import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
 import { TurnTransitionDialog } from "./TurnTransitionDialog";
+import {
+  ConsolePanel,
+  GuidedObjective,
+  MetricStrip,
+  type BrbStat,
+} from "./ui";
 
 type Props = {
   state: GameState;
@@ -81,6 +88,7 @@ export function CampaignScreen({
   const previousDecisionIdRef = useRef(latestDecisionId);
   const shouldFocusWorkspaceRef = useRef(false);
   const [transitionDecisionId, setTransitionDecisionId] = useState<string | null>(null);
+  const [reviewedDecisionId, setReviewedDecisionId] = useState<string | null>(null);
   const canActivate = valid.some((action) => action.type === "activate_brb");
   const recommendation = state.consultation
     ? getAdvisorRecommendation(
@@ -96,6 +104,52 @@ export function CampaignScreen({
   const equippedDirective = state.legacyDirective.equippedId
     ? LEGACY_DIRECTIVES[state.legacyDirective.equippedId]
     : null;
+  const pressureStats: BrbStat[] = [
+    {
+      label: "Stress",
+      value: `${state.pressures.stress} / 100`,
+      tone: state.pressures.stress >= 75 ? "critical" : "neutral",
+    },
+    {
+      label: "Panic",
+      value: `${state.pressures.panic} / 100`,
+      tone: state.pressures.panic >= 75 ? "critical" : "neutral",
+    },
+    {
+      label: "Institutions",
+      value: `${state.institutions} / 100`,
+      tone: state.institutions <= 25 ? "critical" : "neutral",
+    },
+    {
+      label: "Corporation Progress",
+      value: `${state.corporation.progress} / 100`,
+      tone: state.corporation.progress >= 75 ? "critical" : "neutral",
+    },
+  ];
+  const pressureThresholds = [
+    {
+      label: "Stress",
+      explanation: "At 80+, administrative overload drains 4 Trust every month.",
+    },
+    {
+      label: "Panic",
+      explanation: "At 100, public order collapses and the campaign ends.",
+    },
+    {
+      label: "Institutions",
+      explanation: "At 0, the state collapses. Protection can restore this meter.",
+    },
+    {
+      label: "Corporation Progress",
+      explanation: "At 100, the Corporation wins. At 80+, activation risks capture.",
+    },
+  ];
+  const resourceStats: BrbStat[] = RESOURCE_KEYS.map((key) => ({
+    label: RESOURCE_LABELS[key],
+    value: state.resources[key],
+    maximum: 100,
+    tone: "stable",
+  }));
 
   useEffect(() => {
     if (!latestDecisionId || previousDecisionIdRef.current === latestDecisionId) return;
@@ -114,6 +168,7 @@ export function CampaignScreen({
 
   function continueToBriefing(): void {
     shouldFocusWorkspaceRef.current = true;
+    setReviewedDecisionId(latestDecisionId ?? null);
     setTransitionDecisionId(null);
   }
 
@@ -126,106 +181,18 @@ export function CampaignScreen({
         </div>
         <div className="header-actions">
           <HowToPlayDialog />
+          <CreditsDialog />
           {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
           {onOpenPlaytest ? (
             <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>
-              Internal Playtest
+              Playtest Journal
             </button>
           ) : null}
           <button className="text-button" type="button" onClick={onOpenArchive}>Archive</button>
         </div>
       </header>
 
-      {state.experiment ? (
-        <aside className="objective compact"><span>NEXT-RUN THEORY</span>{state.experiment}</aside>
-      ) : null}
-      {equippedDirective ? (
-        <aside className={`campaign-directive ${state.legacyDirective.used ? "used" : ""}`}>
-          <div>
-            <p className="file-label">LEGACY DIRECTIVE · {equippedDirective.rarity}</p>
-            <h2>{equippedDirective.title}</h2>
-          </div>
-          <p>
-            {state.legacyDirective.used
-              ? "Authorization spent for this campaign."
-              : `${equippedDirective.benefit} · ${equippedDirective.warning} · available once`}
-          </p>
-        </aside>
-      ) : null}
-      {guidedObjective ? (
-        <aside className="guided-objective" aria-labelledby="guided-objective-title">
-          <div>
-            <p className="file-label">ACTIVE PLAYTEST DIRECTIVE</p>
-            <h2 id="guided-objective-title">{guidedObjective.label}</h2>
-            <p>{guidedObjective.strategy}</p>
-          </div>
-          <ul>{guidedObjective.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
-        </aside>
-      ) : null}
-      {error ? <p role="alert" className="error-banner">{error}</p> : null}
-
-      {onboarding ? (
-        <section className="first-turn-guide" aria-labelledby="first-turn-title">
-          <p className="file-label">{onboarding.label} · BRIEF {state.turn} OF 3</p>
-          <div>
-            <h2 id="first-turn-title">{onboarding.title}</h2>
-            <p>{onboarding.copy}</p>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="state-pressure-strip" aria-label="State pressure" tabIndex={0}>
-        <article className={state.pressures.stress >= 75 ? "danger-metric" : ""}>
-          <span>Stress</span><strong>{state.pressures.stress} / 100</strong>
-          <p>At 80+, administrative overload drains 4 Trust every month.</p>
-        </article>
-        <article className={state.pressures.panic >= 75 ? "danger-metric" : ""}>
-          <span>Panic</span><strong>{state.pressures.panic} / 100</strong>
-          <p>At 100, public order collapses and the campaign ends.</p>
-        </article>
-        <article className={state.institutions <= 25 ? "danger-metric" : ""}>
-          <span>Institutions</span><strong>{state.institutions} / 100</strong>
-          <p>At 0, the state collapses. Protection can restore this meter.</p>
-        </article>
-        <article className={state.corporation.progress >= 75 ? "danger-metric" : ""}>
-          <span>Corporation Progress</span><strong>{state.corporation.progress} / 100</strong>
-          <p>At 100, the Corporation wins. At 80+, activation risks capture.</p>
-        </article>
-      </section>
-
-      <section className="mobile-situation-brief" aria-label="Current Situation">
-        <p className="file-label">
-          {card ? "CURRENT SITUATION" : "SITUATION DECK · STANDBY"}
-        </p>
-        <h1>{card?.title ?? "No active file"}</h1>
-        <p>
-          {card?.description
-            ?? "The desk is quiet. Choose where to commit the administration."}
-        </p>
-      </section>
-
-      <section className="metric-strip" aria-label="Active resources" tabIndex={0}>
-        {RESOURCE_KEYS.map((key) => (
-          <div className="metric" key={key} title={RESOURCE_GUIDANCE[key]}>
-            <span>{RESOURCE_LABELS[key]}</span><strong>{state.resources[key]}</strong>
-            <i style={{ width: `${state.resources[key]}%` }} />
-          </div>
-        ))}
-      </section>
-      <details className="meter-guide">
-        <summary>What do these resources fund?</summary>
-        <dl>
-          {RESOURCE_KEYS.map((key) => (
-            <div key={key}><dt>{RESOURCE_LABELS[key]}</dt><dd>{RESOURCE_GUIDANCE[key]}</dd></div>
-          ))}
-        </dl>
-      </details>
-
-      <CampaignAdvisors
-        state={state}
-        recommendation={recommendation}
-        onConsult={onConsult}
-      />
+      {error ? <p role="alert" className="campaign-error bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
 
       <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
         <CampaignSituationWorkspace
@@ -233,6 +200,7 @@ export function CampaignScreen({
           card={card}
           recommendation={recommendation}
           model={controlRoomModel}
+          commitSignalKey={reviewedDecisionId}
           resolvedEchoTypes={resolvedEchoTypes}
           workspaceRef={situationWorkspaceRef}
           onCommit={onCommit}
@@ -248,6 +216,97 @@ export function CampaignScreen({
           />
         </aside>
       </div>
+
+      {state.experiment ? (
+        <GuidedObjective
+          className="campaign-experiment mb-5"
+          eyebrow="NEXT-RUN THEORY"
+          title={state.experiment}
+          description=""
+          compact
+        />
+      ) : null}
+      {equippedDirective ? (
+        <ConsolePanel className={`campaign-directive my-3 border-l-4 border-l-signal py-3.5 ${state.legacyDirective.used ? "opacity-60" : ""}`} label="Legacy Directive">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+            <p className="file-label">LEGACY DIRECTIVE · {equippedDirective.rarity}</p>
+              <h2 className="brb-display m-0 text-xl leading-none font-semibold">{equippedDirective.title}</h2>
+            </div>
+            <p className="m-0 text-xs leading-5 text-muted-foreground">
+              {state.legacyDirective.used
+                ? "Authorization spent for this campaign."
+                : `${equippedDirective.benefit} · ${equippedDirective.warning} · available once`}
+            </p>
+          </div>
+        </ConsolePanel>
+      ) : null}
+      {guidedObjective ? (
+        <GuidedObjective
+          className="campaign-playtest-objective mb-5"
+          eyebrow="ACTIVE PLAYTEST DIRECTIVE"
+          title={guidedObjective.label}
+          titleId="guided-objective-title"
+          description={guidedObjective.strategy}
+        >
+          <ul>{guidedObjective.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
+        </GuidedObjective>
+      ) : null}
+      {onboarding ? (
+        <GuidedObjective
+          className="first-turn-guide mb-2.5"
+          eyebrow={`${onboarding.label} · BRIEF ${state.turn} OF 3`}
+          title={onboarding.title}
+          titleId="first-turn-title"
+          description={onboarding.copy}
+          compact
+          surface="console"
+        />
+      ) : null}
+
+      <div className="state-pressure-rail mt-3 mb-2" aria-label="State pressure">
+        <MetricStrip
+          className="state-pressure-strip"
+          columns={4}
+          label="Pressure meters"
+          stats={pressureStats}
+          tabIndex={0}
+        />
+        <details className="meter-guide mt-1.5 text-[11px] text-muted-foreground">
+          <summary className="inline-block cursor-pointer border-b border-muted-foreground">
+            What do these pressure thresholds mean?
+          </summary>
+          <dl className="mt-2.5 grid gap-px bg-border md:grid-cols-4">
+            {pressureThresholds.map((item) => (
+              <div className="bg-[color:var(--console-600)] p-3" key={item.label}>
+                <dt className="font-bold text-foreground">{item.label}</dt>
+                <dd className="mt-1 mb-0 leading-5">{item.explanation}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      </div>
+
+      <MetricStrip
+        className="metric-strip mb-2"
+        label="Active resources"
+        stats={resourceStats}
+        tabIndex={0}
+      />
+      <details className="meter-guide mb-3 text-[11px] text-muted-foreground">
+        <summary className="inline-block cursor-pointer border-b border-muted-foreground">What do these resources fund?</summary>
+        <dl className="mt-2.5 grid gap-px bg-border md:grid-cols-5">
+          {RESOURCE_KEYS.map((key) => (
+            <div className="bg-[color:var(--console-600)] p-3" key={key}><dt className="font-bold text-foreground">{RESOURCE_LABELS[key]}</dt><dd className="mt-1 mb-0 leading-5">{RESOURCE_GUIDANCE[key]}</dd></div>
+          ))}
+        </dl>
+      </details>
+
+      <CampaignAdvisors
+        state={state}
+        recommendation={recommendation}
+        onConsult={onConsult}
+      />
 
       <section className="lower-grid">
         <OtherCommitmentsPanel
@@ -266,6 +325,7 @@ export function CampaignScreen({
         onContinue={continueToBriefing}
         open={transitionDecisionId === latestDecisionId}
         resolution={state.lastTurnResolution}
+        state={state}
       />
     </main>
   );

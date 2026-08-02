@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { PlaytestRecap } from "../../playtest/types";
+import { Button } from "../ui/button";
 
 type RecapInput = Omit<PlaytestRecap, "recordedAt">;
 
@@ -11,6 +12,8 @@ type Props = {
 };
 
 const RATINGS = [1, 2, 3, 4, 5] as const;
+const fieldClassName = "grid gap-2 text-xs font-bold tracking-[0.04em] uppercase";
+const controlClassName = "w-full rounded-none border border-current bg-transparent p-3 font-sans text-sm leading-5 font-normal normal-case [&>option]:bg-[color:var(--paper-200)] [&>option]:text-dossier-ink";
 
 export function PlaytestRecapForm({ existing, onSave }: Props) {
   const [fairness, setFairness] = useState<RecapInput["fairness"]>(existing?.fairness ?? 3);
@@ -50,9 +53,9 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
     onChange: (value: 1 | 2 | 3 | 4 | 5) => void,
   ) {
     return (
-      <label>
+      <label className={fieldClassName}>
         {label}
-        <select value={value} onChange={(event) => onChange(Number(event.target.value) as 1 | 2 | 3 | 4 | 5)}>
+        <select className={controlClassName} value={value} onChange={(event) => onChange(Number(event.target.value) as 1 | 2 | 3 | 4 | 5)}>
           {RATINGS.map((rating) => <option key={rating} value={rating}>{rating} / 5</option>)}
         </select>
       </label>
@@ -60,28 +63,29 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
   }
 
   return (
-    <section className="playtest-recap" aria-labelledby="playtest-recap-title">
-      <p className="file-label">SOLO PLAYTEST RECAP</p>
-      <h2 id="playtest-recap-title">Record the run before replaying.</h2>
-      <p className="rating-guide">For 1–5 ratings, 1 means poor or unclear and 5 means excellent or completely clear.</p>
-      <form className="playtest-form" onSubmit={submit}>
+    <section className="mt-10 border-2 border-dashed border-[color:#8d806c] bg-[rgba(72,60,43,.05)] p-7 text-dossier-ink" aria-labelledby="playtest-recap-title">
+      <p className="brb-telemetry m-0 text-[10px] tracking-[0.14em] uppercase opacity-65">SOLO PLAYTEST RECAP</p>
+      <h2 className="brb-display my-2 text-[clamp(1.625rem,4vw,2.5rem)] leading-none font-semibold" id="playtest-recap-title">Record the run before replaying.</h2>
+      <p className="col-span-full m-0 border-l-3 border-[color:#77766d] bg-[rgba(87,73,49,.06)] px-3 py-2.5 text-xs leading-5 text-dossier-ink/75">For 1–5 ratings, 1 means poor or unclear and 5 means excellent or completely clear.</p>
+      <form className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2" onSubmit={submit}>
         {ratingField("Fairness", fairness, setFairness)}
         {ratingField("Consequence clarity", consequenceClarity, setConsequenceClarity)}
         {ratingField("Strategy viability", strategyViability, setStrategyViability)}
         {ratingField("Replay interest", replayInterest, setReplayInterest)}
         {ratingField("Directive drawback felt meaningful", directiveDrawbackMeaning, setDirectiveDrawbackMeaning)}
         {ratingField("Ignored-file ordering clarity", ignoredOrderingClarity, setIgnoredOrderingClarity)}
-        <label>
+        <label className={fieldClassName}>
           Pacing
-          <select value={pacing} onChange={(event) => setPacing(event.target.value as RecapInput["pacing"])}>
+          <select className={controlClassName} value={pacing} onChange={(event) => setPacing(event.target.value as RecapInput["pacing"])}>
             <option value="too_short">Too short</option>
             <option value="about_right">About right</option>
             <option value="too_long">Too long</option>
           </select>
         </label>
-        <label>
+        <label className={fieldClassName}>
           Directive use month
           <input
+            className={controlClassName}
             min={1}
             inputMode="numeric"
             type="number"
@@ -90,9 +94,10 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
             placeholder="Leave blank if held"
           />
         </label>
-        <label className="full-field">
+        <label className={`${fieldClassName} sm:col-span-2`}>
           Directive timing
           <textarea
+            className={`${controlClassName} resize-y`}
             required
             rows={3}
             value={directiveTimingReason}
@@ -100,19 +105,19 @@ export function PlaytestRecapForm({ existing, onSave }: Props) {
             placeholder="Why did you spend it then, or why did you hold it?"
           />
         </label>
-        <label>
+        <label className={fieldClassName}>
           Late-game pressure
-          <select value={lateGamePressure} onChange={(event) => setLateGamePressure(event.target.value as RecapInput["lateGamePressure"])}>
+          <select className={controlClassName} value={lateGamePressure} onChange={(event) => setLateGamePressure(event.target.value as RecapInput["lateGamePressure"])}>
             <option value="gradual">Gradual</option>
             <option value="sudden">Sudden</option>
             <option value="unclear">Unclear</option>
           </select>
         </label>
-        <label className="full-field">
+        <label className={`${fieldClassName} sm:col-span-2`}>
           Next experiment
-          <textarea rows={3} value={nextExperiment} onChange={(event) => setNextExperiment(event.target.value)} placeholder="What will you try differently next time?" />
+          <textarea className={`${controlClassName} resize-y`} rows={3} value={nextExperiment} onChange={(event) => setNextExperiment(event.target.value)} placeholder="What will you try differently next time?" />
         </label>
-        <button className="primary-button full-field" type="submit">{existing ? "Update recap" : "Save recap"}</button>
+        <Button className="min-h-11 sm:col-span-2" variant="command" type="submit">{existing ? "Update recap" : "Save recap"}</Button>
       </form>
     </section>
   );

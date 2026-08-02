@@ -14,7 +14,7 @@ import { createEmptyPlaytestJournal } from "../../src/playtest/journal.js";
 describe("guided playtest UI", () => {
   it("keeps an in-game mechanics guide available", () => {
     render(<HowToPlayDialog />);
-    fireEvent.click(screen.getByRole("button", { name: /how to play/i }));
+    fireEvent.click(screen.getByRole("button", { name: /field manual/i }));
     expect(screen.getByRole("dialog")).toHaveTextContent(/consult optionally/i);
     expect(screen.getByRole("dialog")).toHaveTextContent(/deposited resources stay spent/i);
     expect(screen.getByRole("dialog")).toHaveTextContent(/corporation watch/i);
@@ -138,14 +138,17 @@ describe("guided playtest UI", () => {
     const hiddenWorkspace = document.querySelector<HTMLElement>(
       '[aria-label="Situation workspace"]',
     );
+    const controlRoom = document.querySelector<HTMLElement>("[data-brb-room]");
     expect(hiddenWorkspace).not.toBeNull();
     expect(hiddenWorkspace).not.toHaveFocus();
+    expect(controlRoom).toHaveAttribute("data-focus", "assess");
 
     fireEvent.click(screen.getByRole("button", { name: /continue to campaign month 2/i }));
 
     const workspace = screen.getByRole("region", { name: /situation workspace/i });
     expect(workspace).toHaveFocus();
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "auto", block: "start" });
+    expect(controlRoom).toHaveAttribute("data-focus", "commit");
 
     unmount();
     scrollIntoView.mockClear();
@@ -173,6 +176,11 @@ describe("guided playtest UI", () => {
     expect(screen.getByText(/intel \+10.*trust −8.*capacity \+8.*engineering \+5/i)).toBeInTheDocument();
     expect(screen.getAllByText(/situations seen more often/i)).toHaveLength(3);
     expect(screen.getAllByRole("button", { name: /open .* file/i })).toHaveLength(3);
+    expect(
+      document.querySelector(
+        'img[src="/assets/brb/control-room/rooms/intake-office.png"]',
+      ),
+    ).not.toBeNull();
   });
 
   it("equips one unlocked Directive or preserves the no-Directive baseline", () => {

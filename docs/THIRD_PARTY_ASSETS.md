@@ -18,13 +18,18 @@ The font packages are not runtime or development dependencies. Their selected fi
 
 BRB's pixel art comes from **LimeZu** (https://limezu.itch.io): the *Modern Interiors*, *Modern Exteriors*, and *Character Generator* **full-version** packs. Credit to LimeZu (limezu.itch.io) is required by their license.
 
+Player-facing screens expose a **Credits** dialog that lists only the LimeZu packs currently represented by `src/game-art/manifest.ts` (via `src/game-art/credits.ts`). Packs owned but unused by the runtime manifest stay out of the dialog until curated keys map to them.
+
 These packs are **never committed to this repository.** The full-version license permits commercial use but **prohibits redistribution**, and this repo is public. The handling model:
 
 - Purchased source packs live locally under `BRB Assets/` (gitignored); they are the local source of truth and are never committed.
 - Curated, game-ready runtime art lives under `public/assets/brb/` (gitignored) and is **injected at deploy from private storage**, not committed.
-- The existing CSS placeholders in `src/components/brb/control-room/` remain as fallbacks when runtime art is unavailable (fresh clones, CI, deploys without injection).
+- Complete orthographic room bases are composed locally from Modern Interiors room-builder tiles and black-shadow furniture singles (`scripts/room-recipes.ts`); the generated PNGs stay gitignored.
+- When runtime art is unavailable (fresh clones, CI, deploys without injection), `PixelRoom` shows a flat orthographic schematic and `PixelSprite` uses simple shape fallbacks — not perspective CSS furniture.
 
 Only the full-version packs may ship. The free-version LimeZu folders (`Characters_free/`, `Interiors_free/`, `Old/`) are non-commercial-only and must not be used in shipped art.
+
+See [BRB Art Pipeline](BRB_ART_PIPELINE.md) and [BRB Art Inventory](BRB_ART_INVENTORY.md) for the orthographic contract, room recipes, hashes, and screen matrix.
 
 ## Approved but not included
 

@@ -59,6 +59,19 @@ export function deserializeGame(serialized: string): GameState {
     }
   }
 
+  // Additive DecisionRecord.subject: legacy saves omit it; normalize to null.
+  if (Array.isArray(migrated.decisionHistory)) {
+    for (const decision of migrated.decisionHistory) {
+      if (
+        decision
+        && typeof decision === "object"
+        && !("subject" in decision)
+      ) {
+        (decision as Record<string, unknown>).subject = null;
+      }
+    }
+  }
+
   assertGameState(migrated);
   return migrated;
 }

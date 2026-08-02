@@ -79,6 +79,7 @@ function fallbackDecision(state: GameState): DecisionRecord {
     summary: "The campaign ended before a major decision could be recorded.",
     cardId: null,
     choiceId: null,
+    subject: { kind: "activate" },
     echoHints: ["The unopened Situation Deck remains classified."],
     echoTypes: [],
     flagsCreated: [],

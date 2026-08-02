@@ -8,6 +8,7 @@ import type {
   MajorAction,
 } from "../../game/types";
 import { CampaignActionControl } from "./CampaignActionControl";
+import { ConsolePanel } from "./ui";
 
 function postureLabel(strategy: CorporationStrategy): string {
   return strategy.replaceAll("_", " ");
@@ -32,18 +33,22 @@ export function OtherCommitmentsPanel({
   const [chosenTarget, setChosenTarget] = useState<CorporationStrategy | null>(null);
   const counterTarget = chosenTarget ?? forecast ?? CORPORATION_STRATEGIES[0];
   return (
-    <article className="dark-panel actions-panel">
+    <ConsolePanel label="Other commitments">
       <p className="file-label">OTHER COMMITMENTS</p>
-      <p className="panel-explainer">
+      <p className="text-xs leading-5 text-muted-foreground">
         Each control below consumes the month. Costs and known exposure are listed before
         authorization.
       </p>
-      <details className="action-group" open>
-        <summary>Counter and protect the state</summary>
-        <div className="button-grid">
-          <label className="counter-target-field">
+      <details className="mt-3 border-t border-border pt-3" open>
+        <summary className="cursor-pointer font-bold text-foreground">Counter and protect the state</summary>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {/* The prepared posture is concealed, so this control is the bet the
+              player is placing. It keeps the console surface rather than the
+              retired global form styles. */}
+          <label className="col-span-full grid gap-1.5 text-xs font-bold text-foreground">
             Counter which posture?
             <select
+              className="cursor-pointer border border-border bg-console px-2 py-2 font-sans text-xs font-normal text-foreground"
               value={counterTarget}
               onChange={(event) => setChosenTarget(event.target.value as CorporationStrategy)}
             >
@@ -54,7 +59,7 @@ export function OtherCommitmentsPanel({
                 </option>
               ))}
             </select>
-            <span className="counter-target-hint">
+            <span className="text-[11px] leading-5 font-normal text-muted-foreground">
               {forecast
                 ? "Succeeds only if the forecast is right. A wrong guess wastes the operation and raises Threat."
                 : "Posture unknown—consult an advisor first, or guess. A wrong guess wastes the operation and raises Threat."}
@@ -86,9 +91,9 @@ export function OtherCommitmentsPanel({
           />
         </div>
       </details>
-      <details className="action-group">
-        <summary>Manage advisor relationships</summary>
-        <div className="button-grid">
+      <details className="mt-3 border-t border-border pt-3">
+        <summary className="cursor-pointer font-bold text-foreground">Manage advisor relationships</summary>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {ADVISOR_IDS.map((advisorId) => (
             <CampaignActionControl
               key={advisorId}
@@ -102,9 +107,9 @@ export function OtherCommitmentsPanel({
           ))}
         </div>
       </details>
-      <details className="action-group">
-        <summary>Recover a resource reserve</summary>
-        <div className="button-grid">
+      <details className="mt-3 border-t border-border pt-3">
+        <summary className="cursor-pointer font-bold text-foreground">Recover a resource reserve</summary>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {RESOURCE_KEYS.map((resource) => (
             <CampaignActionControl
               key={resource}
@@ -118,6 +123,6 @@ export function OtherCommitmentsPanel({
           ))}
         </div>
       </details>
-    </article>
+    </ConsolePanel>
   );
 }
