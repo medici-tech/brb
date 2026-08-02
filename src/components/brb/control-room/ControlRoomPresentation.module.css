@@ -28,9 +28,24 @@
   border-color: rgba(206, 142, 52, 0.72);
 }
 
+/* Courier crossing.
+ *
+ * The travel and the walk cycle have to share one cadence, or the legs and the
+ * body move on unrelated clocks. Previously this was `steps(17)` over 4.8s: one
+ * 16px hop — a whole body width — every 282ms, while the 6-frame strip cycled at
+ * 8fps. The courier teleported between tiles with its legs moving independently.
+ *
+ * Locked instead to exactly one position step per SHEET frame:
+ *   travel        272px (17 tiles, corridorLeft → corridorRight)
+ *   step          4px
+ *   steps         272 / 4      = 68
+ *   sheet rate    10fps        (manifest: staffCrossingWalk*)
+ *   duration      68 / 10      = 6.8s
+ * which walks 24px — one and a half tiles — per six-frame stride. Changing the
+ * corridor length or the sheet fps means redoing this arithmetic. */
 .presentation :global([data-room-actor="courier"]) {
-  animation-duration: 4.8s;
-  animation-timing-function: steps(17, end);
+  animation-duration: 6.8s;
+  animation-timing-function: steps(68, end);
   animation-iteration-count: 1;
   animation-fill-mode: both;
 }
