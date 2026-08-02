@@ -92,7 +92,7 @@ replaces the Phase 3 external onboarding gate.
 
 ## Phase 3: Human playtest build
 
-Validate and polish the existing first-three-month onboarding and How to Play guide, improve the responsive interface and consequence feedback, and add basic portraits, audio, activation presentation, and a feedback link.
+Validate and polish the existing first-three-month onboarding and Field Manual, improve the responsive interface and consequence feedback, and add basic portraits, audio, activation presentation, and a feedback link.
 
 **Goal:** A new player can understand and finish a run without assistance.
 

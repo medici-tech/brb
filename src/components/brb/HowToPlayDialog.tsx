@@ -13,7 +13,7 @@ export function HowToPlayDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className="text-button" type="button">How to Play</button>
+        <button className="text-button" type="button">Field Manual</button>
       </DialogTrigger>
       <DialogContent className="brb-design-system brb-console-grid max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto rounded-sm border-border bg-console text-foreground shadow-[8px_8px_0_rgba(0,0,0,0.45)]">
         <DialogHeader>

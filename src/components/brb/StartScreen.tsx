@@ -61,7 +61,7 @@ export function StartScreen({
         <div className="header-actions">
           <HowToPlayDialog />
           <CreditsDialog />
-          {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Internal Playtest</button> : null}
+          {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Playtest Journal</button> : null}
           <button className="text-button" type="button" onClick={onOpenArchive}>Intelligence Archive</button>
         </div>
       </header>
@@ -106,7 +106,7 @@ export function StartScreen({
             <Button className="mt-7" variant="authorize" onClick={onResume}>
               Resume file · {formatCampaignTime(savedRun.turn)}
             </Button>
-            <p className="mt-3 mb-0 max-w-xl text-[13px] text-dossier-ink/70">Resume or clear the active file from Internal Playtest before starting another run.</p>
+            <p className="mt-3 mb-0 max-w-xl text-[13px] text-dossier-ink/70">Resume or clear the active file from the Playtest Journal before starting another run.</p>
           </>
         ) : null}
         </Hero>

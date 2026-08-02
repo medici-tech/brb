@@ -76,7 +76,7 @@ export function DeclassifiedReportView({
           <HowToPlayDialog />
           <CreditsDialog />
           {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
-          {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Internal Playtest</button> : null}
+          {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Playtest Journal</button> : null}
           <button className="text-button" type="button" onClick={onArchive}>Intelligence Archive</button>
         </div>
       </header>
