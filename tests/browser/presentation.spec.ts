@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   createActiveRunFixture,
+  createIgnoredSituationFixture,
   installActiveRun,
   openReportFromReadyRun,
   openResourceRecovery,
@@ -64,7 +65,7 @@ test("every screen renders only the three approved faces", async ({ page }) => {
   await page.goto("/");
   expect(await collectOffBrandFaces(page)).toEqual([]);
 
-  await page.getByRole("button", { name: "How to Play" }).click();
+  await page.getByRole("button", { name: "Field Manual" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   expect(await collectOffBrandFaces(page)).toEqual([]);
   await page.keyboard.press("Escape");
@@ -92,7 +93,7 @@ test("report and Archive render only the three approved faces", async ({ page })
 
 test("internal playtest tools render only the three approved faces", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Internal Playtest" }).click();
+  await page.getByRole("button", { name: "Playtest Journal" }).click();
   await expect(
     page.getByRole("heading", { name: "Play consistently. Record the moments that matter." }),
   ).toBeVisible();
@@ -138,8 +139,10 @@ test("the complete facility remains contained across the scale breakpoint", asyn
     await page.setViewportSize({ width, height: 900 });
     const stage = page.locator("[data-room-stage]");
     const room = stage.locator("[data-pixel-room]");
+    const canvas = room.locator(":scope > div");
     await expect(room).toBeVisible();
     await expectFullyContained(room, stage);
+    await expectFullyContained(canvas, room);
 
     const layout = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
@@ -148,7 +151,147 @@ test("the complete facility remains contained across the scale breakpoint", asyn
     expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 
     const bounds = await room.boundingBox();
+    const canvasBounds = await canvas.boundingBox();
     expect(bounds?.width).toBe(width > 1180 ? 704 : 352);
     expect(bounds?.height).toBe(width > 1180 ? 448 : 224);
+    expect(canvasBounds?.width).toBe(bounds?.width);
+    expect(canvasBounds?.height).toBe(bounds?.height);
   }
+});
+
+test("Situation responses compare side by side only when the dossier is wide enough", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-desktop",
+    "One desktop browser covers the dossier container breakpoint",
+  );
+  await installActiveRun(page, createIgnoredSituationFixture());
+  await resumeInstalledRun(page);
+
+  const choices = page.getByRole("group", { name: "Situation responses" });
+
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await expect(choices).toBeVisible();
+  expect(
+    await choices.evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean).length
+    ),
+  ).toBe(2);
+
+  const wideChoiceWidths = await choices
+    .getByRole("button")
+    .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().width));
+  expect(wideChoiceWidths.every((width) => width >= 250)).toBe(true);
+
+  await page.setViewportSize({ width: 1320, height: 900 });
+  expect(
+    await choices.evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean).length
+    ),
+  ).toBe(1);
+});
+
+test("the narrow campaign leads with the complete room and contains every pressure meter", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "chromium-narrow",
+    "The 390px project covers the phone hierarchy and meter contract",
+  );
+  await installActiveRun(page, createIgnoredSituationFixture());
+  await resumeInstalledRun(page);
+
+  const masthead = page.locator(".masthead");
+  const workspace = page.getByRole("region", { name: "Situation workspace" });
+  const stage = workspace.locator("[data-room-stage]");
+  const room = stage.locator("[data-pixel-room]");
+  const dossierHeading = workspace.getByRole("heading", {
+    name: "The Missing Appropriation",
+  });
+  const onboarding = page.locator(".first-turn-guide");
+  const pressureStrip = page.getByRole("region", { name: "Pressure meters" });
+  const consultation = page.locator(".campaign-consultation");
+
+  await expect(stage.locator("[data-mobile-room-readout]")).toContainText(
+    /live/i,
+  );
+  await expectFullyContained(room, stage);
+
+  const [mastheadBounds, stageBounds, dossierBounds] = await Promise.all([
+    masthead.boundingBox(),
+    stage.boundingBox(),
+    dossierHeading.boundingBox(),
+  ]);
+  expect(mastheadBounds).not.toBeNull();
+  expect(stageBounds).not.toBeNull();
+  expect(dossierBounds).not.toBeNull();
+  if (mastheadBounds && stageBounds && dossierBounds) {
+    expect(stageBounds.y).toBeGreaterThanOrEqual(
+      mastheadBounds.y + mastheadBounds.height,
+    );
+    expect(stageBounds.width).toBe(352);
+    expect(stageBounds.height).toBe(224);
+    expect(stageBounds.y + stageBounds.height).toBeLessThan(dossierBounds.y);
+  }
+
+  const [workspaceBounds, onboardingBounds, pressureBounds, consultationBounds] =
+    await Promise.all([
+      workspace.boundingBox(),
+      onboarding.boundingBox(),
+      pressureStrip.boundingBox(),
+      consultation.boundingBox(),
+    ]);
+  expect(workspaceBounds).not.toBeNull();
+  expect(onboardingBounds).not.toBeNull();
+  expect(pressureBounds).not.toBeNull();
+  expect(consultationBounds).not.toBeNull();
+  if (
+    workspaceBounds
+    && onboardingBounds
+    && pressureBounds
+    && consultationBounds
+  ) {
+    expect(workspaceBounds.y + workspaceBounds.height).toBeLessThanOrEqual(
+      onboardingBounds.y,
+    );
+    expect(onboardingBounds.y + onboardingBounds.height).toBeLessThanOrEqual(
+      pressureBounds.y,
+    );
+    expect(pressureBounds.y + pressureBounds.height).toBeLessThanOrEqual(
+      consultationBounds.y,
+    );
+  }
+
+  const pressureLayout = await pressureStrip.evaluate((element) => ({
+    columns: getComputedStyle(element).gridTemplateColumns
+      .split(" ")
+      .filter(Boolean).length,
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(pressureLayout.columns).toBe(2);
+  expect(pressureLayout.scrollWidth).toBeLessThanOrEqual(
+    pressureLayout.clientWidth,
+  );
+
+  const pressureMeters = pressureStrip.locator(":scope > div");
+  await expect(pressureMeters).toHaveCount(4);
+  for (let index = 0; index < 4; index += 1) {
+    await expectFullyContained(pressureMeters.nth(index), pressureStrip);
+  }
+  for (const label of [
+    "Stress",
+    "Panic",
+    "Institutions",
+    "Corporation Progress",
+  ]) {
+    await expect(pressureStrip.getByText(label, { exact: true })).toBeVisible();
+  }
+
+  const pageWidth = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.clientWidth);
 });

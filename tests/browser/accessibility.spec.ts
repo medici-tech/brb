@@ -28,7 +28,7 @@ test("Start screen supports keyboard navigation and passes an accessibility scan
 
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus")).toBeVisible();
-  await page.getByRole("button", { name: "How to Play" }).focus();
+  await page.getByRole("button", { name: "Field Manual" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog").getByRole("heading", { name: "Build the BRB without losing the state." })).toBeVisible();
   await page.keyboard.press("Escape");
