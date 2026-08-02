@@ -75,7 +75,9 @@ describe("Living Control Room UI", () => {
         "/assets/brb/control-room/staff/steward-idle.png",
       ]),
     );
-    expect(screen.queryByText(/routine channels remain open/i)).toBeNull();
+    expect(
+      within(workspace).getByText(/routine channels remain open/i),
+    ).toBeInTheDocument();
     expect(state).toEqual(before);
   });
 
@@ -232,7 +234,7 @@ describe("Living Control Room UI", () => {
     expect(controlRoom).toHaveAttribute("data-focus", "commit");
 
     act(() => {
-      vi.advanceTimersByTime(350);
+      vi.advanceTimersByTime(900);
     });
 
     expect(controlRoom).toHaveAttribute("data-focus", "assess");
@@ -276,7 +278,7 @@ describe("Living Control Room UI", () => {
     );
   });
 
-  it("does not run the decorative Commit shift in reduced-motion mode", () => {
+  it("keeps a static Commit acknowledgement in reduced-motion mode", () => {
     vi.useFakeTimers();
     const { rerender } = render(
       <ControlRoomPresentation
@@ -298,6 +300,12 @@ describe("Living Control Room UI", () => {
 
     const controlRoom = screen.getByLabelText(/living control room/i);
     expect(controlRoom).toHaveAttribute("data-motion", "reduced");
+    expect(controlRoom).toHaveAttribute("data-focus", "commit");
+
+    act(() => {
+      vi.advanceTimersByTime(900);
+    });
+
     expect(controlRoom).toHaveAttribute("data-focus", "assess");
   });
 
@@ -396,6 +404,38 @@ describe("Living Control Room UI", () => {
     expect(scenario.model).toEqual(before);
   });
 
+  it("shows a transient Corporation channel without promoting persistent presence", () => {
+    const model = {
+      ...calmModel,
+      state: "corporate-encroachment",
+      stateLabel: "Corporate Encroachment",
+      persistentRoomMarks: {
+        emergencyLevel: "routine",
+        institutionalCondition: "secure",
+        corporationPresence: "distant",
+        brbConstruction: "sealed",
+        departedAdvisors: [],
+        completedRouteCount: 0,
+      },
+    } satisfies PresentationModel;
+    const { container } = render(
+      <ControlRoomPresentation
+        model={model}
+        turn={3}
+        hasActiveSituation
+        reducedMotionOverride
+      />,
+    );
+
+    expect(
+      container.querySelector('[data-room-object="corporation-channel"]'),
+    ).not.toBeNull();
+    expect(screen.getByLabelText(/living control room/i)).toHaveAttribute(
+      "data-corporation-presence",
+      "distant",
+    );
+  });
+
   it.each<BrbVisualStage>([
     "sealed",
     "infrastructure",
@@ -421,17 +461,23 @@ describe("Living Control Room UI", () => {
       "data-brb-stage",
       stage,
     );
-    expect(
-      container.querySelectorAll('[data-room-object="brb-machinery"]'),
-    ).toHaveLength(
+    const machinery = container.querySelectorAll(
+      '[data-room-object="brb-machinery"]',
+    );
+    expect(machinery).toHaveLength(
       stage === "sealed"
         ? 0
         : stage === "infrastructure"
           ? 1
           : stage === "construction"
             ? 2
-            : 3,
+            : stage === "unstable"
+              ? 3
+              : 2,
     );
+    expect(
+      container.querySelectorAll('[data-room-object="brb-activation"]'),
+    ).toHaveLength(stage === "activation-ready" ? 1 : 0);
     expect(model).toEqual(before);
   });
 });

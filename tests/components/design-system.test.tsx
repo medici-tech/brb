@@ -42,9 +42,11 @@ describe("BRB design system", () => {
     );
 
     const available = screen.getByRole("button", { name: /preserve authority/i });
+    const unavailable = screen.getByRole("button", { name: /unavailable route/i });
     expect(available).toHaveAttribute("aria-pressed", "true");
+    expect(unavailable).not.toHaveAttribute("aria-pressed");
     fireEvent.click(available);
-    fireEvent.click(screen.getByRole("button", { name: /unavailable route/i }));
+    fireEvent.click(unavailable);
     expect(select).toHaveBeenCalledOnce();
     expect(blocked).not.toHaveBeenCalled();
   });

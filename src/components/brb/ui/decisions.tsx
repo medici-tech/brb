@@ -47,7 +47,7 @@ export const DecisionOption = forwardRef<HTMLButtonElement, DecisionOptionProps>
   title,
   description,
   metadata,
-  selected = false,
+  selected,
   disabled = false,
   onSelect,
   surface = "paper",
@@ -83,7 +83,7 @@ export const DecisionOption = forwardRef<HTMLButtonElement, DecisionOptionProps>
         {metadata ? (
           <span className={cn(
             "brb-telemetry mt-2 block text-[9px] tracking-[0.08em] uppercase",
-            surface === "console" ? "text-muted-foreground" : "opacity-55",
+            surface === "console" ? "text-muted-foreground" : "text-dossier-ink/70",
           )}>
             {metadata}
           </span>
@@ -107,6 +107,7 @@ type ActionControlProps = {
   recommendation?: string | undefined;
   disabled?: boolean;
   compact?: boolean;
+  condensedMetadata?: boolean;
   surface?: "paper" | "console";
 } & Omit<
   ComponentProps<"button">,
@@ -131,6 +132,7 @@ export const ActionControl = forwardRef<HTMLButtonElement, ActionControlProps>(
   recommendation,
   disabled = false,
   compact = false,
+  condensedMetadata = false,
   surface = "console",
   ...buttonProps
   }, ref) {
@@ -149,35 +151,52 @@ export const ActionControl = forwardRef<HTMLButtonElement, ActionControlProps>(
       {...buttonProps}
       description={result}
       metadata={(
-        <span className="grid gap-2">
-          <span className="grid gap-1 border-t border-current/20 pt-2">
-            <span className="text-[8px] tracking-[0.14em] uppercase">Commitment cost</span>
-            <strong className="font-sans text-[11px] leading-4 font-semibold normal-case tracking-normal">
+        <span className={cn("grid", condensedMetadata ? "gap-1.5" : "gap-2")}>
+          <span className={cn(
+            "border-t border-current/20 pt-2",
+            condensedMetadata
+              ? "flex flex-wrap items-baseline gap-x-2 gap-y-0.5"
+              : "grid gap-1",
+          )}>
+            <span className="shrink-0 text-[9px] tracking-[0.14em] uppercase">
+              Commitment cost
+            </span>
+            <strong className="min-w-0 flex-1 font-sans text-xs leading-5 font-semibold normal-case tracking-normal">
               {cost}
             </strong>
           </span>
           {knownChanges && knownChanges.length > 0 ? (
-            <span className="font-sans text-[10px] leading-4 font-semibold normal-case tracking-normal">
+            <span className="font-sans text-xs leading-5 font-semibold normal-case tracking-normal">
               Exact immediate changes: {knownChanges.join(" · ")}
             </span>
           ) : null}
           {risk ? (
-            <span className="font-sans text-[10px] leading-4 font-medium text-[color:var(--destructive-soft)] normal-case tracking-normal">
+            <span className={cn(
+              "font-sans text-xs leading-5 font-medium normal-case tracking-normal",
+              surface === "paper"
+                ? "text-[color:var(--paper-danger)]"
+                : "text-[color:var(--destructive-soft)]",
+            )}>
               Risk: {risk}
             </span>
           ) : null}
           {delayedConsequence ? (
-            <span className="border-t border-dashed border-current/30 pt-2 font-sans text-[10px] leading-4 normal-case tracking-normal opacity-70">
+            <span className="border-t border-dashed border-current/30 pt-2 font-sans text-xs leading-5 normal-case tracking-normal opacity-75">
               {delayedConsequence}
             </span>
           ) : null}
           {disabledReason ? (
-            <span className="font-sans text-[10px] leading-4 font-semibold text-[color:var(--destructive-soft)] normal-case tracking-normal">
+            <span className={cn(
+              "font-sans text-xs leading-5 font-semibold normal-case tracking-normal",
+              surface === "paper"
+                ? "text-[color:var(--paper-danger)]"
+                : "text-[color:var(--destructive-soft)]",
+            )}>
               {disabledReason}
             </span>
           ) : null}
           {recommendation ? (
-            <span className="justify-self-start bg-signal/15 px-2 py-1 text-[8px] tracking-[0.12em] text-signal uppercase">
+            <span className="justify-self-start bg-signal/15 px-2 py-1 text-[9px] tracking-[0.12em] text-signal uppercase">
               {recommendation}
             </span>
           ) : null}

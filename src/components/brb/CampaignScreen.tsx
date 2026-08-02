@@ -88,6 +88,7 @@ export function CampaignScreen({
   const previousDecisionIdRef = useRef(latestDecisionId);
   const shouldFocusWorkspaceRef = useRef(false);
   const [transitionDecisionId, setTransitionDecisionId] = useState<string | null>(null);
+  const [reviewedDecisionId, setReviewedDecisionId] = useState<string | null>(null);
   const canActivate = valid.some((action) => action.type === "activate_brb");
   const recommendation = state.consultation
     ? getAdvisorRecommendation(
@@ -167,6 +168,7 @@ export function CampaignScreen({
 
   function continueToBriefing(): void {
     shouldFocusWorkspaceRef.current = true;
+    setReviewedDecisionId(latestDecisionId ?? null);
     setTransitionDecisionId(null);
   }
 
@@ -183,14 +185,14 @@ export function CampaignScreen({
           {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
           {onOpenPlaytest ? (
             <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>
-              Internal Playtest
+              Playtest Journal
             </button>
           ) : null}
           <button className="text-button" type="button" onClick={onOpenArchive}>Archive</button>
         </div>
       </header>
 
-      {error ? <p role="alert" className="bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
+      {error ? <p role="alert" className="campaign-error bg-[#7b2722] px-3.5 py-2.5 text-[#ffe6e3]">{error}</p> : null}
 
       <div className={`campaign-grid ${card ? "has-active-card" : "no-active-card"}`}>
         <CampaignSituationWorkspace
@@ -198,6 +200,7 @@ export function CampaignScreen({
           card={card}
           recommendation={recommendation}
           model={controlRoomModel}
+          commitSignalKey={reviewedDecisionId}
           resolvedEchoTypes={resolvedEchoTypes}
           workspaceRef={situationWorkspaceRef}
           onCommit={onCommit}
@@ -216,7 +219,7 @@ export function CampaignScreen({
 
       {state.experiment ? (
         <GuidedObjective
-          className="mb-5"
+          className="campaign-experiment mb-5"
           eyebrow="NEXT-RUN THEORY"
           title={state.experiment}
           description=""
@@ -224,7 +227,7 @@ export function CampaignScreen({
         />
       ) : null}
       {equippedDirective ? (
-        <ConsolePanel className={`my-3 border-l-4 border-l-signal py-3.5 ${state.legacyDirective.used ? "opacity-60" : ""}`} label="Legacy Directive">
+        <ConsolePanel className={`campaign-directive my-3 border-l-4 border-l-signal py-3.5 ${state.legacyDirective.used ? "opacity-60" : ""}`} label="Legacy Directive">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
             <p className="file-label">LEGACY DIRECTIVE · {equippedDirective.rarity}</p>
@@ -240,7 +243,7 @@ export function CampaignScreen({
       ) : null}
       {guidedObjective ? (
         <GuidedObjective
-          className="mb-5"
+          className="campaign-playtest-objective mb-5"
           eyebrow="ACTIVE PLAYTEST DIRECTIVE"
           title={guidedObjective.label}
           titleId="guided-objective-title"
@@ -257,6 +260,7 @@ export function CampaignScreen({
           titleId="first-turn-title"
           description={onboarding.copy}
           compact
+          surface="console"
         />
       ) : null}
 

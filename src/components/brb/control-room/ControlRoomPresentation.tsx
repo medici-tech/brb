@@ -21,6 +21,13 @@ type ControlRoomPresentationProps = {
   model: PresentationModel;
   turn: number;
   hasActiveSituation: boolean;
+  /**
+   * A reviewed decision ID. Campaign play supplies this only after the
+   * aftermath record closes, so the room response is visible instead of
+   * flashing behind the modal. Preview and ending surfaces may omit it and
+   * retain the turn-based fallback.
+   */
+  commitSignalKey?: string | null;
   reducedMotionOverride?: boolean;
   focusOverride?: PresentationFocus;
 };
@@ -60,15 +67,25 @@ function resolveLighting(model: PresentationModel): RoomLighting {
 function brbLayers(stage: BrbVisualStage): RoomLayer[] {
   if (stage === "sealed") return [];
 
-  const layers: RoomLayer[] = [
-    {
+  const layers: RoomLayer[] = [];
+
+  if (stage === "activation-ready") {
+    layers.push({
+      id: "brb-activation-bank",
+      kind: "brb-activation",
+      artKey: "monitorScreens",
+      position: AT.serverBank,
+      frameOffset: 5,
+    });
+  } else {
+    layers.push({
       id: "brb-infrastructure",
       kind: "brb-machinery",
       artKey: "envInfrastructureToolbox",
       position: AT.brbMachine,
       frameOffset: stage === "infrastructure" ? 0 : 7,
-    },
-  ];
+    });
+  }
 
   if (stage !== "infrastructure") {
     layers.push({
@@ -85,15 +102,6 @@ function brbLayers(stage: BrbVisualStage): RoomLayer[] {
       artKey: "monitorServer",
       position: AT.brbServerB,
       frameOffset: stage === "unstable" ? 2 : 1,
-    });
-  }
-  if (stage === "activation-ready") {
-    layers.push({
-      id: "brb-activation-bank",
-      kind: "brb-activation",
-      artKey: "monitorScreens",
-      position: AT.serverBank,
-      frameOffset: 5,
     });
   }
 
@@ -136,8 +144,7 @@ function clutterLayers(paperLoad: PaperLoad): RoomLayer[] {
 function persistentLayers(model: PresentationModel): RoomLayer[] {
   const marks = model.persistentRoomMarks;
   const corporationPresence =
-    marks?.corporationPresence
-    ?? (model.state === "corporate-encroachment" ? "visible" : "distant");
+    marks?.corporationPresence ?? "distant";
   const institutionalCondition =
     marks?.institutionalCondition
     ?? (model.state === "institutional-failure" ? "breached" : "secure");
@@ -183,6 +190,31 @@ function persistentLayers(model: PresentationModel): RoomLayer[] {
   return layers;
 }
 
+function transientLayers(model: PresentationModel): RoomLayer[] {
+  const corporationPresence =
+    model.persistentRoomMarks?.corporationPresence ?? "distant";
+
+  // A Corporation Situation should visibly seize a channel even before it has
+  // earned a persistent foothold. This is a transient presentation cue only;
+  // it deliberately does not promote the saved room mark or add an officer.
+  if (
+    model.state === "corporate-encroachment"
+    && corporationPresence === "distant"
+  ) {
+    return [
+      {
+        id: "corporation-channel",
+        kind: "corporation-channel",
+        artKey: "monitorServer",
+        position: AT.corporationTerminal,
+        frameOffset: 2,
+      },
+    ];
+  }
+
+  return [];
+}
+
 function roomActors(model: PresentationModel): RoomActor[] {
   const departed = new Set(model.persistentRoomMarks?.departedAdvisors ?? []);
   const actors: RoomActor[] = [];
@@ -212,8 +244,7 @@ function roomActors(model: PresentationModel): RoomActor[] {
   }
 
   const corporationPresence =
-    model.persistentRoomMarks?.corporationPresence
-    ?? (model.state === "corporate-encroachment" ? "visible" : "distant");
+    model.persistentRoomMarks?.corporationPresence ?? "distant";
   if (corporationPresence !== "distant") {
     actors.push({
       id: "corporation-officer",
@@ -243,25 +274,39 @@ export function ControlRoomPresentation({
   model,
   turn,
   hasActiveSituation,
+  commitSignalKey,
   reducedMotionOverride,
   focusOverride,
 }: ControlRoomPresentationProps) {
   const reducedMotion = useReducedMotion(reducedMotionOverride);
+  const signalValue =
+    commitSignalKey === undefined ? `turn:${turn}` : commitSignalKey;
+  const previousSignal = useRef<string | null>(signalValue);
   const previousTurn = useRef(turn);
   const [showCommitFocus, setShowCommitFocus] = useState(false);
 
   useEffect(() => {
-    if (reducedMotion || turn <= previousTurn.current) {
+    if (commitSignalKey === undefined && turn <= previousTurn.current) {
       previousTurn.current = turn;
+      previousSignal.current = signalValue;
+      setShowCommitFocus(false);
+      return;
+    }
+    previousTurn.current = turn;
+
+    if (signalValue === null || signalValue === previousSignal.current) {
+      previousSignal.current = signalValue;
       setShowCommitFocus(false);
       return;
     }
 
-    previousTurn.current = turn;
+    previousSignal.current = signalValue;
     setShowCommitFocus(true);
-    const resetFocus = window.setTimeout(() => setShowCommitFocus(false), 350);
+    // Reduced motion keeps the same brief, static acknowledgement; CSS removes
+    // its flash while preserving the change in border/status treatment.
+    const resetFocus = window.setTimeout(() => setShowCommitFocus(false), 900);
     return () => window.clearTimeout(resetFocus);
-  }, [reducedMotion, turn]);
+  }, [commitSignalKey, signalValue, turn]);
 
   const focus = focusOverride
     ?? (showCommitFocus ? "commit" : model.focus);
@@ -284,18 +329,19 @@ export function ControlRoomPresentation({
     ...brbLayers(model.brbStage),
     ...clutterLayers(model.paperLoad),
     ...persistentLayers(model),
+    ...transientLayers(model),
   ] satisfies RoomLayer[];
   const actors = roomActors(model);
   const occupiedStations = actors.filter((actor) =>
     ["analyst", "fixer", "steward"].includes(actor.id)).length;
   const corporationPresence =
-    model.persistentRoomMarks?.corporationPresence
-    ?? (model.state === "corporate-encroachment" ? "visible" : "distant");
+    model.persistentRoomMarks?.corporationPresence ?? "distant";
   const institutionalCondition =
     model.persistentRoomMarks?.institutionalCondition ?? "secure";
   const roomAriaLabel =
     `Fixed continuity facility: ${model.stateLabel}; `
-    + `${occupiedStations} public staff stations occupied; BRB stage ${model.brbStage}; `
+    + `${occupiedStations} public staff stations occupied; `
+    + `BRB readiness ${Math.round(model.brbProgress)} percent, stage ${model.brbStage}; `
     + `Corporation presence ${corporationPresence}; structure ${institutionalCondition}.`;
   const ariaLabel = `Living control room: ${model.stateLabel}`;
 

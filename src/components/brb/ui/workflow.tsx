@@ -99,6 +99,7 @@ type GuidedObjectiveProps = {
   description: ReactNode;
   children?: ReactNode;
   compact?: boolean;
+  surface?: "paper" | "console";
   className?: string;
 };
 
@@ -109,12 +110,16 @@ export function GuidedObjective({
   description,
   children,
   compact = false,
+  surface = "paper",
   className,
 }: GuidedObjectiveProps) {
   return (
     <aside
       className={cn(
-        "grid gap-5 border-l-4 border-destructive bg-[color:var(--paper-300)] text-dossier-ink",
+        "grid gap-5 border-l-4",
+        surface === "paper"
+          ? "border-destructive bg-[color:var(--paper-300)] text-dossier-ink"
+          : "brb-console-grid border border-l-4 border-border border-l-instrument bg-[color:var(--console-600)] text-foreground shadow-[var(--shadow-hard-sm)]",
         compact
           ? "grid-cols-1 items-center px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)]"
           : "grid-cols-1 border-2 border-l-[5px] p-5 md:grid-cols-[.8fr_1.2fr]",
@@ -122,11 +127,20 @@ export function GuidedObjective({
       )}
     >
       <div>
-        <p className="brb-telemetry m-0 text-[10px] tracking-[0.14em] text-dossier-ink/80 uppercase">{eyebrow}</p>
+        <p className={cn(
+          "brb-telemetry m-0 text-[10px] tracking-[0.14em] uppercase",
+          surface === "paper" ? "text-dossier-ink/80" : "text-signal",
+        )}>{eyebrow}</p>
         <h2 id={titleId} className="brb-display my-1.5 text-2xl leading-none font-semibold">{title}</h2>
-        <div className="text-xs leading-5 text-dossier-ink/75">{description}</div>
+        <div className={cn(
+          "text-xs leading-5",
+          surface === "paper" ? "text-dossier-ink/75" : "text-muted-foreground",
+        )}>{description}</div>
       </div>
-      {children ? <div className="text-xs leading-5 text-dossier-ink/80">{children}</div> : null}
+      {children ? <div className={cn(
+        "text-xs leading-5",
+        surface === "paper" ? "text-dossier-ink/80" : "text-muted-foreground",
+      )}>{children}</div> : null}
     </aside>
   );
 }

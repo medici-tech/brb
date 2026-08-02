@@ -58,6 +58,7 @@
   --paper-400: #cfc09d; /* aged dossier */
   --paper-line: #a99d88;
   --paper-ink: #201f19;
+  --paper-danger: #8a2622; /* 4.9:1 warning ink on aged dossier */
 
   --console-900: #10120f; /* workspace void */
   --console-800: #151716; /* page ground */
@@ -231,14 +232,65 @@ button { font: inherit; }
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.shell { width: min(1440px, 100%); margin: 0 auto; padding: 28px clamp(18px, 4vw, 64px) 72px; }
-.masthead { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #444540; margin-bottom: 32px; }
+.shell { width: min(1440px, 100%); margin: 0 auto; padding: 24px clamp(18px, 4vw, 64px) 72px; }
+.masthead {
+  position: relative;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--console-line);
+}
+.masthead::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: min(180px, 28vw);
+  height: 2px;
+  background: linear-gradient(90deg, var(--signal), transparent);
+}
+.masthead > div:first-child {
+  padding-left: 12px;
+  border-left: 3px solid var(--signal);
+}
+.masthead > div:first-child > strong {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-brb-display), "Barlow Condensed", sans-serif;
+  font-size: clamp(20px, 2vw, 25px);
+  line-height: 1;
+  letter-spacing: .01em;
+}
 .eyebrow, .file-label {
   margin: 0; font-family: var(--font-brb-mono), ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
 }
 .eyebrow { color: #a8a79e; }
-.text-button { color: var(--cream); background: none; border: 0; border-bottom: 1px solid #77766d; padding: 7px 0; cursor: pointer; }
-.internal-tool-button { color: #d5ad72; border-color: #8f7046; }
+.text-button {
+  min-height: 44px;
+  color: color-mix(in oklab, var(--cream) 84%, transparent);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--cream) 38%, transparent);
+  padding: 10px 2px 8px;
+  cursor: pointer;
+  font-family: var(--font-brb-mono), monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: color var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+.text-button:hover {
+  color: var(--cream);
+  border-color: var(--signal);
+}
+.internal-tool-button {
+  color: var(--muted-foreground);
+  border-color: color-mix(in oklab, var(--muted-foreground) 42%, transparent);
+}
 .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 18px; flex-wrap: wrap; }
 .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 8px; background: #444640; border: 1px solid #444640; }
 .guide-grid section { padding: 18px; background: #202320; }
@@ -331,6 +383,42 @@ button { font: inherit; }
 
 .campaign-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
 .lower-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; margin-top: 18px; }
+.state-pressure-strip,
+.campaign-shell > .metric-strip {
+  border-color: color-mix(in oklab, var(--console-line) 72%, black);
+  background: color-mix(in oklab, var(--console-line) 72%, black);
+  box-shadow:
+    inset 3px 0 0 color-mix(in oklab, var(--instrument) 70%, transparent),
+    var(--shadow-hard-sm);
+}
+.state-pressure-strip > div,
+.campaign-shell > .metric-strip > div {
+  min-height: 92px;
+  background:
+    linear-gradient(180deg, rgba(166, 180, 133, 0.035), transparent 62%),
+    color-mix(in oklab, var(--console-600) 94%, black);
+}
+.state-pressure-strip > div::after,
+.campaign-shell > .metric-strip > div::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  width: 16px;
+  height: 2px;
+  background: color-mix(in oklab, var(--instrument) 58%, transparent);
+}
+.state-pressure-strip > div.bg-destructive\/10::after {
+  background: var(--destructive-soft);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--destructive) 70%, transparent);
+}
+.meter-guide > summary {
+  min-height: 36px;
+  padding-block: 9px 6px;
+  font-family: var(--font-brb-mono), monospace;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
 .confirmation-summary { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1px; margin-top: 4px; color: var(--cream); background: #444640; border: 1px solid #444640; }
 .confirmation-summary section { padding: 12px; background: #202320; }
 .confirmation-summary strong { color: #d7cdbb; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
@@ -390,19 +478,41 @@ button { font: inherit; }
   .shell { padding-inline: 14px; }
   .campaign-shell { display: flex; flex-direction: column; }
   .campaign-shell > .masthead { order: 0; }
-  .campaign-shell > .first-turn-guide { order: 1; }
-  .campaign-shell > .state-pressure-strip { order: 2; }
-  .campaign-shell > .state-pressure-rail { order: 2; }
-  .campaign-shell > .campaign-consultation { order: 3; }
-  .campaign-shell > .campaign-grid { order: 4; }
-  .campaign-shell > .metric-strip { order: 5; }
-  .campaign-shell > .meter-guide { order: 6; }
-  .campaign-shell > .lower-grid { order: 7; }
-  .masthead { align-items: flex-start; padding-block: 15px; }
-  .header-actions { justify-content: flex-start; gap: 8px 12px; }
+  .campaign-shell > .campaign-error { order: 1; }
+  .campaign-shell > .campaign-grid { display: contents; }
+  .campaign-shell > .campaign-grid > .campaign-situation-workspace {
+    order: 1;
+    margin-bottom: 14px;
+  }
+  .campaign-shell > .campaign-experiment { order: 2; }
+  .campaign-shell > .campaign-directive { order: 3; }
+  .campaign-shell > .campaign-playtest-objective { order: 4; }
+  .campaign-shell > .first-turn-guide { order: 5; }
+  .campaign-shell > .state-pressure-rail { order: 6; }
+  .campaign-shell > .campaign-consultation { order: 7; }
+  .campaign-shell > .campaign-grid > .operations-column { order: 8; }
+  .campaign-shell > .metric-strip { order: 9; }
+  .campaign-shell > .meter-guide { order: 10; }
+  .campaign-shell > .lower-grid { order: 11; }
+  .masthead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding-block: 12px;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
   .stamp { position: static; display: inline-block; margin-bottom: 22px; }
   .metric-strip { grid-template-columns: repeat(5,minmax(108px,1fr)); overflow-x: auto; }
-  .state-pressure-strip { grid-template-columns: repeat(4,minmax(148px,1fr)); overflow-x: auto; }
+  .state-pressure-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
   .confirmation-summary { grid-template-columns: 1fr; }
   .confirmation-summary .confirmation-warning { grid-column: auto; }
   .lower-grid { grid-template-columns: 1fr; }
@@ -426,17 +536,12 @@ button { font: inherit; }
     width: min(100%, 224px);
   }
 }
-/* Pixel-art rendering utility + sprite animation keyframe (used by PixelSprite).
- * Integer-scale sprite sheets only. `pixelated` is declared last so it wins in
- * modern browsers; `-webkit-optimize-contrast` is only a fallback for engines
- * that lack `pixelated`. */
+/* Pixel-art rendering utility used by PixelSprite. Integer-scale sprite sheets
+ * only. `pixelated` is declared last so it wins in modern browsers;
+ * `-webkit-optimize-contrast` is only a fallback for engines that lack it. */
 .pixelated {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: pixelated;
-}
-@keyframes brb-pixel-sprite {
-  from { background-position-x: 0; }
-  to { background-position-x: var(--pixel-sprite-travel, 0px); }
 }
 
 @media (prefers-reduced-motion: no-preference) {

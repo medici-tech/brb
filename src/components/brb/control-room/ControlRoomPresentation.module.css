@@ -1,4 +1,7 @@
 .presentation {
+  --room-signal: rgba(166, 180, 133, 0.52);
+  --room-signal-soft: rgba(166, 180, 133, 0.12);
+  --room-grade: rgba(9, 14, 13, 0.08);
   position: absolute;
   inset: 0;
   display: grid;
@@ -8,24 +11,197 @@
   isolation: isolate;
 }
 
-.room {
-  flex: none;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+.presentation::before,
+.presentation::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.presentation[data-focus="commit"] .room {
-  border-color: rgba(198, 75, 50, 0.76);
+/* A fixed surveillance treatment makes the room read as a live state surface,
+   not an illustration pasted beside the dossier. It is static by default; the
+   room actors remain the only ambient motion. */
+.presentation::before {
+  z-index: 2;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(2, 5, 4, 0.12) 3px 4px
+    ),
+    radial-gradient(circle at 50% 46%, transparent 38%, var(--room-grade) 100%);
+  mix-blend-mode: multiply;
+  opacity: 0.62;
+}
+
+.presentation::after {
+  z-index: 3;
   box-shadow:
-    0 0 0 2px rgba(198, 75, 50, 0.2),
-    0 14px 30px rgba(0, 0, 0, 0.42);
-  animation: commit-signal 350ms steps(2, end);
+    inset 0 0 0 1px var(--room-signal),
+    inset 0 0 34px var(--room-signal-soft),
+    inset 0 0 78px rgba(0, 0, 0, 0.24);
+  transition:
+    box-shadow 280ms ease,
+    opacity 280ms ease;
 }
 
-.presentation[data-presentation-state="corporate-encroachment"] .room,
-.presentation[data-corporation-presence="embedded"] .room {
-  border-color: rgba(206, 142, 52, 0.72);
+.room {
+  position: relative;
+  z-index: 0;
+  flex: none;
+  outline: 1px solid rgba(213, 201, 164, 0.12);
+  outline-offset: -1px;
+  filter: contrast(1.08) saturate(0.82) brightness(0.9);
+  transition:
+    filter 280ms ease,
+    outline-color 280ms ease;
+}
+
+.presentation[data-presentation-state="strained"] {
+  --room-signal: rgba(214, 154, 58, 0.62);
+  --room-signal-soft: rgba(214, 154, 58, 0.16);
+  --room-grade: rgba(72, 42, 10, 0.17);
+}
+
+.presentation[data-presentation-state="crisis"] {
+  --room-signal: rgba(233, 132, 121, 0.74);
+  --room-signal-soft: rgba(166, 58, 50, 0.24);
+  --room-grade: rgba(75, 17, 13, 0.26);
+}
+
+.presentation[data-presentation-state="crisis"]::after {
+  animation: crisis-beacon 1.15s steps(2, end) 2;
+}
+
+.presentation[data-presentation-state="institutional-failure"] {
+  --room-signal: rgba(166, 58, 50, 0.44);
+  --room-signal-soft: rgba(92, 14, 11, 0.34);
+  --room-grade: rgba(3, 3, 3, 0.5);
+}
+
+.presentation[data-presentation-state="institutional-failure"] .room {
+  filter: contrast(1.12) saturate(0.42) brightness(0.62);
+}
+
+.presentation[data-presentation-state="corporate-encroachment"],
+.presentation[data-corporation-presence="embedded"] {
+  --room-signal: rgba(195, 163, 70, 0.7);
+  --room-signal-soft: rgba(113, 126, 55, 0.22);
+  --room-grade: rgba(55, 48, 11, 0.16);
+}
+
+.presentation[data-presentation-state="corporate-encroachment"]::before,
+.presentation[data-corporation-presence="embedded"]::before {
+  background:
+    linear-gradient(90deg, transparent 50%, rgba(163, 139, 49, 0.11)),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(2, 5, 4, 0.12) 3px 4px
+    ),
+    radial-gradient(circle at 50% 46%, transparent 38%, var(--room-grade) 100%);
+}
+
+.presentation[data-focus="commit"]::after {
+  box-shadow:
+    inset 0 0 0 3px rgba(233, 132, 121, 0.82),
+    inset 0 0 48px rgba(198, 75, 50, 0.3),
+    inset 0 0 88px rgba(0, 0, 0, 0.2);
+  animation: commit-signal 900ms steps(3, end) 1;
+}
+
+.presentation[data-brb-stage="activation-ready"] {
+  --room-signal: rgba(230, 194, 103, 0.78);
+  --room-signal-soft: rgba(214, 154, 58, 0.24);
+}
+
+.presentation[data-brb-stage="activation-ready"]
+  :global([data-room-object="brb-activation"]),
+.presentation[data-brb-stage="activation-ready"]
+  :global([data-room-object="brb-machinery"]) {
+  filter:
+    brightness(1.18)
+    saturate(1.08)
+    drop-shadow(0 0 3px rgba(237, 194, 87, 0.9));
+}
+
+.presentation[data-presentation-state="corporate-encroachment"]
+  :global([data-room-object="corporation-channel"]),
+.presentation[data-corporation-presence="embedded"]
+  :global([data-room-object="corporation-presence"]) {
+  filter:
+    brightness(1.2)
+    saturate(1.08)
+    drop-shadow(0 0 3px rgba(209, 179, 68, 0.82));
+}
+
+.presentation[data-lit-station="analysis"]
+  :global([data-room-actor="analyst"]),
+.presentation[data-lit-station="operations"]
+  :global([data-room-actor="fixer"]),
+.presentation[data-lit-station="institutions"]
+  :global([data-room-actor="steward"]) {
+  filter:
+    brightness(1.24)
+    saturate(1.12)
+    drop-shadow(0 0 3px rgba(229, 182, 72, 0.92));
+}
+
+.presentation[data-lit-station="analysis"]
+  :global([data-light-zone="analysis"]),
+.presentation[data-lit-station="operations"]
+  :global([data-light-zone="operations"]),
+.presentation[data-lit-station="institutions"]
+  :global([data-light-zone="institutions"]) {
+  opacity: 0.86;
+}
+
+.presentation[data-brb-stage="construction"]
+  :global([data-light-zone="brb-chamber"]),
+.presentation[data-brb-stage="unstable"]
+  :global([data-light-zone="brb-chamber"]),
+.presentation[data-brb-stage="activation-ready"]
+  :global([data-light-zone="brb-chamber"]) {
+  opacity: 0.72;
+}
+
+.presentation[data-tempo="critical"]
+  :global([data-room-object="monitor-bank"])
+  :global(.pixelated),
+.presentation[data-tempo="critical"]
+  :global([data-room-object="security-camera"])
+  :global(.pixelated) {
+  --room-tempo: 0.72;
+}
+
+.presentation[data-ending="civic_legacy"] {
+  --room-signal: rgba(166, 180, 133, 0.78);
+  --room-signal-soft: rgba(119, 131, 97, 0.22);
+}
+
+.presentation[data-ending="compromised_activation"]::before {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(214, 154, 58, 0.08),
+      transparent 48%,
+      rgba(166, 58, 50, 0.2)
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(2, 5, 4, 0.12) 3px 4px
+    );
+}
+
+.presentation[data-ending="corporate_capture"] {
+  --room-signal: rgba(194, 164, 60, 0.82);
+  --room-signal-soft: rgba(100, 120, 48, 0.3);
+}
+
+.presentation[data-ending="state_collapse"] .room {
+  filter: contrast(1.14) saturate(0.28) brightness(0.48);
 }
 
 /* Courier crossing.
@@ -64,6 +240,10 @@
   animation: none !important;
 }
 
+.presentation[data-motion="reduced"]::after {
+  animation: none !important;
+}
+
 @keyframes corridor-right {
   from {
     transform: translateX(0);
@@ -84,13 +264,23 @@
 
 @keyframes commit-signal {
   0% {
-    filter: brightness(1);
+    opacity: 0.48;
   }
-  50% {
-    filter: brightness(1.22);
+  35% {
+    opacity: 1;
   }
   100% {
-    filter: brightness(1);
+    opacity: 0.72;
+  }
+}
+
+@keyframes crisis-beacon {
+  0%,
+  100% {
+    opacity: 0.58;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
@@ -101,6 +291,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .presentation::before,
+  .presentation::after,
   .presentation *,
   .presentation *::before,
   .presentation *::after {

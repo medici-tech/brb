@@ -19,6 +19,7 @@ type Props = {
   card: SituationCard | null;
   recommendation: AdvisorRecommendation | null;
   model: PresentationModel;
+  commitSignalKey: string | null;
   resolvedEchoTypes: EchoType[];
   workspaceRef: RefObject<HTMLElement | null>;
   onCommit: (action: MajorAction, options?: CommitOptions) => void;
@@ -29,6 +30,7 @@ export function CampaignSituationWorkspace({
   card,
   recommendation,
   model,
+  commitSignalKey,
   resolvedEchoTypes,
   workspaceRef,
   onCommit,
@@ -38,15 +40,36 @@ export function CampaignSituationWorkspace({
       ref={workspaceRef}
       aria-label="Situation workspace"
       tabIndex={-1}
-      className={workspaceStyles.situationWorkspace}
+      className={`${workspaceStyles.situationWorkspace} campaign-situation-workspace`}
       data-situation={card ? "active" : "standby"}
     >
+      <div className={workspaceStyles.workspaceRail} aria-hidden="true">
+        <span className={workspaceStyles.railIdentity}>
+          <i />
+          Situation command
+        </span>
+        <span className={workspaceStyles.railCaption}>{model.caption}</span>
+        <strong>{card ? "Action required" : "Authorization window"}</strong>
+      </div>
       <div className={workspaceStyles.sceneStage} data-room-stage="">
         <ControlRoomPresentation
           model={model}
           turn={state.turn}
           hasActiveSituation={Boolean(card)}
+          commitSignalKey={commitSignalKey}
         />
+        <div
+          aria-hidden="true"
+          className={workspaceStyles.roomReadout}
+          data-mobile-room-readout=""
+        >
+          <span className={workspaceStyles.liveFeed}>
+            <i />
+            Live · Facility 01
+          </span>
+          <strong>{model.stateLabel}</strong>
+          <span>BRB {Math.round(model.brbProgress).toString().padStart(3, "0")}%</span>
+        </div>
       </div>
       <div className={workspaceStyles.dossierColumn}>
         {card ? (
@@ -60,7 +83,14 @@ export function CampaignSituationWorkspace({
             classification={`${card.type} · ${card.rarity}`}
             bodyClassName={workspaceStyles.activeFileBody ?? ""}
           >
-            <div className={workspaceStyles.choiceList}>
+            <p className={workspaceStyles.actionRequired}>
+              Action required · choose one of {card.choices.length} responses
+            </p>
+            <div
+              className={workspaceStyles.choiceList}
+              role="group"
+              aria-label="Situation responses"
+            >
               {card.choices.map((choice) => (
                 <CampaignActionControl
                   key={choice.id}
@@ -84,6 +114,11 @@ export function CampaignSituationWorkspace({
               <p className="file-label">SITUATION DECK · STANDBY</p>
               <h1>No active file</h1>
               <p>The desk is quiet. Choose where to commit the administration.</p>
+              <aside className={workspaceStyles.standbyRouting}>
+                <span>Next authorization</span>
+                <strong>Choose one monthly commitment.</strong>
+                <p>BRB projects · public operations · resource recovery</p>
+              </aside>
             </div>
             {state.lastTurnResolution ? (
               <div className={workspaceStyles.inactiveResult}>

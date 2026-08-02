@@ -84,6 +84,7 @@ export function CampaignActionControl({
     <ActionControl
       className={className}
       compact={compact}
+      condensedMetadata={action.type === "resolve_card"}
       cost={
         preview.costs.length > 0
           ? `${preview.costs.join(" · ")}${preview.permanent ? " · permanently deposited" : ""}`
