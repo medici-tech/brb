@@ -1500,3 +1500,536 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Changed only the equipped Legacy Directive against the corrected no-Directive baseline. Directive-aware bot candidate validation is active; individual 250-run strategy rates are diagnostic only.
 
+## 2026-07-24T02:58:44.969Z — Hidden posture bet
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `95125a1a2` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 507 (10.14%) |
+| Civic Legacy | 38 |
+| State collapse | 1,316 (26.32%) |
+| Corporate capture | 3,177 (63.54%) |
+| Average / median months | 21.44 / 21 |
+| Longest campaign | 46 months |
+| Cards presented / resolved per run | 11.78 / 8.29 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,817 |
+| Activation attempts | 508 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 507 |
+| activation_corporate_capture | 1 |
+| tracks_never_ready | 3,183 |
+| panic_before_activation | 345 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 964 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 65 |
+| rush | 417 | 31 |
+| defensive | 417 | 36 |
+| fixer | 417 | 42 |
+| institutionalist | 417 | 52 |
+| command | 417 | 20 |
+| coalition | 417 | 23 |
+| engineering_first | 417 | 22 |
+| legitimacy_first | 416 | 92 |
+| stability_first | 416 | 61 |
+| access_first | 416 | 21 |
+| delayed_deposit | 416 | 42 |
+
+### Notes
+
+> Hidden Corporation posture; counter is now a forecast-gated bet (bots no longer read the true strategy)
+
+## 2026-07-25T01:05:52.690Z — Consult-to-counter fidelity
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `6c0d7c7` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 408 (8.16%) |
+| — Civic Legacy | 37 (0.74%) |
+| — Compromised activation | 371 (7.42%) |
+| State collapse | 1,929 (38.58%) |
+| Corporate capture | 2,663 (53.26%) |
+| Average / median months | 22.45 / 22 |
+| Longest campaign | 56 months |
+| Cards presented / resolved per run | 12.3 / 8.62 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,376 |
+| Activation attempts | 408 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 408 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,624 |
+| panic_before_activation | 324 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 644 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 48 |
+| rush | 417 | 33 |
+| defensive | 417 | 24 |
+| fixer | 417 | 37 |
+| institutionalist | 417 | 52 |
+| command | 417 | 19 |
+| coalition | 417 | 16 |
+| engineering_first | 417 | 23 |
+| legitimacy_first | 416 | 62 |
+| stability_first | 416 | 45 |
+| access_first | 416 | 24 |
+| delayed_deposit | 416 | 25 |
+
+### Notes
+
+> Bot fidelity: consult-to-counter; truer capture rate under competent counter-play
+
+## 2026-07-25T01:38:41.651Z — Advisor takeover endings
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `b250281` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 408 (8.16%) |
+| — Civic Legacy | 37 (0.74%) |
+| — Compromised activation | 371 (7.42%) |
+| State collapse | 1,929 (38.58%) |
+| Corporate capture | 2,663 (53.26%) |
+| Advisor coup | 0 (0%) |
+| Advisor cabal | 0 (0%) |
+| Average / median months | 22.45 / 22 |
+| Longest campaign | 56 months |
+| Cards presented / resolved per run | 12.3 / 8.62 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,376 |
+| Activation attempts | 408 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 408 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,624 |
+| panic_before_activation | 324 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 644 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 417 | 48 |
+| rush | 417 | 33 |
+| defensive | 417 | 24 |
+| fixer | 417 | 37 |
+| institutionalist | 417 | 52 |
+| command | 417 | 19 |
+| coalition | 417 | 16 |
+| engineering_first | 417 | 23 |
+| legitimacy_first | 416 | 62 |
+| stability_first | 416 | 45 |
+| access_first | 416 | 24 |
+| delayed_deposit | 416 | 25 |
+
+### Notes
+
+> Advisor coup + cabal loss endings: coup at Leverage 90 with dependence (Institutions <= 40 or last advisor); cabal at two active advisors >= 70 Leverage. Natural landing, no balance retune.
+
+## 2026-07-25T01:58:52.671Z — Advisor-dependent + civic-seeker profiles
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `14dd76f` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 482 (9.64%) |
+| — Civic Legacy | 68 (1.36%) |
+| — Compromised activation | 414 (8.28%) |
+| State collapse | 1,995 (39.9%) |
+| Corporate capture | 2,521 (50.42%) |
+| Advisor coup | 2 (0.04%) |
+| Advisor cabal | 0 (0%) |
+| Average / median months | 22.77 / 22 |
+| Longest campaign | 54 months |
+| Cards presented / resolved per run | 12.46 / 8.8 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,398 |
+| Activation attempts | 483 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 482 |
+| activation_corporate_capture | 1 |
+| tracks_never_ready | 3,602 |
+| panic_before_activation | 309 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 606 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 358 | 45 |
+| rush | 358 | 28 |
+| defensive | 357 | 17 |
+| fixer | 357 | 41 |
+| institutionalist | 357 | 54 |
+| command | 357 | 13 |
+| coalition | 357 | 21 |
+| engineering_first | 357 | 25 |
+| legitimacy_first | 357 | 55 |
+| stability_first | 357 | 34 |
+| access_first | 357 | 17 |
+| delayed_deposit | 357 | 21 |
+| advisor_dependent | 357 | 0 |
+| civic_seeker | 357 | 111 |
+
+### Notes
+
+> Added advisor_dependent and civic_seeker bot profiles (14-strategy matrix; per-strategy runs drop to ~357). Dependent profile exercises the takeover endings; civic seeker plays toward all nine Civic Legacy conditions. Natural landing, no rule changes.
+
+## 2026-07-25T02:14:19.246Z — Takeover thresholds tightened
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `5dec771` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 482 (9.64%) |
+| — Civic Legacy | 68 (1.36%) |
+| — Compromised activation | 414 (8.28%) |
+| State collapse | 1,991 (39.82%) |
+| Corporate capture | 2,516 (50.32%) |
+| Advisor coup | 10 (0.2%) |
+| Advisor cabal | 1 (0.02%) |
+| Average / median months | 22.75 / 22 |
+| Longest campaign | 53 months |
+| Cards presented / resolved per run | 12.45 / 8.79 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,398 |
+| Activation attempts | 483 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 482 |
+| activation_corporate_capture | 1 |
+| tracks_never_ready | 3,602 |
+| panic_before_activation | 309 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 606 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 358 | 45 |
+| rush | 358 | 28 |
+| defensive | 357 | 17 |
+| fixer | 357 | 41 |
+| institutionalist | 357 | 54 |
+| command | 357 | 13 |
+| coalition | 357 | 21 |
+| engineering_first | 357 | 25 |
+| legitimacy_first | 357 | 55 |
+| stability_first | 357 | 34 |
+| access_first | 357 | 17 |
+| delayed_deposit | 357 | 21 |
+| advisor_dependent | 357 | 0 |
+| civic_seeker | 357 | 111 |
+
+### Notes
+
+> Takeovers more present: coup Institutions dependence bar 40->55, cabal member Leverage bar 70->60. Same 14-strategy matrix.
+
+## 2026-07-25T23:38:55.805Z — Takeovers more frequent
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `08facea` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 424 (8.48%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 372 (7.44%) |
+| State collapse | 1,853 (37.06%) |
+| Corporate capture | 2,239 (44.78%) |
+| Advisor coup | 150 (3%) |
+| Advisor cabal | 334 (6.68%) |
+| Average / median months | 22.01 / 22 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 12.07 / 8.56 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,255 |
+| Activation attempts | 424 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 424 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,745 |
+| panic_before_activation | 293 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 538 |
+| corporation_unsafe_before_activation | 0 |
+| strategy_delayed_after_readiness | 0 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 34 |
+| institutionalist | 334 | 37 |
+| command | 333 | 15 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 3 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Takeovers much more present: coup Leverage bar decoupled from departure (coup 80, departure 90), coup Institutions bar 55->65, cabal bar 60->50. Added advisor_cabal spreader profile (15-strategy matrix, ~333 runs/strategy).
+
+## 2026-07-27T16:20:59.941Z — Organic reliance creep
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `1e5a244` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 417 (8.34%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 365 (7.3%) |
+| State collapse | 1,780 (35.6%) |
+| Corporate capture | 2,046 (40.92%) |
+| Advisor coup | 424 (8.48%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.33 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.71 / 8.33 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,226 |
+| Activation attempts | 417 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 417 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,774 |
+| panic_before_activation | 290 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 515 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 29 |
+| institutionalist | 334 | 37 |
+| command | 333 | 16 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Raise takeovers to ~15% organically: dropped coup dependence gate (coup=Leverage 85 alone), retired the Leverage-90 departure, added monthly reliance-Leverage creep (+1/month at/above 50). Takeovers now reach normal bots (command over-reliance), not just demonstrators.
+
+## 2026-07-28T17:18:22.934Z — Organic reliance creep
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `18b96fd` (clean)
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 417 (8.34%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 365 (7.3%) |
+| State collapse | 1,780 (35.6%) |
+| Corporate capture | 2,046 (40.92%) |
+| Advisor coup | 424 (8.48%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.33 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.71 / 8.33 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,226 |
+| Activation attempts | 417 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 417 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,774 |
+| panic_before_activation | 290 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 515 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 29 |
+| institutionalist | 334 | 37 |
+| command | 333 | 16 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Phase C verification: coup gate dropped (Leverage 85 alone), high-Leverage departure retired, reliance creep +1/month at Leverage 50+. Combined coup+cabal 15.14% with 92 organic (non-demonstrator) takeovers.
+
+## 2026-07-29T07:35:03.114Z — Command leverage limit 80
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `none`
+- Source: `3cff638` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 413 (8.26%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 361 (7.22%) |
+| State collapse | 1,780 (35.6%) |
+| Corporate capture | 2,091 (41.82%) |
+| Advisor coup | 383 (7.66%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.38 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.73 / 8.34 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,214 |
+| Activation attempts | 413 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 413 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,786 |
+| panic_before_activation | 289 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 508 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 27 |
+| rush | 334 | 27 |
+| defensive | 334 | 21 |
+| fixer | 334 | 29 |
+| institutionalist | 334 | 37 |
+| command | 333 | 12 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 20 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Lower command bot leverageLimit 86 -> 80 so every managed profile disciplines below the coup bar (85) instead of tolerating advisors past it.
+

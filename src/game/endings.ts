@@ -1,9 +1,11 @@
+import { getCabalMembers, isCoupCondition } from "./advisor-rules";
 import { expireActiveCard } from "./cards";
-import { ENDING_COPY } from "./content";
+import { ADVISORS, ENDING_COPY } from "./content";
 import { buildDeclassifiedReport } from "./replay";
 import { getRouteCompletionKind } from "./routes";
 import { addHistory } from "./state-helpers";
 import {
+  ADVISOR_IDS,
   TRACK_KEYS,
   type CivicLegacyEvaluation,
   type Ending,
@@ -209,6 +211,8 @@ export function activate(state: GameState): void {
 }
 
 export function evaluateTerminalState(state: GameState): void {
+  const coupAdvisorId = ADVISOR_IDS.find((advisorId) => isCoupCondition(state, advisorId));
+  const cabalMembers = getCabalMembers(state);
   if (state.corporation.progress >= 100) {
     endRun(
       state,
@@ -223,6 +227,22 @@ export function evaluateTerminalState(state: GameState): void {
     endRun(
       state,
       makeEnding("state_collapse", "Institutions could no longer sustain the state."),
+    );
+  } else if (coupAdvisorId) {
+    endRun(
+      state,
+      makeEnding(
+        "advisor_coup",
+        `${ADVISORS[coupAdvisorId].name} held decisive leverage over a dependent government and took control.`,
+      ),
+    );
+  } else if (cabalMembers.length >= 2) {
+    endRun(
+      state,
+      makeEnding(
+        "advisor_cabal",
+        `${cabalMembers.map((advisorId) => ADVISORS[advisorId].name).join(" and ")} jointly held enough leverage to govern without the player.`,
+      ),
     );
   } else if (Object.values(state.advisors).every((advisor) => !advisor.active)) {
     endRun(

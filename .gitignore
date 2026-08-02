@@ -10,6 +10,9 @@ test-results/
 *.log
 .DS_Store
 
+# Local Claude Code tooling (dev-server launch config, worktree metadata)
+.claude/
+
 # Purchased art source packs — full-version LimeZu, redistribution-restricted. Keep local only.
 /BRB Assets/
 # Curated runtime art — injected at deploy from private storage, never committed (public repo).
@@ -21,6 +24,3 @@ test-results/
 # Local working scratch: contact sheets, curation previews, throwaway scripts.
 # scripts/contact-sheet.ts writes here and the art docs describe it as ignored.
 scratchpad/
-
-# Agent-tool local state (worktree checkouts, preview launch config).
-.claude/

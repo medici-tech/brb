@@ -3,8 +3,10 @@ import {
   canUseArchetypeConsultation,
   commitAction,
   consultAdvisor,
+  evaluateCivicLegacy,
   getActionCategory,
   getActionCost,
+  getConsultationCost,
   getValidActions,
 } from "./engine";
 import {
@@ -22,6 +24,9 @@ import {
 } from "./types";
 
 const RUSH_BOTS: BotId[] = ["rush", "engineering_first", "access_first"];
+// Profiles that lean on advisors on purpose: they consult every month, never
+// discipline Leverage, and exist to exercise the advisor-takeover endings.
+const ADVISOR_HEAVY_BOTS: BotId[] = ["advisor_dependent", "advisor_cabal"];
 const BOT_NON_TERMINATION_GUARD_MONTHS = 1_200;
 const PUBLIC_BOTS: BotId[] = [
   "defensive",
@@ -29,10 +34,36 @@ const PUBLIC_BOTS: BotId[] = [
   "coalition",
   "legitimacy_first",
   "stability_first",
+  "civic_seeker",
 ];
 
 function isOneOf(bot: BotId, bots: BotId[]): boolean {
   return bots.includes(bot);
+}
+
+function counterProgressThreshold(bot: BotId): number {
+  if (bot === "long_horizon") return 18;
+  // Civic Legacy requires Corporation Progress below 80 at activation, so the
+  // civic seeker counters earlier than the institutionalist.
+  if (bot === "civic_seeker") return 60;
+  return bot === "institutionalist" ? 85 : isOneOf(bot, RUSH_BOTS) ? 66 : bot === "balanced" ? 58 : 48;
+}
+
+// Whether this bot would commit a counter-operation this month if it held a
+// forecast. Posture is hidden, so a counter requires a consultation first; this
+// predicate lets the bot consult *in order to* counter rather than only on a
+// coincidental scheduled consult-turn. It fires only when the bot can afford
+// both the consultation and the counter, so a consult is never wasted.
+function botIntendsToCounter(state: GameState, bot: BotId): boolean {
+  const counterCost = getActionCost(state, {
+    type: "counter_corporation",
+    predictedStrategy: "expanding",
+  });
+  const consultIntel = getConsultationCost(state).intelligence;
+  const affordsBoth =
+    state.resources.intelligence >= (counterCost.intelligence ?? 0) + consultIntel &&
+    state.resources.influence >= (counterCost.influence ?? 0);
+  return affordsBoth && state.corporation.progress >= counterProgressThreshold(bot);
 }
 
 function shouldResolvePresentedCard(state: GameState, bot: BotId): boolean {
@@ -60,13 +91,15 @@ function chooseLongHorizonAction(state: GameState, valid: MajorAction[]): MajorA
   const activation = valid.find((action) => action.type === "activate_brb");
   if (activation && state.turn >= 97 && state.corporation.progress < 80) return activation;
 
-  const predictedStrategy = state.consultation?.predictedStrategy ?? state.corporation.strategy;
-  const counter = valid.find(
-    (action) =>
-      action.type === "counter_corporation" &&
-      action.predictedStrategy === predictedStrategy,
-  );
-  if (counter && state.corporation.progress >= 18) return counter;
+  const predictedStrategy = state.consultation?.predictedStrategy ?? null;
+  const counter = predictedStrategy
+    ? valid.find(
+        (action) =>
+          action.type === "counter_corporation" &&
+          action.predictedStrategy === predictedStrategy,
+      )
+    : undefined;
+  if (counter && state.corporation.progress >= counterProgressThreshold("long_horizon")) return counter;
 
   const protect = valid.find((action) => action.type === "protect_institutions");
   if (
@@ -177,7 +210,9 @@ function effectScore(
       (changes.loyalty ?? 0) * 0.2 +
       (changes.alignment ?? 0) * 0.2 -
       (changes.leverage ?? 0) *
-        (bot === "fixer" || bot === "command" ? 0.1 : isOneOf(bot, PUBLIC_BOTS) ? 0.8 : 0.5),
+        (bot === "fixer" || bot === "command" || isOneOf(bot, ADVISOR_HEAVY_BOTS)
+          ? 0.1
+          : isOneOf(bot, PUBLIC_BOTS) ? 0.8 : 0.5),
     0,
   );
   const routeValues = isOneOf(bot, RUSH_BOTS)
@@ -245,8 +280,9 @@ function scoreAction(state: GameState, action: MajorAction, bot: BotId): number 
     return style + catchesUp + size;
   }
   if (action.type === "counter_corporation") {
-    const prediction = state.consultation?.predictedStrategy ?? state.corporation.strategy;
-    const correctTarget = action.predictedStrategy === prediction ? 22 : -40;
+    const prediction = state.consultation?.predictedStrategy ?? null;
+    const correctTarget =
+      prediction === null ? -60 : action.predictedStrategy === prediction ? 22 : -40;
     const danger = state.corporation.progress >= 70 ? 55 : state.corporation.progress * 0.28;
     const style = bot === "defensive" ? 18 : bot === "balanced" ? 10 : -5;
     return style + correctTarget + danger;
@@ -289,10 +325,18 @@ export function chooseBotAction(
     state.archetypeId !== "operator" ||
     state.systemModifiers.includes("emergency_rule") ||
     state.advisors.fixer.leverage >= 60;
+  // The civic seeker holds activation until every Civic Legacy condition passes,
+  // accepting a compromised activation only when a loss is imminent — the
+  // Corporation nearing victory or Panic nearing collapse.
+  const civicSeekerReady =
+    evaluateCivicLegacy(state).eligible
+    || state.corporation.progress >= 75
+    || state.pressures.panic >= 85;
   if (
     activation &&
     state.corporation.progress < 80 &&
     (bot !== "institutionalist" || civicReady) &&
+    (bot !== "civic_seeker" || civicSeekerReady) &&
     (bot !== "command" || commandReady)
   ) return activation;
 
@@ -319,19 +363,30 @@ export function chooseBotAction(
       (bot === "institutionalist" && state.institutions < 30 && state.turn % 3 === 2))
   ) return targetedProtection;
 
-  const predictedStrategy = state.consultation?.predictedStrategy ?? state.corporation.strategy;
-  const counterThreshold =
-    bot === "institutionalist" ? 85 : isOneOf(bot, RUSH_BOTS) ? 66 : bot === "balanced" ? 58 : 48;
-  const counter = valid.find(
-    (action) =>
-      action.type === "counter_corporation" &&
-      action.predictedStrategy === predictedStrategy,
-  );
+  const predictedStrategy = state.consultation?.predictedStrategy ?? null;
+  const counterThreshold = counterProgressThreshold(bot);
+  const counter = predictedStrategy
+    ? valid.find(
+        (action) =>
+          action.type === "counter_corporation" &&
+          action.predictedStrategy === predictedStrategy,
+      )
+    : undefined;
   if (activation && counter) return counter;
   if (counter && state.corporation.progress >= counterThreshold) return counter;
 
+  // The advisor-dependent bot never disciplines its advisors — accumulated
+  // Leverage is the whole point of the profile — so it skips managing entirely.
+  // Every managed profile stays below ADVISOR_TAKEOVER_RULES.coupLeverageMinimum
+  // so it disciplines before an advisor can seize control; command remains the
+  // most tolerant of the managed profiles.
   const leverageLimit =
-    bot === "fixer" ? 55 : bot === "command" ? 86 : state.archetypeId === "operator" ? 72 : 65;
+    isOneOf(bot, ADVISOR_HEAVY_BOTS) ? Number.POSITIVE_INFINITY
+    : bot === "fixer" ? 55
+    : bot === "civic_seeker" ? 55
+    : bot === "command" ? 80
+    : state.archetypeId === "operator" ? 72
+    : 65;
   const riskyAdvisor = ADVISOR_IDS.find(
     (id) => state.advisors[id].active && state.advisors[id].leverage >= leverageLimit,
   );
@@ -341,7 +396,18 @@ export function chooseBotAction(
   if (manage) return manage;
 
   const protect = valid.find((action) => action.type === "protect_institutions");
-  if (protect && state.institutions <= (bot === "defensive" ? 38 : 25)) return protect;
+  const protectThreshold =
+    bot === "civic_seeker" ? 50 : bot === "defensive" ? 38 : 25;
+  if (protect && state.institutions <= protectThreshold) return protect;
+
+  // The advisor-heavy profiles guard their consultation habit above all else:
+  // when Intelligence runs low they restock so the monthly consult never lapses.
+  if (isOneOf(bot, ADVISOR_HEAVY_BOTS) && state.resources.intelligence < 6) {
+    const intelRecovery = valid.find(
+      (action) => action.type === "recover_resource" && action.resource === "intelligence",
+    );
+    if (intelRecovery) return intelRecovery;
+  }
 
   const lowestTrack = [...TRACK_KEYS].sort(
     (a, b) => state.tracks[a] - state.tracks[b],
@@ -353,12 +419,15 @@ export function chooseBotAction(
     bot === "stability_first" && state.tracks.stability < 50 ? "stability" :
     bot === "institutionalist" && state.tracks.legitimacy < 75 ? "legitimacy" :
     bot === "institutionalist" && state.tracks.stability < 75 ? "stability" :
+    bot === "civic_seeker" && state.tracks.legitimacy < 75 ? "legitimacy" :
+    bot === "civic_seeker" && state.tracks.stability < 75 ? "stability" :
     bot === "coalition" && state.tracks.legitimacy < 60 ? "legitimacy" :
     bot === "fixer" && state.tracks.access < 60 ? "access" :
     bot === "command" && state.tracks.access < 60 ? "access" :
     lowestTrack;
   const focusedDepositor = [
     "institutionalist",
+    "civic_seeker",
     "command",
     "engineering_first",
     "legitimacy_first",
@@ -400,12 +469,37 @@ export function chooseBotAction(
 function advisorForBot(state: GameState, bot: BotId): AdvisorId {
   if (bot === "long_horizon") return "analyst";
   if (["fixer", "command"].includes(bot)) return "fixer";
-  if (["institutionalist", "coalition", "legitimacy_first", "stability_first", "defensive"].includes(bot)) {
+  if (["institutionalist", "coalition", "legitimacy_first", "stability_first", "defensive", "civic_seeker"].includes(bot)) {
     return "steward";
   }
   if (["rush", "engineering_first", "access_first"].includes(bot)) return "analyst";
+  // The dependent profile leans hardest on whoever already has the most hold
+  // over them — dependence concentrates, which is exactly how Leverage compounds
+  // toward a single-advisor coup.
+  if (bot === "advisor_dependent") {
+    const active = ADVISOR_IDS.filter((id) => state.advisors[id].active);
+    const primary = [...active].sort(
+      (a, b) => state.advisors[b].leverage - state.advisors[a].leverage,
+    )[0];
+    if (primary) return primary;
+  }
+  // The cabal profile spreads reliance: it consults the lower of its two most
+  // leveraged advisors, keeping a pair climbing in step toward the joint bar
+  // without letting either run away into single-advisor coup territory.
+  if (bot === "advisor_cabal") {
+    const topTwo = ADVISOR_IDS
+      .filter((id) => state.advisors[id].active)
+      .sort((a, b) => state.advisors[b].leverage - state.advisors[a].leverage)
+      .slice(0, 2);
+    const laggard = [...topTwo].sort(
+      (a, b) => state.advisors[a].leverage - state.advisors[b].leverage,
+    )[0];
+    if (laggard) return laggard;
+  }
+  // The prepared posture is hidden; steer the advisor choice off the last
+  // observed move rather than peeking at the concealed strategy.
   const matching = ADVISOR_IDS.find(
-    (id) => ADVISORS[id].crisisSpecialty === state.corporation.strategy && state.advisors[id].active,
+    (id) => ADVISORS[id].crisisSpecialty === state.corporation.lastMove && state.advisors[id].active,
   );
   return matching ?? "fixer";
 }
@@ -418,9 +512,7 @@ function shouldFixerConsult(state: GameState): boolean {
   if (containmentIsImmediatelyUseful) return true;
 
   const affordableCounter = getValidActions(state).some(
-    (action) =>
-      action.type === "counter_corporation" &&
-      action.predictedStrategy === state.corporation.strategy,
+    (action) => action.type === "counter_corporation",
   );
   return (
     state.corporation.progress >= 70 &&
@@ -456,17 +548,27 @@ export function playBotRun(initialState: GameState, bot: BotId): {
       throw new Error("Bot exceeded the 100-year simulation safety guard without reaching an ending.");
     }
     let consultationAdvisorId: keyof typeof ADVISORS | null = null;
+    const wantsCounter = botIntendsToCounter(state, bot);
     const shouldConsult =
       state.resources.intelligence >= 2 &&
-      ((bot === "balanced" && state.turn % 3 === 0) ||
+      (wantsCounter ||
+        isOneOf(bot, ADVISOR_HEAVY_BOTS) ||
+        (bot === "balanced" && state.turn % 3 === 0) ||
         (bot === "long_horizon" && state.turn % 4 === 0) ||
         (bot === "command" && state.advisors.fixer.leverage < 60) ||
         (["defensive", "coalition"].includes(bot) && state.turn % 2 === 0) ||
         (bot === "fixer" && shouldFixerConsult(state)) ||
         (isOneOf(bot, RUSH_BOTS) && state.turn % 4 === 0) ||
-        (["legitimacy_first", "stability_first", "delayed_deposit"].includes(bot) && state.turn % 3 === 0));
+        (["legitimacy_first", "stability_first", "delayed_deposit", "civic_seeker"].includes(bot) && state.turn % 3 === 0));
     if (shouldConsult) {
-      const advisorId = advisorForBot(state, bot);
+      // When consulting to enable a counter, prefer the Analyst's more accurate
+      // forecast; otherwise keep the bot's usual advisor personality. The Fixer
+      // bot already consults the Fixer to counter (shouldFixerConsult), and the
+      // dependent profile keeps its rotation — reliance is the point.
+      const advisorId =
+        wantsCounter && bot !== "fixer" && !isOneOf(bot, ADVISOR_HEAVY_BOTS) && state.advisors.analyst.active
+          ? "analyst"
+          : advisorForBot(state, bot);
       if (state.advisors[advisorId].active) {
         const result = consultAdvisor(
           state,

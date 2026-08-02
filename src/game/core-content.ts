@@ -167,4 +167,32 @@ export const ENDING_COPY: Record<
     description: "The campaign ends before the player can safely activate the BRB.",
     victory: false,
   },
+  advisor_coup: {
+    id: "advisor_coup",
+    title: "The Indispensable Man",
+    description: "One advisor's leverage over a dependent government becomes control of it.",
+    victory: false,
+  },
+  advisor_cabal: {
+    id: "advisor_cabal",
+    title: "Government of Creditors",
+    description: "The advisors who hold the government's debts jointly decide its policy.",
+    victory: false,
+  },
 };
+
+// Advisor-takeover thresholds. Departure at Leverage 90 remains the default;
+// these bars decide when leverage becomes seizure instead of resignation.
+// Tuned against the fixed-seed baseline — see BRB Balance Targets.
+export const ADVISOR_TAKEOVER_RULES = {
+  // One advisor at this Leverage seizes control (loss). High Leverage alone is a
+  // coup — there is no dependence gate and no graceful high-Leverage departure.
+  coupLeverageMinimum: 85,
+  // Two or more active advisors at or above this Leverage jointly dominate.
+  cabalMemberLeverageMinimum: 50,
+  // Reliance compounds: an active advisor already at or above this Leverage floor
+  // gains this much Leverage each month, so leaning on advisors drifts them toward
+  // takeover unless disciplined — and a player can only manage one advisor a month.
+  relianceCreepFloor: 50,
+  relianceCreepPerMonth: 1,
+} as const;

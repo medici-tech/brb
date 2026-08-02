@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { GameState } from "../../game/types";
+import type { EndingId, GameState } from "../../game/types";
 import { deriveTurnBeats } from "../../game/turn-beats";
 import { ControlRoomPresentation } from "./control-room/ControlRoomPresentation";
 import {
@@ -19,12 +19,19 @@ type Props = {
   onOpenReport: () => void;
 };
 
-const ENDING_KICKERS = {
+/**
+ * Typed as a total map over `EndingId` on purpose: a new loss ending must not be
+ * able to reach the final tableau with an undefined kicker. The advisor-takeover
+ * pair below was added after this view and would have rendered a blank line.
+ */
+const ENDING_KICKERS: Readonly<Record<EndingId, string>> = {
   civic_legacy: "PUBLIC CONTROL MAINTAINED",
   compromised_activation: "AUTHORITY DIVIDED",
   corporate_capture: "PRIVATE SYSTEM ASCENDANT",
   state_collapse: "CONTINUITY SIGNAL LOST",
-} as const;
+  advisor_coup: "GOVERNMENT UNDER ADVISOR CONTROL",
+  advisor_cabal: "DIRECTORATE CAPTURED FROM WITHIN",
+};
 
 export function EndingTableauView({ state, onOpenReport }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);

@@ -53,7 +53,7 @@ export function HowToPlayDialog() {
         <div className="glossary-grid" aria-label="BRB field glossary">
           <section>
             <strong>Corporation Watch</strong>
-            <p><b>Progress</b> reaches defeat at 100. <b>Posture</b> names the move being prepared. <b>Threat</b> controls how soon and how severely the Corporation responds.</p>
+            <p><b>Progress</b> reaches defeat at 100. <b>Posture</b> is the hidden move being prepared—consult an advisor to forecast it before you counter. <b>Threat</b> controls how soon and how severely the Corporation responds.</p>
           </section>
           <section>
             <strong>State pressure</strong>
@@ -61,7 +61,7 @@ export function HowToPlayDialog() {
           </section>
           <section>
             <strong>Advisor file</strong>
-            <p><b>Alignment</b> affects advice quality. <b>Loyalty</b> is willingness to remain and has an advisor-specific breaking point. <b>Leverage</b> forces departure at 90.</p>
+            <p><b>Alignment</b> affects advice quality. <b>Loyalty</b> is willingness to remain and has an advisor-specific breaking point. <b>Leverage</b> is their hold over you: one advisor at 85 seizes control, and two at 50 or more govern without you. Leverage at 50+ also creeps up each month, and you can only manage one advisor per month.</p>
           </section>
           <section>
             <strong>Delayed Echo</strong>

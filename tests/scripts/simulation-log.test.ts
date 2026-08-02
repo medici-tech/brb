@@ -22,15 +22,21 @@ function reportFixture() {
     endings: {
       civic_legacy: 4,
       compromised_activation: 86,
-      corporate_capture: 450,
-      state_collapse: 460,
+      corporate_capture: 440,
+      state_collapse: 440,
+      advisor_coup: 20,
+      advisor_cabal: 10,
     },
     averageMonths: 24.39,
     outcomeSummary: {
       activations: 90,
       activationRate: 9,
-      collapseRate: 46,
-      corporateCaptureRate: 45,
+      civicLegacyRate: 0.4,
+      compromisedActivationRate: 8.6,
+      collapseRate: 44,
+      corporateCaptureRate: 44,
+      advisorCoupRate: 2,
+      advisorCabalRate: 1,
       premiumEndings: 50,
       premiumEndingRate: 5,
     },
@@ -67,8 +73,10 @@ function reportFixture() {
         endings: {
           civic_legacy: 1,
           compromised_activation: 9,
-          corporate_capture: 45,
-          state_collapse: 45,
+          corporate_capture: 44,
+          state_collapse: 43,
+          advisor_coup: 2,
+          advisor_cabal: 1,
         },
       },
     },
@@ -91,6 +99,10 @@ describe("simulation run log", () => {
     expect(entry).toContain("Legacy Directive: `none`");
     expect(entry).toContain("`abc1234` (clean)");
     expect(entry).toContain("| Activations | 90 (9%) |");
+    expect(entry).toContain("| — Civic Legacy | 4 (0.4%) |");
+    expect(entry).toContain("| — Compromised activation | 86 (8.6%) |");
+    expect(entry).toContain("| Advisor coup | 20 (2%) |");
+    expect(entry).toContain("| Advisor cabal | 10 (1%) |");
     expect(entry).toContain("| All tracks ready | 300 |");
     expect(entry).toContain("| Activation attempts | 100 |");
     expect(entry).toContain("| tracks_never_ready | 700 |");

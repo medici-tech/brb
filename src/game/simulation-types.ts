@@ -33,6 +33,9 @@ export type BotId =
   | "stability_first"
   | "access_first"
   | "delayed_deposit"
+  | "advisor_dependent"
+  | "advisor_cabal"
+  | "civic_seeker"
   | "long_horizon";
 
 export type CivicRequirementId =
@@ -137,8 +140,12 @@ export type SimulationReport = {
   outcomeSummary: {
     activations: number;
     activationRate: number;
+    civicLegacyRate: number;
+    compromisedActivationRate: number;
     collapseRate: number;
     corporateCaptureRate: number;
+    advisorCoupRate: number;
+    advisorCabalRate: number;
     premiumEndings: number;
     premiumEndingRate: number;
   };

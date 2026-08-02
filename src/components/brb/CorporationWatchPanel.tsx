@@ -1,7 +1,4 @@
-import {
-  describeCorporationPosture,
-  describeCorporationPressure,
-} from "../../game/guidance";
+import { describeCorporationPressure } from "../../game/guidance";
 import {
   describeCompletionPressure,
   getCompletionPressure,
@@ -43,10 +40,20 @@ export function CorporationWatchPanel({ state }: Props) {
         <strong className="mt-2 block text-xl text-foreground">{state.corporation.threat} / 100</strong>
         <p className="mb-0 text-[11px] leading-5 text-muted-foreground">{describeCorporationPressure(state)}</p>
       </div>
+      {/* The prepared posture stays concealed — showing it verbatim made the paid
+          advisor forecast redundant and neutralized the consultation mechanic.
+          Only the last observed move is surfaced, as a tell. */}
       <div className="border-t border-border py-4">
-        <span className="brb-telemetry text-[10px] font-bold tracking-[0.08em] text-muted-foreground uppercase">Posture · move being prepared</span>
-        <strong className="mt-2 block text-xl text-foreground capitalize">{state.corporation.strategy.replaceAll("_", " ")}</strong>
-        <p className="mb-0 text-[11px] leading-5 text-muted-foreground">{describeCorporationPosture(state.corporation.strategy)}</p>
+        <span className="brb-telemetry text-[10px] font-bold tracking-[0.08em] text-muted-foreground uppercase">Posture · being prepared (hidden)</span>
+        <strong className="mt-2 block text-xl text-foreground capitalize">
+          {state.corporation.lastMove
+            ? `Last observed move: ${state.corporation.lastMove.replaceAll("_", " ")}`
+            : "No move observed yet"}
+        </strong>
+        <p className="mb-0 text-[11px] leading-5 text-muted-foreground">
+          The move the Corporation is preparing is concealed. Consult an advisor to
+          forecast the posture before committing a counter-operation.
+        </p>
       </div>
       <div className="border-t border-border py-4">
         <span className="brb-telemetry text-[10px] font-bold tracking-[0.08em] text-muted-foreground uppercase">Response clock · when the move happens</span>

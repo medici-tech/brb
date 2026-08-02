@@ -101,7 +101,7 @@ Each advisor has:
 - **Competence:** effectiveness at their work.
 - **Agenda, relationship tags, crisis specialty, and a visible Loyalty breaking point.**
 
-An approved commitment adds 4 Alignment and 1 Loyalty. A disapproved commitment removes 2 Alignment and 2 Loyalty. Competence, Alignment, Loyalty, Leverage, remembered treatment, and false-plan doctrine all shape consultation accuracy. An advisor leaves when Loyalty falls below their individual breaking point or Leverage reaches 90. An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence. Each consultation produces one legal, specific recommendation shaped by that advisor's agenda; it is explicitly advice, not an optimality claim.
+An approved commitment adds 4 Alignment and 1 Loyalty. A disapproved commitment removes 2 Alignment and 2 Loyalty. Competence, Alignment, Loyalty, Leverage, remembered treatment, and false-plan doctrine all shape consultation accuracy. An advisor leaves when Loyalty falls below their individual breaking point. High Leverage no longer produces a graceful exit: an advisor who reaches the coup bar seizes control instead of departing (see [Endings](#endings)). An incompetent loyalist and a brilliant rival should both be viable problems. Consulting can improve information, but may also reveal bias or increase dependence. Each consultation produces one legal, specific recommendation shaped by that advisor's agenda; it is explicitly advice, not an optimality claim.
 
 ## Corporation
 
@@ -112,9 +112,9 @@ The Corporation is a visible rival with a strategy, not a random attack meter. T
 - Discrediting
 - Buying influence
 
-Players should infer the current state and adapt. Corporation moves respond to player choices and vulnerabilities rather than firing without context. Each candidate posture receives its own small seeded jitter, so close strategic scores can diverge without sacrificing replay determinism.
+Players should infer the current state and adapt. The **prepared posture is hidden**: the player sees only the Corporation's last executed move as a tell and must pay an advisor consultation to forecast the posture being prepared. A counter-operation therefore targets a *predicted* posture and is a genuine bet—it blocks the move only if the forecast is correct, and a wrong guess wastes the operation and raises Threat. This makes the paid forecast load-bearing (the technocrat/analyst precise forecast is a real archetype advantage) rather than redundant. Corporation moves respond to player choices and vulnerabilities rather than firing without context. Each candidate posture receives its own small seeded jitter, so close strategic scores can diverge without sacrificing replay determinism.
 
-Corporation Watch separates three related signals. **Progress** is the rival victory meter and ends the campaign at 100. **Posture** identifies the kind of move being prepared. **Threat** controls response cadence and move severity: Monitored (0–24) is 100% severity, Mobilized (25–49) is 110%, Aggressive (50–74) is 125% and one month faster, and Critical (75–100) is 150% and two months faster. Threat modifies the existing BRB-completion cadence with a one-month minimum.
+Corporation Watch separates three related signals. **Progress** is the rival victory meter and ends the campaign at 100. **Posture** is the concealed move being prepared, surfaced only through an advisor forecast; the panel shows the last observed move as a tell. **Threat** controls response cadence and move severity: Monitored (0–24) is 100% severity, Mobilized (25–49) is 110%, Aggressive (50–74) is 125% and one month faster, and Critical (75–100) is 150% and two months faster. Threat modifies the existing BRB-completion cadence with a one-month minimum.
 
 ## Situation Deck
 
@@ -141,7 +141,18 @@ For the full game, optional mutators can include unreliable intelligence, double
 
 ## Endings
 
-There are 3–4 prototype endings. Endings emerge from BRB activation, track quality, panic, institutional stability, advisor relationships, Corporation status, and major choices.
+The prototype has six endings. Endings emerge from BRB activation, track quality, panic, institutional stability, advisor relationships, Corporation status, and major choices.
+
+- **Civic Legacy** (win): activation under durable public control — all nine civic conditions hold.
+- **Compromised Activation** (win): activation with access safe but at least one civic condition failed.
+- **Corporate Capture** (loss): Corporation Progress reaches 100, or activation occurs while the Corporation holds the decisive access point.
+- **State Collapse** (loss): Panic reaches 100, Institutions reach 0, or every advisor leaves.
+- **Advisor Coup** (loss): one advisor reaches Leverage 85 and seizes control. High Leverage alone is decisive — there is no dependence gate, and there is no graceful high-Leverage departure; leaning too hard on one advisor hands them the state.
+- **Advisor Cabal** (loss): two or more active advisors each hold cabal-level Leverage (50) and jointly govern without the player.
+
+**Reliance compounds.** Each month, an active advisor already at or above Leverage 50 gains a little more Leverage. Because the player can only discipline one advisor per month (`manage_advisor`), leaning on advisors drifts them toward takeover unless actively checked — so over-reliance is a pervasive threat in normal play, not only an extreme strategy. Only Leverage at or above the floor compounds, so early relationships are untouched. An advisor still resigns when Loyalty falls below their breaking point.
+
+The two advisor losses make over-reliance on consultation and advisor shortcuts a distinct failure mode rather than a slow slide into State Collapse: leaning on advisors builds the Leverage that eventually lets them win. They reinforce the Civic Legacy requirement that no advisor holds decisive Leverage.
 
 Victory is not binary. Possible outcomes include preserving democracy, authoritarian control, illegitimate activation, advisor capture, finishing too late, stopping the Corporation while abandoning BRB, or mutual catastrophe.
 
@@ -159,7 +170,7 @@ The itch.io prototype is not the full BRB game. It proves only four things:
 - 3 advisors and 3 archetypes
 - 5 active resources and 4 BRB tracks (pending validation)
 - Open-ended monthly campaigns, 15 interactive Situation Cards, and 2 connected chains
-- 4 Corporation move types and 3–4 endings
+- 4 Corporation move types and 6 endings
 - One difficulty level, local saves, seeded runs, run summary, and basic simulation tools
 
 ### Presentation

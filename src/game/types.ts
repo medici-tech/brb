@@ -65,11 +65,13 @@ export type PressurePool = {
 
 export type AdvisorId = (typeof ADVISOR_IDS)[number];
 export type ArchetypeId = "technocrat" | "populist" | "operator";
-export type CorporationStrategy =
-  | "expanding"
-  | "infiltrating"
-  | "discrediting"
-  | "buying_influence";
+export const CORPORATION_STRATEGIES = [
+  "expanding",
+  "infiltrating",
+  "discrediting",
+  "buying_influence",
+] as const;
+export type CorporationStrategy = (typeof CORPORATION_STRATEGIES)[number];
 
 export type ActionCategory =
   | "deposit"
@@ -261,7 +263,9 @@ export type EndingId =
   | "civic_legacy"
   | "compromised_activation"
   | "corporate_capture"
-  | "state_collapse";
+  | "state_collapse"
+  | "advisor_coup"
+  | "advisor_cabal";
 
 export type EndingVariationId =
   | "perfect_machine_empty_state"

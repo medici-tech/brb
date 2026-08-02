@@ -1,5 +1,6 @@
 import {
   ADVISORS,
+  ADVISOR_TAKEOVER_RULES,
   ARCHETYPES,
   BASE_RESOURCES,
   CORPORATION_MOVES,
@@ -463,7 +464,15 @@ export function getKnownActionDelta(
   state: GameState,
   action: MajorAction,
 ): StateDelta | null {
-  if (action.type === "resolve_card" || action.type === "activate_brb") return null;
+  // counter_corporation resolves against the hidden Corporation posture, so its
+  // outcome (a block versus a wasted operation) must never be previewable.
+  if (
+    action.type === "resolve_card"
+    || action.type === "activate_brb"
+    || action.type === "counter_corporation"
+  ) {
+    return null;
+  }
   const preview = cloneState(state);
   const before = snapshotGameEffects(preview);
   applyPlayerAction(preview, action);
@@ -485,6 +494,15 @@ function applyPressure(state: GameState): void {
     );
   }
   if (state.systemModifiers.includes("emergency_rule")) state.institutions = clamp(state.institutions - 1);
+  // Reliance compounds: an advisor who already holds real sway accrues a little
+  // more Leverage each month. Only advisors at or above the floor drift, so early
+  // relationships are untouched; over-reliance is what trends toward takeover.
+  for (const advisorId of ADVISOR_IDS) {
+    const advisor = state.advisors[advisorId];
+    if (advisor.active && advisor.leverage >= ADVISOR_TAKEOVER_RULES.relianceCreepFloor) {
+      advisor.leverage = clamp(advisor.leverage + ADVISOR_TAKEOVER_RULES.relianceCreepPerMonth);
+    }
+  }
 }
 
 type AuditSnapshot = {
@@ -696,13 +714,16 @@ export function commitAction(
     corporationResponse,
     monthlyPressure,
   };
-  chooseCorporationStrategy(next, action);
-
   next.turn += 1;
   next.consultation = null;
   next.phase = "briefing";
   evaluateTerminalState(next);
-  if (!next.ending) drawSituationCard(next);
+  if (!next.ending) {
+    // Only prepare next month's posture and Situation when the run continues; a
+    // terminated run should not advance the RNG or set a move that never acts.
+    chooseCorporationStrategy(next, action);
+    drawSituationCard(next);
+  }
   return { state: next, accepted: true };
 }
 
@@ -746,7 +767,13 @@ export function getValidActions(
     const candidate: MajorAction = { type: "manage_advisor", advisorId };
     if (!getActionError(state, candidate, getCandidateOptions(candidate))) actions.push(candidate);
   }
-  for (const resource of RESOURCE_KEYS) actions.push({ type: "recover_resource", resource });
+  for (const resource of RESOURCE_KEYS) {
+    // Recovering a reserve already at its cap gains nothing while still burning
+    // the month and feeding the Corporation, so it is never offered.
+    if (state.resources[resource] >= 100) continue;
+    const candidate: MajorAction = { type: "recover_resource", resource };
+    if (!getActionError(state, candidate, getCandidateOptions(candidate))) actions.push(candidate);
+  }
   for (const action of [
     { type: "strengthen_faction" },
     { type: "protect_institutions" },
@@ -798,7 +825,7 @@ export function getBriefing(state: GameState): string[] {
     formatCampaignTime(state.turn),
     card ? `${card.title}: ${card.description}` : "No Situation Card demands an immediate response.",
     `Weakest resource: ${weakestResource} (${state.resources[weakestResource]})`,
-    `Corporation Threat: ${state.corporation.threat} (${corporationPressure.tier}); Posture: ${state.corporation.strategy.replace("_", " ")}`,
+    `Corporation Threat: ${state.corporation.threat} (${corporationPressure.tier}); last observed move: ${state.corporation.lastMove ? state.corporation.lastMove.replace("_", " ") : "none yet"}. The posture being prepared is hidden—consult an advisor to forecast it.`,
     `Corporation response cadence: every ${corporationPressure.responseIntervalMonths} month${corporationPressure.responseIntervalMonths === 1 ? "" : "s"}; next response due Month ${corporationPressure.nextResponseMonth}.`,
     `BRB completion pressure: ${completionPressure.tier} (${completionPressure.completionPercent}%; ${describeCompletionPressure(completionPressure)}).`,
   ];

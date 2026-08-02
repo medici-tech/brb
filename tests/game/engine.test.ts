@@ -156,7 +156,7 @@ describe("major commitments", () => {
     },
   );
 
-  it("uses Leverage 90, but not 89, as an advisor departure threshold", () => {
+  it("resigns an advisor only when Loyalty falls below the breaking point", () => {
     const state = createGame(302);
     state.activeCardId = null;
     state.resources = {
@@ -166,8 +166,9 @@ describe("major commitments", () => {
       trust: 100,
       capacity: 100,
     };
-    state.advisors.analyst.leverage = 89;
-    state.advisors.fixer.leverage = 90;
+    // Low Loyalty resigns; leverage stays low so no takeover competes.
+    state.advisors.analyst.loyalty = ADVISORS.analyst.loyaltyBreakingPoint + 6;
+    state.advisors.fixer.loyalty = ADVISORS.fixer.loyaltyBreakingPoint - 5;
 
     const result = commitAction(
       state,
@@ -176,6 +177,7 @@ describe("major commitments", () => {
 
     expect(result.advisors.analyst.active).toBe(true);
     expect(result.advisors.fixer.active).toBe(false);
+    expect(result.ending).toBeNull();
   });
 
   it("changes Alignment and Loyalty according to approval without using low Alignment to remove an advisor", () => {
@@ -788,5 +790,116 @@ describe("delayed echo rules", () => {
     expect(consulted.history).toContainEqual(
       expect.objectContaining({ causedByDecisionId: source?.id }),
     );
+  });
+});
+
+describe("advisor takeover endings", () => {
+  function monthOfRecovery(state: ReturnType<typeof createGame>) {
+    state.activeCardId = null;
+    return commitAction(state, { type: "recover_resource", resource: "money" }).state;
+  }
+
+  it("ends in a coup when a capped advisor faces weakened Institutions", () => {
+    const state = createGame(501);
+    state.advisors.fixer.leverage = 90;
+    state.institutions = 40;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending?.id).toBe("advisor_coup");
+    expect(result.ending?.reason).toContain(ADVISORS.fixer.name);
+    expect(result.advisors.fixer.active).toBe(true);
+    expect(result.phase).toBe("ended");
+  });
+
+  it("ends in a coup when a capped advisor is the only one left", () => {
+    const state = createGame(502);
+    state.advisors.analyst.leverage = 90;
+    state.advisors.fixer.active = false;
+    state.advisors.steward.active = false;
+    state.institutions = 80;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending?.id).toBe("advisor_coup");
+    expect(result.ending?.reason).toContain(ADVISORS.analyst.name);
+  });
+
+  it("coups on high Leverage alone, regardless of Institutions", () => {
+    const state = createGame(503);
+    state.advisors.fixer.leverage = 85;
+    state.institutions = 90;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending?.id).toBe("advisor_coup");
+    expect(result.advisors.fixer.active).toBe(true);
+  });
+
+  it("does not coup just below the Leverage bar", () => {
+    const state = createGame(508);
+    state.advisors.fixer.leverage = 82;
+    state.institutions = 55;
+
+    const result = monthOfRecovery(state);
+
+    // 82 + one month of reliance creep (+1) = 83, still below the 85 coup bar.
+    expect(result.ending).toBeNull();
+  });
+
+  it("compounds reliance Leverage monthly above the floor but not below it", () => {
+    const state = createGame(509);
+    state.advisors.fixer.leverage = 60;
+    state.advisors.steward.leverage = 40;
+
+    const result = monthOfRecovery(state);
+
+    // Fixer is above the reliance floor and gains a point; Steward is below it.
+    expect(result.advisors.fixer.leverage).toBe(61);
+    expect(result.advisors.steward.leverage).toBe(40);
+  });
+
+  it("ends in a cabal when two active advisors reach the joint bar", () => {
+    const state = createGame(504);
+    state.advisors.analyst.leverage = 70;
+    state.advisors.steward.leverage = 70;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending?.id).toBe("advisor_cabal");
+    expect(result.ending?.reason).toContain(ADVISORS.analyst.name);
+    expect(result.ending?.reason).toContain(ADVISORS.steward.name);
+  });
+
+  it("does not form a cabal below the joint bar", () => {
+    const state = createGame(505);
+    state.advisors.analyst.leverage = 49;
+    state.advisors.steward.leverage = 49;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending).toBeNull();
+  });
+
+  it("lets an existential Corporation loss outrank a takeover in the same month", () => {
+    const state = createGame(506);
+    state.advisors.analyst.leverage = 75;
+    state.advisors.steward.leverage = 75;
+    state.corporation.progress = 99;
+
+    const result = monthOfRecovery(state);
+
+    expect(result.ending?.id).toBe("corporate_capture");
+  });
+
+  it("round-trips a coup ending through persistence", () => {
+    const state = createGame(507);
+    state.advisors.steward.leverage = 90;
+    state.institutions = 30;
+
+    const ended = monthOfRecovery(state);
+
+    expect(ended.ending?.id).toBe("advisor_coup");
+    expect(deserializeGame(serializeGame(ended))).toEqual(ended);
   });
 });

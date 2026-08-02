@@ -316,7 +316,7 @@ function recommendationScore(
   state: GameState,
   advisorId: AdvisorId,
   action: MajorAction,
-  predictedStrategy: CorporationStrategy,
+  predictedStrategy: CorporationStrategy | null,
 ): number {
   const category = getActionCategory(action);
   let score = ADVISORS[advisorId].agenda.includes(category) ? 45 : 10;
@@ -325,9 +325,15 @@ function recommendationScore(
     if (choice) score += 50 + choiceValue(state, choice, advisorId);
   }
   if (action.type === "counter_corporation") {
-    score += action.predictedStrategy === predictedStrategy ? 75 : -100;
-    if (advisorId === "analyst") score += 30;
-    if (advisorId === "fixer") score += 15;
+    // Without a forecast the true posture is unknown, so never steer the player
+    // into a blind counter that would only reveal the outcome by guessing.
+    if (predictedStrategy === null) {
+      score -= 100;
+    } else {
+      score += action.predictedStrategy === predictedStrategy ? 75 : -100;
+      if (advisorId === "analyst") score += 30;
+      if (advisorId === "fixer") score += 15;
+    }
   }
   if (action.type === "deposit") {
     if (advisorId === "analyst") score += action.size === "standard" ? 35 : 22;
@@ -359,7 +365,7 @@ function recommendationScore(
 export function getAdvisorRecommendation(
   state: GameState,
   advisorId: AdvisorId,
-  predictedStrategy: CorporationStrategy = state.corporation.strategy,
+  predictedStrategy: CorporationStrategy | null = state.consultation?.predictedStrategy ?? null,
 ): AdvisorRecommendation | null {
   const actions = getValidActions(state);
   if (actions.length === 0) return null;

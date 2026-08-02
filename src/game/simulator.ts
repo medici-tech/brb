@@ -131,6 +131,9 @@ const DEFAULT_BOTS: BotId[] = [
   "stability_first",
   "access_first",
   "delayed_deposit",
+  "advisor_dependent",
+  "advisor_cabal",
+  "civic_seeker",
 ];
 const ALL_BOTS: BotId[] = [...DEFAULT_BOTS, "long_horizon"];
 const ALL_ARCHETYPES: ArchetypeId[] = ["technocrat", "populist", "operator"];
@@ -143,6 +146,9 @@ const PREFERRED_ARCHETYPES: Partial<Record<BotId, ArchetypeId>> = {
   legitimacy_first: "populist",
   stability_first: "technocrat",
   access_first: "operator",
+  advisor_dependent: "operator",
+  advisor_cabal: "operator",
+  civic_seeker: "populist",
   long_horizon: "technocrat",
 };
 const ALL_ENDINGS: EndingId[] = [
@@ -150,6 +156,8 @@ const ALL_ENDINGS: EndingId[] = [
   "compromised_activation",
   "corporate_capture",
   "state_collapse",
+  "advisor_coup",
+  "advisor_cabal",
 ];
 const ALL_ACTIONS: ActionCategory[] = [
   "deposit",
@@ -575,8 +583,12 @@ export function runSimulation(options: SimulationOptions): SimulationReport {
     outcomeSummary: {
       activations: victories,
       activationRate: percent(victories, options.runs),
+      civicLegacyRate: percent(endings.civic_legacy, options.runs),
+      compromisedActivationRate: percent(endings.compromised_activation, options.runs),
       collapseRate: percent(endings.state_collapse, options.runs),
       corporateCaptureRate: percent(endings.corporate_capture, options.runs),
+      advisorCoupRate: percent(endings.advisor_coup, options.runs),
+      advisorCabalRate: percent(endings.advisor_cabal, options.runs),
       premiumEndings,
       premiumEndingRate: percent(premiumEndings, options.runs),
     },
