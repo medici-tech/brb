@@ -2,6 +2,22 @@
 
 These instructions apply to the entire repository.
 
+## Instruction Files
+
+**This file is the single source of truth.** Different assistants auto-load
+different filenames, so the repository keeps one real document and a thin
+pointer for each convention:
+
+| File | Loaded by | Contents |
+| --- | --- | --- |
+| `AGENTS.md` | Codex, and Claude Code / Cursor versions that support it | Everything. Edit this one. |
+| `CLAUDE.md` | Claude Code | Pointer only |
+| `.cursor/rules/brb.mdc` | Cursor (`alwaysApply: true`) | Pointer only |
+
+Never copy guidance into a pointer — duplicated instructions drift, and the copy
+that drifts is the one somebody reads. Add it here instead. If you add another
+assistant, add another pointer rather than another document.
+
 ## Mission
 
 BRB is a compact, turn-based political strategy roguelite. The player permanently deposits scarce political resources into four BRB tracks while managing advisors, public pressure, institutions, and the Corporation. A run should create meaningful sacrifice, traceable consequences, and a reason to replay.
@@ -233,7 +249,7 @@ Give Game Studio concrete BRB context instead of asking for a generic “game da
 - **Player verbs:** Assess → Investigate/Consult → Commit → Read consequences → Adapt;
 - **Primary playfield:** the active Situation file and its choices;
 - **Persistent HUD:** resources, state pressure, BRB readiness, advisors, and Corporation Watch;
-- **Secondary surfaces:** How to Play, Archive, Playtest Journal, reports, and long explanations behind dialogs or dedicated views;
+- **Secondary surfaces:** Field Manual, Archive, Playtest Journal, reports, and long explanations behind dialogs or dedicated views;
 - **Material language:** charcoal console, aged dossier paper, amber/red signals, restrained institutional typography;
 - **Motion:** ambient and restrained; strong motion only for danger, commitment, activation, and onboarding; respect reduced motion;
 - **Platforms:** desktop-first responsive browser UI with a viable narrow layout;

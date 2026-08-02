@@ -1,0 +1,18 @@
+---
+description: BRB project instructions — always load AGENTS.md before working in this repository.
+alwaysApply: true
+---
+
+# BRB project instructions
+
+Project instructions live in [AGENTS.md](../../AGENTS.md). Read that file before
+making changes; it is the single source of truth and this rule is only a pointer.
+
+Do not duplicate guidance here — it will drift. Add it to `AGENTS.md`.
+
+Two entry points worth knowing before you start:
+
+- `AGENTS.md` § "Start Here and Resolve Conflicts in This Order" — the document
+  priority list, and how to resolve a conflict between code and docs.
+- `docs/BRB_ART_DIRECTION.md` Part 0 — the gate for any visual work. Artwork,
+  room recipes, sprite geometry, and motion all pass through it.
