@@ -33,6 +33,8 @@ Assume the maintainer is still learning React and Next.js. When handing off work
 5. `docs/BRB_BALANCE_TARGETS.md` records current targets and chronological experiments.
 6. `docs/BRB_PHASE_PLAN.md` identifies the current phase and next gate.
 7. `docs/BRB_GUIDED_PLAYTEST.md` defines the internal human-playtest protocol.
+8. `docs/BRB_ART_DIRECTION.md` is binding for anything visual. Read Part 0 before
+   touching an asset.
 
 `docs/BRB_CURRENT_AUDIT.md` is a dated implementation and delivery-risk snapshot. Use it to identify things to recheck, not as proof that a failure or test count is still current.
 
@@ -184,7 +186,9 @@ Update documentation in the same change when behavior or terminology changes:
 - cards, echoes, route provenance, replay, report, Archive, or persistence → `BRB_REPLAY_ENGINE.md`;
 - balance target or experiment → `BRB_BALANCE_TARGETS.md` and the automatic simulation log;
 - phase status or delivery gate → `BRB_PHASE_PLAN.md`;
-- guided-playtest procedure → `BRB_GUIDED_PLAYTEST.md`.
+- guided-playtest procedure → `BRB_GUIDED_PLAYTEST.md`;
+- visual rule, palette, composition, or motion principle → `BRB_ART_DIRECTION.md`;
+- curated asset, crop, hash, or room recipe → `BRB_ART_INVENTORY.md`.
 
 Prefer player labels in UI copy and canonical IDs in technical discussion. Name ambiguous meters fully: “Corporation Progress,” “Corporation Threat,” “BRB Stability,” or “Institutions.”
 
@@ -218,7 +222,7 @@ Use `game-studio:game-studio` when a request spans design, UI, assets, architect
 | Browser smoke test, screenshots, responsive or motion review | `game-studio:game-playtest` | Test Start → Campaign → Report → Replay/Archive and the guided-playtest path |
 | Animated 2D character or effect strips | `game-studio:sprite-pipeline` | Only after one approved in-game seed frame; generate the whole strip, normalize, and preview |
 
-For a static advisor portrait or dossier image, use image generation with an approved art direction; do not force it through the animation-strip workflow. The 3D specialists are out of scope unless the user explicitly requests a 3D direction.
+Image generation is **step 4** of the production hierarchy in `BRB_ART_DIRECTION.md` §0.2, not the default. Curate from the licensed pack, compose through `scripts/room-recipes.ts`, and measure against the documented rules first; generate only for concept work or a genuinely missing asset class, and say why the steps above could not serve. Generated work reaches `public/assets/` only after the §34 checklist plus technical and licensing review. Note that advisor portraits are ruled out by §15 — figures in BRB are roles, not likenesses. The 3D specialists are out of scope unless the user explicitly requests a 3D direction.
 
 ### BRB UI prompt ingredients
 
@@ -282,3 +286,7 @@ A browser-game change is not complete merely because the component renders. Conf
 - Run the proportionate tests and report exactly what ran.
 - Mention any simulation log or documentation change explicitly.
 - Summarize the player-facing result and the architecture impact in plain language.
+- For any change that touches artwork, a room recipe, sprite geometry, or motion,
+  cite the `BRB_ART_DIRECTION.md` rule numbers applied, report the completed §34
+  checklist, name the visual anchor, and give measured values — not "it looks
+  consistent" — for anything Parts III or IX specify as a number.
