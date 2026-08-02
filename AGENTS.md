@@ -281,7 +281,7 @@ A browser-game change is not complete merely because the component renders. Conf
 ## Before Finishing
 
 - Inspect `git diff` and preserve unrelated user changes.
-- Never include more than 13 files in one commit. Split larger changes into coherent, independently reviewable commits.
+- Never include more than 12 files in one commit. Split larger changes into coherent, independently reviewable commits.
 - Confirm the change stayed within the current phase and prototype scope.
 - Run the proportionate tests and report exactly what ran.
 - Mention any simulation log or documentation change explicitly.
