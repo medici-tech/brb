@@ -17,3 +17,10 @@ test-results/
 
 # Playwright MCP scratch output (screenshots, snapshots, console logs)
 .playwright-mcp/
+
+# Local working scratch: contact sheets, curation previews, throwaway scripts.
+# scripts/contact-sheet.ts writes here and the art docs describe it as ignored.
+scratchpad/
+
+# Agent-tool local state (worktree checkouts, preview launch config).
+.claude/
