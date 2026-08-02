@@ -1,8 +1,14 @@
 # BRB Art Inventory
 
-Audited 2026-07-30 against the locally supplied LimeZu pack and the orthographic
+Audited 2026-07-31 against the locally supplied LimeZu pack and the orthographic
 room-composite pipeline. Licensed source and runtime PNGs are gitignored; this
 document records provenance without redistributing the artwork.
+
+Room shells are assembled from a paired floor/wall set rather than a single flat
+tile. Each far edge carries the complete 16×32 wall segment (crown, face,
+baseboard); side and near edges carry the flat 16×16 face. Floors are paired to
+wall styles by measured luminance so the shell is never the same value as the
+floor it encloses.
 
 ## Curated runtime set
 
@@ -25,10 +31,18 @@ gitignored outputs.
 | `staffCrossingWalkLeft` | `Premade_Character_04.png`, crop 96×32+0+160 | `control-room/staff/crossing-walk-left.png` | 96×32; 6 × 16×32 | `eedeb0276898eb1059d7c4c0cae96d1f6e34359614bd8c3c0a99c56e5abf98e7` | Corridor courier (right→left) | Decorative travel freezes for reduced motion |
 | `envSecurityCamera` | `animated_security_camera_right.png`, endpoint frames repeated to match the GIF | `control-room/environment/security-camera.png` | 288×16; 18 × 16×16 at 10 fps | `bb6f68d33389db11a17fd03b0aeed9be94acaa10d3b957ba1b5aed5a99140a2d` | Facility back-wall camera layer | Shown at whole-canvas 1× |
 | `envConferenceDesk` | `Conference_Hall_Singles_32.png` | `control-room/environment/conference-desk.png` | 16×32; static | `19f22b96cde2b9301f0cb2882a0074eed3ef9dd5840b7d6aec79b6a8f66dce64` | Prop single / recipe furniture source | N/A at room scale |
-| `envFloor` | `Room_Builder_Floors_16x16.png`, crop 16×16+128+272 | `control-room/environment/floor.png` | 16×16; static | `006f8be619116e5b46c3130ccad9a06e74fd40bbfb1b8982d5b24014c13127c1` | Room-composite floor fill | Baked into room bases |
-| `envWall` | `Room_Builder_Walls_16x16.png`, crop 16×16+16+492 | `control-room/environment/wall.png` | 16×16; static | `6139da6bf96814ed8a547b9e7bea53186115b2d17fdd78605524211111a83efd` | Room-composite wall fill | Baked into room bases |
-| `envRecordsShelfSparse` | `Classroom_and_Library_Singles_67.png` | `control-room/environment/records-shelf-sparse.png` | 32×48; static | `e8dfa176f36e3b36f81660381eb127122fa94df0aabc1a4f926256df981188b1` | First Archive evidence shelf | 1× inside room canvas |
-| `envRecordsShelfFull` | `Classroom_and_Library_Singles_60.png` | `control-room/environment/records-shelf-full.png` | 32×48; static | `dbfb77c49f391714d2f5809fbd0471bf0a943d8b2eda076a825c3bf8c17f873f` | Second Archive evidence shelf | 1× inside room canvas |
+| `envFloor` | `Room_Builder_Floors_16x16.png`, crop 16×16+128+544 | `control-room/environment/floor.png` | 16×16; static | `779ea34a5810a0d4905a8ab0cbbcc5ad9095acaaeaecc7e80a98661038b6608c` | Slate-walled operational rooms | Baked into room bases |
+| `envFloorAdmin` | `Room_Builder_Floors_16x16.png`, crop 16×16+192+384 | `control-room/environment/floor-admin.png` | 16×16; static | `b5386065bada81ad004d04e678c9f069746513b62f209f50d01f581c0192d8e0` | Pale-walled civil rooms | Baked into room bases |
+| `envFloorWood` | `Room_Builder_Floors_16x16.png`, crop 16×16+192+432 | `control-room/environment/floor-wood.png` | 16×16; static | `5f298e0db7774bca89bd35cc00cf362d3a11607513afa8386f5c65046030dff5` | Corporate suite | Baked into room bases |
+| `envFloorWorks` | `Room_Builder_Floors_16x16.png`, crop 16×16+0+576 | `control-room/environment/floor-works.png` | 16×16; static | `686b025ebb11b202a441b727925b56a8b50aa09c19b8af82da8484b42f821827` | Worksite and civic perimeter | Baked into room bases |
+| `envWall` | `Room_Builder_Walls_16x16.png`, crop 16×16+16+552 | `control-room/environment/wall.png` | 16×16; static | `9dd566f52595b9e954a16acafb00dd1627b74fe026a94737ad7cb80367539260` | Slate side/near edges, partitions | Baked into room bases |
+| `envWallCrown` | `Room_Builder_Walls_16x16.png`, crop 16×32+16+544 | `control-room/environment/wall-crown.png` | 16×32; static | `5dcaf28bf25d78ff010a8183fb66b4b9f222927252518801682d5fbcbf2795e9` | Slate far-edge wall band | Baked into room bases |
+| `envWallPale` | `Room_Builder_Walls_16x16.png`, crop 16×16+16+72 | `control-room/environment/wall-pale.png` | 16×16; static | `e17b86b0a36495d3beb4414b7b6d6695021eceaed9893d8a40fa8682fe9de417` | Pale side/near edges | Baked into room bases |
+| `envWallPaleCrown` | `Room_Builder_Walls_16x16.png`, crop 16×32+16+64 | `control-room/environment/wall-pale-crown.png` | 16×32; static | `6378e027ac155816b05faa71e939bf43590046093e212abe85e0d638c1ffa416` | Pale far-edge wall band | Baked into room bases |
+| `envWallWarm` | `Room_Builder_Walls_16x16.png`, crop 16×16+16+360 | `control-room/environment/wall-warm.png` | 16×16; static | `7b86b1f81e3a7af433e0cb4afa102b74ddcde5e2008b0dc6fe5d7645fb106045` | Warm side/near edges | Baked into room bases |
+| `envWallWarmCrown` | `Room_Builder_Walls_16x16.png`, crop 16×32+16+352 | `control-room/environment/wall-warm-crown.png` | 16×32; static | `822c4471cf0156cf2a429ae040f4a3c8c36d52038f62137736bfe553d1d2272b` | Warm far-edge wall band | Baked into room bases |
+| `envRecordsShelfSparse` | `Classroom_and_Library_Singles_56.png` | `control-room/environment/records-shelf-sparse.png` | 32×48; static | `6d651b2868f3ff97eab4eaaea69f978d0d4ab6bd0d6cc45e97352c7acefd5185` | First Archive evidence shelf | 1× inside room canvas |
+| `envRecordsShelfFull` | `Classroom_and_Library_Singles_57.png` | `control-room/environment/records-shelf-full.png` | 32×48; static | `bd23ec32d7b63708fdb2064291d18733e5ee1225dabc38f77f54aab28fa6a101` | Second Archive evidence shelf | 1× inside room canvas |
 | `envRecordsShelfOverflow` | `Classroom_and_Library_Singles_74.png` | `control-room/environment/records-shelf-overflow.png` | 32×48; static | `f45a8f4f4d97682df08ef18ec5aa111b23367faff2b9e8a4305d91bdeee88ff1` | Third Archive evidence shelf | 1× inside room canvas |
 | `envOversightBroadcast` | `animated_TV_reportage.png` | `control-room/narrative/oversight-broadcast.png` | 1152×32; 24 × 48×32 | `5ca128397fe04acd99997191d0273c3d0eca4a798d3a0e97f3dd3a9ae6311861` | Oversight-chamber `monitor-bank` prop (TV reportage strip) | 1× inside room canvas |
 | `envSecureSafe` | `animated_safe_empty.png` | `control-room/narrative/secure-safe.png` | 96×32; 6 × 16×32 | `e5ff73c95d6d5b6b6c25624ed21fddf1f4a16510964507f8da8a87384db3a4d3` | Secure briefing aftermath prop | 1× inside room canvas |
@@ -39,20 +53,22 @@ gitignored outputs.
 ### Orthographic room bases
 
 Composites are built by `scripts/curate-art.ts` from `scripts/room-recipes.ts` using
-flat room-builder tiles and black-shadow furniture singles. Each base is one static
-frame at full source size.
+room-builder floor tiles, wall faces, far-edge wall bands, and furniture singles.
+Each base is one static frame at full source size. `curate-art.ts` verifies every
+placement's committed tile size against the real PNG before compositing, so the
+hand-maintained size table in `room-recipes.ts` cannot silently drift from the pack.
 
 | Semantic key | Recipe note | Runtime destination | Source size | SHA-256 | React use |
 | --- | --- | --- | --- | --- | --- |
-| `roomFacility` | 22×14 continuity facility: command, BRB chamber, records annex, corridor | `control-room/rooms/continuity-facility.png` | 352×224 | `847d58865cdc60931b1a8313303b0429721e35b26c67ad5c9c74b460c69ca164` | Campaign + Ending `PixelRoom` |
-| `roomIntake` | Compact federal intake office | `control-room/rooms/intake-office.png` | 224×160 | `df796c59f6f4aacfbfd853fd09e50699a749a59cefe13eba45567e67017e9ebd` | Start operational brief |
-| `roomRecords` | Evidence records office; shelves are separate state layers | `control-room/rooms/records-office.png` | 224×160 | `ae2ad6b41857a4b79bf4b5b970beb9be12ff2115c6c74fec278d3f449b7b535b` | Report + Archive evidence scene |
-| `roomContinuity` | Continuity-floor aftermath | `control-room/rooms/aftermath-continuity.png` | 224×160 | `bc74a20a5ae08ce3722612f1ee00df34058597e453342e9c05ce2bdaf6d5a00d` | Aftermath location base |
-| `roomOversight` | Oversight hearing room | `control-room/rooms/aftermath-oversight.png` | 224×160 | `56b05cae4b9c8e7172a9fce42c718d22975c2bb9f5bafe21d59f3b280ee7f7a5` | Aftermath location base |
-| `roomSecureBriefing` | Compartmented briefing room | `control-room/rooms/aftermath-secure-briefing.png` | 224×160 | `989bc69710267689fdcad639502c90b8fa4463e5849e7339eca217cd5e20ecfb` | Aftermath location base |
-| `roomInfrastructure` | BRB infrastructure workroom | `control-room/rooms/aftermath-infrastructure.png` | 224×160 | `48ffea669d2f1bda891c5e56a4274c31ffaba8bb4b74b4395e656b9b7aaf18a4` | Aftermath location base |
-| `roomCorporate` | Corporation executive suite | `control-room/rooms/aftermath-corporate.png` | 224×160 | `30edbc4db8be1e463ab70aad61a1d0d7d7bb468ef209cf38f1bf233fb118aa41` | Aftermath location base |
-| `roomCivicGate` | Civic-perimeter gate room | `control-room/rooms/aftermath-civic-gate.png` | 224×160 | `6f4fb4ad40046c3d28224be5dadee7b86fcc368274694f5686703e3761b37b46` | Aftermath location base |
+| `roomFacility` | 22×14 continuity facility: console far wall, walled command floor, empty state-built BRB chamber, records annex, corridor | `control-room/rooms/continuity-facility.png` | 352×224 | `e35ab484bc7671621d4274b3518ba1197f08ad627322ad0a137f23b3d41c5f58` | Campaign + Ending `PixelRoom` |
+| `roomIntake` | Compact federal intake office; pale walls over the admin floor | `control-room/rooms/intake-office.png` | 224×160 | `fb0960a423f14bce88389c3a6c30a04e5de28e59c956a0b2e1b2b0fab506987d` | Start operational brief |
+| `roomRecords` | Evidence records office; rows 2–4 reserved for shelf state layers | `control-room/rooms/records-office.png` | 224×160 | `53a065f6e733a96c1f974982364c1b0137d88ed40011cc23ae3aecfe2164bbfb` | Report + Archive evidence scene |
+| `roomContinuity` | Continuity floor: six-console far wall over the command table | `control-room/rooms/aftermath-continuity.png` | 224×160 | `9040953ca994a1f21d61b21bc42ad244da7d9e25fefac95af8215cdc48219430` | Aftermath location base |
+| `roomOversight` | Oversight hearing room: bench, broadcast rig, public seating | `control-room/rooms/aftermath-oversight.png` | 224×160 | `383364e64ea5e0ebb10aeaae7cf9b1e51619ed633d5def10c6a40597605d2d5a` | Aftermath location base |
+| `roomSecureBriefing` | Compartmented briefing room: one screen, sealed storage, no public seating | `control-room/rooms/aftermath-secure-briefing.png` | 224×160 | `b946a7f505113b27c1da0f7651f13d95aa701f72887675bbc2f10f6b209b1521` | Aftermath location base |
+| `roomInfrastructure` | BRB infrastructure workroom: Modern Exteriors worksite stock on concrete | `control-room/rooms/aftermath-infrastructure.png` | 224×160 | `b65f5170e68f9c23b4cab3b68f5a9110711b1874f14b79ce98ced1d7c46ce965` | Aftermath location base |
+| `roomCorporate` | Corporation executive suite: wood floor, warm panelling, no public kit | `control-room/rooms/aftermath-corporate.png` | 224×160 | `f58f2ea17525fe0330e75ee6d329f5e4dc2a83ae6a1e8acedd1d25d634cd1db2` | Aftermath location base |
+| `roomCivicGate` | Civic perimeter gate: fence line across the room, open near edge | `control-room/rooms/aftermath-civic-gate.png` | 224×160 | `0884b5bbe0e78bc7f8ce4659de043f8190ddabdd5e719042ba51fcaeb751d029` | Aftermath location base |
 
 The curated payload hashes must remain distinct after `npm run art:curate`. CSS `steps()`
 playback can freeze for reduced motion, while GIF playback cannot.
@@ -62,7 +78,7 @@ playback can freeze for reduced motion, while GIF playback cannot.
 | Surface | Decision |
 | --- | --- |
 | Start / doctrine selection | Intake-office room (`roomIntake`) sits beside the operational brief. Doctrine and Directive cards stay text-first; ambient staff sprites are not advisor portraits. |
-| Campaign Situation workspace | Fixed 22×14 continuity facility beside the Situation dossier (704×448 desktop / 352×224 narrow). BRB tracks sit below the top playfield. Gameplay text and controls remain DOM content outside the room. |
+| Campaign Situation workspace | Fixed 22×14 continuity facility beside the Situation dossier at desktop sizes (704×448). A shared command rail and external LIVE bezel connect the two surfaces. At phone widths, the complete 352×224 live room appears immediately after the masthead and before the dossier. BRB tracks sit below the top playfield. Gameplay text and controls remain DOM content outside the room. |
 | Ending | Reuses the same facility camera with final damage, occupancy, Corporation presence, BRB stage, and lighting. Ending copy and Report action stay outside the room. |
 | Advisor consultation | No advisor portraits in the supplied pack. Keep names, meters, quotes, and controls text-first. Facility world sprites represent Analysis / Operations / Institutions stations, not advisor portraits. |
 | Aftermath dialog | Six fixed 14×10 orthographic rooms via shared recipes/`PixelRoom`. Actor and prop positions use integer tile coordinates. Setup → Action → Consequence text and controls stay below the scene; no in-room actor labels. |
@@ -81,14 +97,16 @@ Known missing or in-progress states:
 | Layout | Room canvas | Framing |
 | --- | ---: | --- |
 | Desktop (≥1181px) | 2× whole canvas | Facility 704×448 beside dossier; smaller rooms 448×320 |
-| Narrow (≤1180px) | 1× whole canvas | Facility 352×224; dossier stacks above the facility below 760px |
+| Narrow (≤1180px) | 1× whole canvas | Facility 352×224; below 760px the workspace leads with the complete room, then the dossier |
 | Reduced motion | Same sizes | Ambient and travel animation freeze; still tableaux |
 
 Room history is presentation-only: campaign age changes paper/clutter load; consulted
-advisor or Situation type may light a station; BRB readiness advances chamber machinery;
-Corporation pressure adds physical presence overlays; ending IDs select final lighting and
-occupancy. Canonical state also derives persistent emergency, institutional, Corporation,
-construction, advisor, and route marks. The marks are not saved as a second state model.
+advisor or Situation type lights a localized station zone; BRB readiness replaces the
+empty chamber with non-overlapping machinery stages; Corporation pressure adds persistent
+physical presence while an active Corporation file may seize only a transient channel;
+ending IDs select final lighting and occupancy. Canonical state also derives persistent
+emergency, institutional, Corporation, construction, advisor, and route marks. The marks
+are not saved as a second state model.
 `PresentationModel.shot` affects tempo labels only — never camera crop or layer hiding.
 
 ## Visual verification record

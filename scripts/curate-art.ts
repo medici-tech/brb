@@ -127,36 +127,109 @@ export const CURATION: Record<SourceArtKey, CurationStep> = {
     source: "1_Interiors/16x16/Theme_Sorter_Singles/13_Conference_Hall_Singles/Conference_Hall_Singles_32.png",
     note: "Conference lectern single, mic + grey screen (static, 16×32).",
   },
-  // Floor tile — single tileable floor from the room builder set.
+  // ── Room-builder shells ───────────────────────────────────────────────────
+  // Floors: tileable 16×16 singles, one per room mood. Every crop below was
+  // checked for a seamless self-repeat (left edge flows into right edge) before
+  // being committed — LimeZu floors are authored as 3×3 pattern blocks, so an
+  // arbitrary tile out of a block will seam.
+  //
+  // Each floor is also PAIRED with a wall style by luminance, not by taste. A
+  // room whose floor and wall sit within ~20 relative-luminance points has no
+  // visible architecture at all: the shell just reads as more floor. Measured
+  // wall-face luminance is slate 94, pale 204, warm 191; every pairing below
+  // clears a 60-point gap.
   envFloor: {
     source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png",
-    crop: { width: 16, height: 16, x: 128, y: 272 },
-    note: "Muted blue-charcoal institutional floor → one opaque 16×16 tile.",
+    // NOT the old (128,272) pick: that tile is a diagonally striped carpet, and
+    // the diagonal runs against the 16px grid every room is built on, which
+    // reads as a moiré rather than a floor once the camera scales it.
+    crop: { width: 16, height: 16, x: 128, y: 544 },
+    note: "Mid-grey institutional tile (lum 159) → slate-walled operational rooms.",
   },
-  // Wall tile — single tileable wall from the room builder set.
+  envFloorAdmin: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png",
+    crop: { width: 16, height: 16, x: 192, y: 384 },
+    note: "Darker grey tile grid (lum 112) → pale-walled civil-administrative rooms.",
+  },
+  envFloorWood: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png",
+    crop: { width: 16, height: 16, x: 192, y: 432 },
+    note: "Dark wood plank (lum 80) → warm-walled private/corporate interiors.",
+  },
+  envFloorWorks: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png",
+    crop: { width: 16, height: 16, x: 0, y: 576 },
+    note: "Pale poured concrete (lum 181) → slate-walled worksite and civic perimeter.",
+  },
+
+  // Walls. The source sheet lays every wall variant out as a 32px band:
+  //   +0  1px navy outline
+  //   +1  4px white crown (the top of the wall, seen from above)
+  //   +5  1px navy outline
+  //   +6  23px wall face
+  //   +29 1px navy outline
+  //   +30 1px baseboard
+  //   +31 1px navy outline
+  // Within a band, x=16..31 is the gutter-free interior of a three-tile run, so
+  // it is the only 16px column that tiles cleanly in both shapes. Band origins:
+  // slate y=544, pale y=64, warm y=352.
+  //
+  // The *Crown crops take the WHOLE 32px band. That is the fix for rooms reading
+  // as carpet with grey gutters: a face-only slice (what this file used to cut)
+  // has no crown and no baseboard, so a room edge had no architecture in it.
   envWall: {
     source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
     // NOT the 16px-wide single at x=80: that block's outermost columns are painted
     // navy (#3A3A50) borders — verified x=80 and x=95 — so cropping it bakes a
     // separator into the tile and repeats a hard dark bar every 16px. Take the
     // interior of the 64px-wide run of the same wall on the same row instead.
-    crop: { width: 16, height: 16, x: 16, y: 492 },
-    note: "Neutral institutional wall panel, gutter-free interior → one opaque 16×16 tile.",
+    crop: { width: 16, height: 16, x: 16, y: 552 },
+    note: "Slate wall face (band 17) → side/near edges and interior partitions.",
   },
+  envWallCrown: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
+    crop: { width: 16, height: 32, x: 16, y: 544 },
+    note: "Slate wall segment, crown + face + baseboard → far-edge wall band.",
+  },
+  envWallPale: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
+    crop: { width: 16, height: 16, x: 16, y: 72 },
+    note: "Pale wall face (band 2) → civil-administrative side edges.",
+  },
+  envWallPaleCrown: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
+    crop: { width: 16, height: 32, x: 16, y: 64 },
+    note: "Pale wall segment, crown + face + baseboard → far-edge wall band.",
+  },
+  envWallWarm: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
+    crop: { width: 16, height: 16, x: 16, y: 360 },
+    note: "Warm tan wall face (band 11) → private/corporate side edges.",
+  },
+  envWallWarmCrown: {
+    source: "1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png",
+    crop: { width: 16, height: 32, x: 16, y: 352 },
+    note: "Warm tan wall segment, crown + face + baseboard → far-edge wall band.",
+  },
+
+  // Records progression. These three must read as ONE shelf filling up, so they
+  // are ordered by visible empty space, not by which sheet they came from. The
+  // previous picks (67 / 60 / 74) were three equally-crammed shelves, so the
+  // Archive's accumulation was invisible.
   envRecordsShelfSparse: {
     source:
-      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_67.png",
-    note: "Sparse records shelves → one static 32×48 black-shadow furniture single.",
+      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_56.png",
+    note: "Records shelves with bare sections → 32×48, the empty end of the progression.",
   },
   envRecordsShelfFull: {
     source:
-      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_60.png",
-    note: "Filled records shelves → one static 32×48 black-shadow furniture single.",
+      "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_57.png",
+    note: "Records shelves stocked on every level → 32×48, same frame as sparse.",
   },
   envRecordsShelfOverflow: {
     source:
       "1_Interiors/16x16/Theme_Sorter_Black_Shadow_Singles/5_Classroom_and_Library_Black_Shadow_Singles_16x16/Classroom_and_Library_Singles_74.png",
-    note: "Overflow records shelves → one static 32×48 black-shadow furniture single.",
+    note: "Records shelves crammed past capacity → 32×48, the overflow end.",
   },
   envOversightBroadcast: {
     source: "3_Animated_objects/16x16/spritesheets/animated_TV_reportage.png",
@@ -234,6 +307,9 @@ function outputPath(key: ArtKey): string {
   return path.join(PUBLIC_ROOT, ART[key].src);
 }
 
+/** Tile height, in 16px tiles, of one far-edge wall band (crown + face + base). */
+export const WALL_BAND_TILES = 2;
+
 export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
   if (
     !Number.isInteger(recipe.widthTiles)
@@ -242,6 +318,36 @@ export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
     || recipe.heightTiles <= 0
   ) {
     throw new UsageError(`${recipe.key}: room dimensions must be positive integers.`);
+  }
+
+  // A room's shell tiles must be the shapes the compositor assumes: 16×16 for
+  // anything tiled freely, 16×32 for the crown band (one tile wide, two tall).
+  for (const [role, key, height] of [
+    ["floor", recipe.floorArtKey, 16],
+    ["wall face", recipe.wallFaceArtKey, 16],
+    ["wall crown", recipe.wallCrownArtKey, 32],
+  ] as const) {
+    const tile = ART[key];
+    if (tile.expectedWidth !== 16 || tile.expectedHeight !== height) {
+      throw new UsageError(
+        `${recipe.key}: ${role} tile '${key}' must be 16×${height}, got ${tile.expectedWidth}×${tile.expectedHeight}.`,
+      );
+    }
+  }
+
+  for (const band of recipe.wallBands) {
+    if (
+      !Number.isInteger(band.x)
+      || !Number.isInteger(band.y)
+      || !Number.isInteger(band.widthTiles)
+      || band.x < 0
+      || band.y < 0
+      || band.widthTiles <= 0
+      || band.x + band.widthTiles > recipe.widthTiles
+      || band.y + WALL_BAND_TILES > recipe.heightTiles
+    ) {
+      throw new UsageError(`${recipe.key}: wall band falls outside the room.`);
+    }
   }
 
   for (const wall of recipe.walls) {
@@ -329,14 +435,27 @@ export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
   }
 }
 
+/** Resolved shell tile paths for one room composite. */
+export type RoomShellTiles = {
+  readonly floor: string;
+  readonly wallFace: string;
+  readonly wallCrown: string;
+};
+
 /**
  * ImageMagick arguments for one metadata-stripped room composite.
  * Exported so tests can verify the exact source-pixel contract without the pack.
+ *
+ * Paint order is strictly back-to-front, and it matters:
+ *   1. floor over the whole canvas,
+ *   2. flat wall FACE over the side/near edges and interior partitions,
+ *   3. the two-tile crown BAND over every far edge — drawn after the faces so a
+ *      band's baseboard lands on top of the corner it shares with a side wall,
+ *   4. furniture.
  */
 export function buildRoomCompositeConvertArgs(
   recipe: RoomCompositeRecipe,
-  floorTile: string,
-  wallTile: string,
+  tiles: RoomShellTiles,
   furnitureSources: readonly string[],
   dest: string,
 ): string[] {
@@ -349,17 +468,30 @@ export function buildRoomCompositeConvertArgs(
 
   const width = recipe.widthTiles * 16;
   const height = recipe.heightTiles * 16;
-  const args: string[] = ["-size", `${width}x${height}`, `tile:${floorTile}`];
+  const args: string[] = ["-size", `${width}x${height}`, `tile:${tiles.floor}`];
 
   for (const wall of recipe.walls) {
     args.push(
       "(",
       "-size",
       `${wall.width * 16}x${wall.height * 16}`,
-      `tile:${wallTile}`,
+      `tile:${tiles.wallFace}`,
       ")",
       "-geometry",
       `+${wall.x * 16}+${wall.y * 16}`,
+      "-composite",
+    );
+  }
+
+  for (const band of recipe.wallBands) {
+    args.push(
+      "(",
+      "-size",
+      `${band.widthTiles * 16}x${WALL_BAND_TILES * 16}`,
+      `tile:${tiles.wallCrown}`,
+      ")",
+      "-geometry",
+      `+${band.x * 16}+${band.y * 16}`,
       "-composite",
     );
   }
@@ -462,7 +594,45 @@ function curate(key: SourceArtKey, convertCmd: string[]): void {
   );
 }
 
-function curateRoom(key: RoomCompositeKey, convertCmd: string[]): void {
+/**
+ * Confirm the recipe's COMMITTED tile size for each placement matches the real
+ * PNG on disk.
+ *
+ * `validateRoomRecipe` runs without the pack, so it can only check that a
+ * placement fits the room using the size the recipe claims. If that claim is
+ * wrong the room still composites — the prop is just silently mis-sized and can
+ * overhang the camera or collide with a neighbour. This is the only point in the
+ * pipeline that has both numbers, so it is the only place the drift can be caught.
+ */
+function assertFurnitureGeometry(
+  recipe: RoomCompositeRecipe,
+  resolved: readonly string[],
+  identifyCmd: string[],
+): void {
+  recipe.furniture.forEach((placement, index) => {
+    const raw = execFileSync(
+      identifyCmd[0]!,
+      [...identifyCmd.slice(1), "-format", "%w %h", resolved[index]!],
+      { encoding: "utf8" },
+    );
+    const [width, height] = raw.trim().split(/\s+/).map(Number);
+    const expectedWidth = placement.widthTiles * 16;
+    const expectedHeight = placement.heightTiles * 16;
+    if (width !== expectedWidth || height !== expectedHeight) {
+      throw new UsageError(
+        `${recipe.key}: '${placement.source}' is ${width}×${height} on disk but the recipe `
+          + `commits ${expectedWidth}×${expectedHeight} (${placement.widthTiles}×${placement.heightTiles} tiles). `
+          + `Fix FURNITURE_TILE_SIZE in scripts/room-recipes.ts.`,
+      );
+    }
+  });
+}
+
+function curateRoom(
+  key: RoomCompositeKey,
+  convertCmd: string[],
+  identifyCmd: string[],
+): void {
   const recipe = ROOM_RECIPES[key];
   validateRoomRecipe(recipe);
   const dest = outputPath(key);
@@ -470,10 +640,14 @@ function curateRoom(key: RoomCompositeKey, convertCmd: string[]): void {
 
   const furnitureSources = recipe.furniture.map((placement) =>
     resolveSource(placement.source));
+  assertFurnitureGeometry(recipe, furnitureSources, identifyCmd);
   const args = buildRoomCompositeConvertArgs(
     recipe,
-    outputPath("envFloor"),
-    outputPath("envWall"),
+    {
+      floor: outputPath(recipe.floorArtKey),
+      wallFace: outputPath(recipe.wallFaceArtKey),
+      wallCrown: outputPath(recipe.wallCrownArtKey),
+    },
     furnitureSources,
     dest,
   );
@@ -497,6 +671,7 @@ function main(): void {
   }
 
   const convertCmd = imageMagick("convert");
+  const identifyCmd = imageMagick("identify");
   const requested = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
   const sourceKeys = Object.keys(CURATION) as SourceArtKey[];
   const allKeys: ArtKey[] = [...sourceKeys, ...ROOM_COMPOSITE_KEYS];
@@ -510,20 +685,28 @@ function main(): void {
 
   const keys = requested.length ? (requested as ArtKey[]) : allKeys;
   let failures = 0;
-  const needsRoomPrerequisites = keys.some((key) =>
-    ROOM_COMPOSITE_KEYS.includes(key as RoomCompositeKey));
-  if (needsRoomPrerequisites) {
-    for (const prerequisite of ["envFloor", "envWall"] as const) {
-      if (!keys.includes(prerequisite) || !existsSync(outputPath(prerequisite))) {
-        curate(prerequisite, convertCmd);
-      }
+  // A room composite is assembled from already-curated shell tiles on disk, so
+  // every floor/wall tile its recipe names has to exist before it is built —
+  // including when the caller asked for a single room by name.
+  const requestedRooms = keys.filter((key) =>
+    ROOM_COMPOSITE_KEYS.includes(key as RoomCompositeKey)) as RoomCompositeKey[];
+  const prerequisites = new Set<SourceArtKey>();
+  for (const room of requestedRooms) {
+    const recipe = ROOM_RECIPES[room];
+    prerequisites.add(recipe.floorArtKey as SourceArtKey);
+    prerequisites.add(recipe.wallFaceArtKey as SourceArtKey);
+    prerequisites.add(recipe.wallCrownArtKey as SourceArtKey);
+  }
+  for (const prerequisite of prerequisites) {
+    if (!keys.includes(prerequisite) || !existsSync(outputPath(prerequisite))) {
+      curate(prerequisite, convertCmd);
     }
   }
 
   for (const key of keys) {
     try {
       if (ROOM_COMPOSITE_KEYS.includes(key as RoomCompositeKey)) {
-        curateRoom(key as RoomCompositeKey, convertCmd);
+        curateRoom(key as RoomCompositeKey, convertCmd, identifyCmd);
       } else {
         curate(key as SourceArtKey, convertCmd);
       }

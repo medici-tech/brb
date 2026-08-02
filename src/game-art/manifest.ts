@@ -132,7 +132,7 @@ export const ART = {
     frameWidth: CHARACTER_FRAME_WIDTH,
     frameHeight: CHARACTER_FRAME_HEIGHT,
     frameCount: CHARACTER_FRAME_COUNT,
-    fps: 8,
+    fps: 10,
     scale: 3,
     expectedWidth: 96,
     expectedHeight: 32,
@@ -144,7 +144,7 @@ export const ART = {
     frameWidth: CHARACTER_FRAME_WIDTH,
     frameHeight: CHARACTER_FRAME_HEIGHT,
     frameCount: CHARACTER_FRAME_COUNT,
-    fps: 8,
+    fps: 10,
     scale: 3,
     expectedWidth: 96,
     expectedHeight: 32,
@@ -176,7 +176,10 @@ export const ART = {
     expectedWidth: 16,
     expectedHeight: 32,
   },
-  // Intended source: 1_Interiors/16x16/Room_Builder_subfiles (floor tile; static, tileable).
+  // ── Room-builder shells ───────────────────────────────────────────────────
+  // Floors are tileable 16×16 singles; each room picks one so the nine fixed
+  // cameras do not all read as the same carpet.
+  // Source: 1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Floors_16x16.png.
   envFloor: {
     key: "envFloor",
     src: `${ART_BASE_PATH}/environment/floor.png`,
@@ -188,7 +191,49 @@ export const ART = {
     expectedWidth: 16,
     expectedHeight: 16,
   },
-  // Intended source: 1_Interiors/16x16/Room_Builder_subfiles (wall tile; static, tileable).
+  envFloorAdmin: {
+    key: "envFloorAdmin",
+    src: `${ART_BASE_PATH}/environment/floor-admin.png`,
+    frameWidth: 16,
+    frameHeight: 16,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
+  },
+  envFloorWood: {
+    key: "envFloorWood",
+    src: `${ART_BASE_PATH}/environment/floor-wood.png`,
+    frameWidth: 16,
+    frameHeight: 16,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
+  },
+  envFloorWorks: {
+    key: "envFloorWorks",
+    src: `${ART_BASE_PATH}/environment/floor-works.png`,
+    frameWidth: 16,
+    frameHeight: 16,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
+  },
+
+  // Walls come in two shapes per style, both cut from the same source band so
+  // they share a palette:
+  //   *Crown — the COMPLETE 16×32 wall segment (top outline, white crown, face,
+  //            baseboard). Painted along a room's far edge, this is what makes a
+  //            room read as architecture instead of a gap in the carpet.
+  //   (face) — a 16×16 slice of the same band's flat face, used for the side and
+  //            near edges that an orthographic camera sees end-on, and for
+  //            interior partitions.
+  // Source: 1_Interiors/16x16/Room_Builder_subfiles/Room_Builder_Walls_16x16.png.
   envWall: {
     key: "envWall",
     src: `${ART_BASE_PATH}/environment/wall.png`,
@@ -199,6 +244,61 @@ export const ART = {
     scale: 3,
     expectedWidth: 16,
     expectedHeight: 16,
+  },
+  envWallCrown: {
+    key: "envWallCrown",
+    src: `${ART_BASE_PATH}/environment/wall-crown.png`,
+    frameWidth: 16,
+    frameHeight: 32,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 32,
+  },
+  envWallPale: {
+    key: "envWallPale",
+    src: `${ART_BASE_PATH}/environment/wall-pale.png`,
+    frameWidth: 16,
+    frameHeight: 16,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
+  },
+  envWallPaleCrown: {
+    key: "envWallPaleCrown",
+    src: `${ART_BASE_PATH}/environment/wall-pale-crown.png`,
+    frameWidth: 16,
+    frameHeight: 32,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 32,
+  },
+  envWallWarm: {
+    key: "envWallWarm",
+    src: `${ART_BASE_PATH}/environment/wall-warm.png`,
+    frameWidth: 16,
+    frameHeight: 16,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 16,
+  },
+  envWallWarmCrown: {
+    key: "envWallWarmCrown",
+    src: `${ART_BASE_PATH}/environment/wall-warm-crown.png`,
+    frameWidth: 16,
+    frameHeight: 32,
+    frameCount: 1,
+    fps: 0,
+    scale: 3,
+    expectedWidth: 16,
+    expectedHeight: 32,
   },
 
   // ── Complete orthographic room bases ─────────────────────────────────────
