@@ -1,3 +1,4 @@
+import type { EndingId } from "@/game/types";
 import type {
   NarrativeSceneId,
   NarrativeSceneScript,
@@ -318,7 +319,48 @@ const endingDetails = [
     action: "Stations fail in sequence while staff withdraw from the central table.",
     consequence: "The room goes dark around an unfinished machine and an unanswered national signal.",
   },
-] as const satisfies readonly (Omit<ScriptDetails, "key"> & { readonly id: string })[];
+  {
+    id: "advisor_coup",
+    location: "continuity-floor",
+    title: "One signature replaces the Directorate",
+    tone: "covert",
+    actor: "official",
+    prop: "hearing-desk",
+    setup: "The floor assembles around a chair that is no longer the Director's.",
+    action: "The advisor issues the month's direction without asking, and the room complies because nothing moves otherwise.",
+    consequence: "Building, staff and machine are intact and working, under a signature the public never granted.",
+  },
+  {
+    id: "advisor_cabal",
+    location: "secure-briefing",
+    title: "The state is settled between creditors",
+    tone: "institutional",
+    actor: "official",
+    prop: "document-box",
+    setup: "Ledgers of favours owed cover the briefing table, and no single one is decisive.",
+    action: "The holders settle the month's direction between themselves and inform the Directorate of the result.",
+    consequence: "The government still meets, still signs, still publishes — as the executive arm of a private agreement.",
+  },
+] as const satisfies readonly (Omit<ScriptDetails, "key"> & { readonly id: EndingId })[];
+
+/**
+ * Compile-time proof that every ending has an aftermath script.
+ *
+ * `resolveNarrativeSceneCues` looks the script up by raw string and returns the
+ * decision cues alone when it misses, and `EndingTableauView` hides the whole
+ * aftermath block when the cue list is empty — so a missing script is a silently
+ * absent section, not an error. The advisor endings shipped exactly that way.
+ * This line makes the next omission a build failure instead.
+ */
+type ScriptedEndingId = (typeof endingDetails)[number]["id"];
+type EndingsMissingAScript = Exclude<EndingId, ScriptedEndingId>;
+// Wrapped in a tuple so the conditional cannot distribute over `never`. When an
+// ending has no script the annotation resolves to that ending's id, and this
+// assignment fails with the missing name in the error.
+const _endingScriptCoverage: [EndingsMissingAScript] extends [never]
+  ? true
+  : EndingsMissingAScript = true;
+void _endingScriptCoverage;
 
 export const ENDING_SCENE_SCRIPTS: Readonly<Record<string, NarrativeSceneScript>> =
   Object.fromEntries(
