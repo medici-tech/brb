@@ -6,16 +6,92 @@ import { EndingTableauView } from "../../src/components/brb/EndingTableauView.js
 import { BRBApp } from "../../src/components/brb/BRBApp.js";
 import { commitAction, createGame } from "../../src/game/engine.js";
 import { saveLatestReport } from "../../src/game/storage.js";
-import type { EndingId } from "../../src/game/types.js";
+import { ENDING_IDS } from "../../src/game/types.js";
+import type { AdvisorId, EndingId, GameState } from "../../src/game/types.js";
 
-const ENDINGS: EndingId[] = [
-  "civic_legacy",
-  "compromised_activation",
-  "corporate_capture",
-  "state_collapse",
-];
+// Derived from the union, not hand-listed. The previous literal array omitted
+// the advisor endings, so the suite that exists to prove every ending renders a
+// tableau silently skipped the two that had no treatment.
+const ENDINGS: readonly EndingId[] = ENDING_IDS;
+
+function endedState(
+  endingId: EndingId,
+  leverage: Partial<Record<AdvisorId, number>> = {},
+): GameState {
+  const state = createGame(808);
+  state.phase = "ended";
+  state.ending = {
+    id: endingId,
+    title: `Ending ${endingId}`,
+    description: "The campaign is complete.",
+    victory: endingId === "civic_legacy",
+    reason: "The final state has been recorded.",
+    variationId: null,
+    variationTitle: null,
+  };
+  for (const [id, value] of Object.entries(leverage)) {
+    state.advisors[id as AdvisorId].leverage = value!;
+  }
+  return state;
+}
 
 describe("ending tableau", () => {
+  it("lights the seizing advisor's station on a coup", () => {
+    const { container } = render(
+      <EndingTableauView
+        state={endedState("advisor_coup", { fixer: 92 })}
+        onOpenReport={() => undefined}
+      />,
+    );
+    const presentation = container.querySelector("[data-authority]")!;
+    expect(presentation).toHaveAttribute("data-authority", "seized");
+    expect(presentation).toHaveAttribute("data-authority-holders", "fixer");
+    // Occupancy is the load-bearing signal: the building is captured, not
+    // emptied, so every station stays staffed.
+    expect(container.querySelectorAll("[data-room-actor]").length)
+      .toBeGreaterThanOrEqual(3);
+  });
+
+  it("names every cabal member on a shared takeover", () => {
+    const { container } = render(
+      <EndingTableauView
+        state={endedState("advisor_cabal", { analyst: 62, steward: 58 })}
+        onOpenReport={() => undefined}
+      />,
+    );
+    const presentation = container.querySelector("[data-authority]")!;
+    expect(presentation).toHaveAttribute("data-authority", "shared");
+    expect(presentation).toHaveAttribute(
+      "data-authority-holders",
+      "analyst steward",
+    );
+  });
+
+  it("still reads as a takeover when no holder survives in the save", () => {
+    // A legacy save can carry the ending without the leverage that produced it.
+    const { container } = render(
+      <EndingTableauView
+        state={endedState("advisor_coup")}
+        onOpenReport={() => undefined}
+      />,
+    );
+    const presentation = container.querySelector("[data-authority]")!;
+    expect(presentation).toHaveAttribute("data-authority", "seized");
+    expect(presentation).toHaveAttribute("data-authority-holders", "none");
+  });
+
+  it.each(ENDINGS)("carries %s on the page shell for full-page treatment", (endingId) => {
+    const { container } = render(
+      <EndingTableauView
+        state={endedState(endingId)}
+        onOpenReport={() => undefined}
+      />,
+    );
+    expect(container.querySelector("[data-ending-tableau]"))
+      .toHaveAttribute("data-ending-tableau", endingId);
+  });
+
+
   it.each(ENDINGS)("renders a player-paced %s tableau", async (endingId) => {
     const state = createGame(808);
     state.phase = "ended";

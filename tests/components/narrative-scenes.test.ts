@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ENDING_IDS } from "../../src/game/types.js";
 import { SITUATION_CARDS } from "../../src/game/content.js";
 import { commitAction, createGame } from "../../src/game/engine.js";
 import { emptyDecision } from "../../src/game/state-helpers.js";
@@ -64,6 +65,18 @@ function decision(
 }
 
 describe("narrative scene registry", () => {
+  it.each(ENDING_IDS)("has an aftermath script for the %s ending", (endingId) => {
+    // resolveNarrativeSceneCues looks this up by raw string and returns the
+    // decision cues alone on a miss, and EndingTableauView hides the whole
+    // aftermath block when the cue list is empty — so a missing script is an
+    // absent section, not an error. Both advisor endings shipped that way.
+    const script = NARRATIVE_SCENE_REGISTRY[`ending:${endingId}`];
+    expect(script, `no ending:${endingId} script`).toBeDefined();
+    expect(script!.sourceKey).toBe(`ending:${endingId}`);
+    expect(script!.beats).toHaveLength(3);
+  });
+
+
   it("defines all six approved top-down locations", () => {
     expect(Object.keys(NARRATIVE_LOCATIONS).sort()).toEqual(
       [...NARRATIVE_SCENE_IDS].sort(),

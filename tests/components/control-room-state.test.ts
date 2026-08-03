@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createGame } from "../../src/game/engine.js";
+import { ENDING_IDS } from "../../src/game/types.js";
 import {
   derivePresentationInputs,
+  resolveAuthority,
+  resolveLighting,
+  resolveTakeoverAdvisors,
   getBrbVisualStage,
   resolveLitStation,
   resolvePaperLoad,
@@ -30,6 +34,7 @@ function calmInputs(
     pendingCommitment: false,
     pendingMilestone: false,
     ending: null,
+    takeoverAdvisors: [],
     ...overrides,
   };
 }
@@ -208,12 +213,138 @@ describe("control room presentation resolver", () => {
     })).toBe("situation");
   });
 
+  // Lighting is the reason the advisor endings shipped invisible: they fell
+  // through an if-chain to "calm" and rendered as a quiet operations shot.
   it.each([
-    "civic_legacy",
-    "compromised_activation",
-    "corporate_capture",
-    "state_collapse",
-  ] as const)("preserves ending identity for the %s tableau", (ending) => {
+    ["civic_legacy", "calm"],
+    ["compromised_activation", "strained"],
+    ["corporate_capture", "crisis"],
+    ["state_collapse", "failure"],
+    ["advisor_coup", "captured"],
+    ["advisor_cabal", "captured"],
+  ] as const)("grades the %s tableau as %s", (ending, lighting) => {
+    expect(resolvePresentationModel(calmInputs({ ending })).lighting)
+      .toBe(lighting);
+  });
+
+  it("lets presentation state decide the grade when the ending has no opinion", () => {
+    // civic_legacy is the one ending that does not override, so a won campaign
+    // still looks like the campaign it was.
+    expect(resolveLighting("crisis", "civic_legacy")).toBe("crisis");
+    expect(resolveLighting("calm", "civic_legacy")).toBe("calm");
+    // An override wins over the state.
+    expect(resolveLighting("crisis", "advisor_coup")).toBe("captured");
+  });
+
+  it.each([
+    ["civic_legacy", "public"],
+    ["compromised_activation", "public"],
+    ["corporate_capture", "public"],
+    ["state_collapse", "public"],
+    ["advisor_coup", "seized"],
+    ["advisor_cabal", "shared"],
+  ] as const)("reports %s authority as %s", (ending, mode) => {
+    expect(resolvePresentationModel(calmInputs({ ending })).authority.mode)
+      .toBe(mode);
+  });
+
+  it("only carries holders for a takeover", () => {
+    expect(resolveAuthority(null, ["fixer"]).holders).toEqual([]);
+    expect(resolveAuthority("state_collapse", ["fixer"]).holders).toEqual([]);
+    expect(resolveAuthority("advisor_coup", ["fixer"]).holders).toEqual(["fixer"]);
+  });
+
+  describe("takeover holder derivation", () => {
+    function stateWithLeverage(
+      leverage: Partial<Record<"analyst" | "fixer" | "steward", number>>,
+      inactive: readonly string[] = [],
+    ) {
+      const state = createGame({ seed: 4242, archetypeId: "technocrat" });
+      for (const [id, value] of Object.entries(leverage)) {
+        state.advisors[id as "analyst"]!.leverage = value!;
+      }
+      for (const id of inactive) {
+        state.advisors[id as "analyst"]!.active = false;
+      }
+      return state;
+    }
+
+    it("names the single advisor holding a coup", () => {
+      expect(
+        resolveTakeoverAdvisors(stateWithLeverage({ fixer: 90 }), "advisor_coup"),
+      ).toEqual(["fixer"]);
+    });
+
+    it("names every cabal member", () => {
+      expect(
+        resolveTakeoverAdvisors(
+          stateWithLeverage({ analyst: 60, steward: 55 }),
+          "advisor_cabal",
+        ),
+      ).toEqual(["analyst", "steward"]);
+    });
+
+    it("keeps a coup singular when two advisors clear the bar", () => {
+      // endings.ts records a coup with ADVISOR_IDS.find, so presentation must
+      // not light two stations for an ending the engine considers one
+      // advisor's. This locks `find` against a future `filter`.
+      const holders = resolveTakeoverAdvisors(
+        stateWithLeverage({ analyst: 90, fixer: 95 }),
+        "advisor_coup",
+      );
+      expect(holders).toHaveLength(1);
+    });
+
+    it("derives no holders for a non-takeover ending", () => {
+      expect(
+        resolveTakeoverAdvisors(stateWithLeverage({ fixer: 95 }), "state_collapse"),
+      ).toEqual([]);
+      expect(resolveTakeoverAdvisors(stateWithLeverage({ fixer: 95 }), null))
+        .toEqual([]);
+    });
+
+    it("respects the coup and cabal leverage boundaries", () => {
+      expect(resolveTakeoverAdvisors(stateWithLeverage({ fixer: 85 }), "advisor_coup"))
+        .toEqual(["fixer"]);
+      expect(resolveTakeoverAdvisors(stateWithLeverage({ fixer: 84 }), "advisor_coup"))
+        .toEqual([]);
+      expect(
+        resolveTakeoverAdvisors(
+          stateWithLeverage({ analyst: 50, steward: 50 }),
+          "advisor_cabal",
+        ),
+      ).toEqual(["analyst", "steward"]);
+      expect(
+        resolveTakeoverAdvisors(
+          stateWithLeverage({ analyst: 49, steward: 49 }),
+          "advisor_cabal",
+        ),
+      ).toEqual([]);
+    });
+
+    it("excludes a departed advisor however high their leverage", () => {
+      expect(
+        resolveTakeoverAdvisors(
+          stateWithLeverage({ fixer: 95 }, ["fixer"]),
+          "advisor_coup",
+        ),
+      ).toEqual([]);
+    });
+
+    it("still reads as a takeover when no holder can be derived", () => {
+      // A legacy save can carry the ending without the leverage that produced
+      // it. The room must keep the takeover grade rather than fall back to a
+      // collapse-shaped blackout with nothing lit.
+      const model = resolvePresentationModel(
+        calmInputs({ ending: "advisor_coup", takeoverAdvisors: [] }),
+      );
+      expect(model.authority.mode).toBe("seized");
+      expect(model.authority.holders).toEqual([]);
+      expect(model.lighting).toBe("captured");
+    });
+  });
+
+  it.each(ENDING_IDS)("preserves ending identity for the %s tableau", (ending) => {
     const model = resolvePresentationModel(calmInputs({ ending }));
     expect(model.shot).toBe("ending");
     expect(model.tempo).toBe("still");
