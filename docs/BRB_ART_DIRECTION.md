@@ -183,12 +183,39 @@ Base room filter, always on: `contrast(1.08) saturate(0.82) brightness(0.9)`.
 | Corporate encroachment | `rgba(195,163,70,0.70)` gold | `rgba(55,48,11,0.16)` | gold sheen from the right edge |
 | BRB activation-ready | `rgba(230,194,103,0.78)` | — | machinery `brightness(1.18) drop-shadow(0 0 3px rgba(237,194,87,0.9))` |
 | Ending: state collapse | — | — | room `saturate(0.28) brightness(0.48)` |
+| Ending: advisor coup | `rgba(166,180,133,0.88)` phosphor, hard thin rim | `rgba(16,22,18,0.34)` | one held zone @ .94, all others @ .05; room `contrast(1.16) saturate(0.62) brightness(0.72)` |
+| Ending: advisor cabal | `rgba(166,180,133,0.42)` phosphor, soft wide bloom | `rgba(16,22,18,0.34)` | held zones @ .70 each, others @ .07; same room filter |
 
 **Emphasis** (a lit advisor station): `brightness(1.24) saturate(1.12)
 drop-shadow(0 0 3px rgba(229,182,72,0.92))` plus its light zone to opacity 0.86.
 
 Light zones are soft ellipses, `rgba(192,206,157,0.22)`, `mix-blend-mode: screen`,
 resting at opacity 0.24, transitioning over 280ms.
+
+**`RoomLighting` grades** (`[data-lighting]`): `calm`, `strained`, `crisis`,
+`failure`, `captured`. `captured` is the advisor-takeover wash —
+`rgba(14,22,17,0.38)` with phosphor zones at rest 0.10. It exists because
+`failure` is red-black and drops zones to 0.08, which is collapse's language: a
+takeover must not be able to borrow it.
+
+**Capture from within.** Corporate capture is gold arriving from outside;
+collapse is the building going dark and emptying. A takeover keeps the room's own
+phosphor but narrows it to one or two stations while the floor darkens *with
+everyone still at their desks* — dark room, **full** room, one hot pool of light.
+Coup and cabal share the hue and differ only in distribution: one hard rim with
+almost no bloom versus half the rim and triple the bloom.
+
+Two traps this treatment must respect:
+
+- A takeover always fires with Corporation progress in the 60–99 band (capture
+  claims 100+), which is exactly the band that makes `data-corporation-presence`
+  `embedded`. The gold sheen must be explicitly cancelled or the room reads as
+  the wrong loss.
+- The rest-dim selector is more specific than the holder selector. The holder
+  rule must carry the same `[data-authority]:not([data-authority-holders="none"])`
+  prefix, or the held station is dimmed along with everything else and the
+  takeover renders with no pool of light at all — while every attribute is still
+  correct, so no rendering test catches it.
 
 ### 6. The contrast law
 
@@ -540,6 +567,7 @@ textures · emoji or vector icons inside the canvas.
 | Render scale in room | 1× (`--sprite-scale-override: 1`) |
 | Canvas upscale | Integer only, snapped with `round(down, fit, 1)` |
 | Below 1× | Continuous, deliberately — the next step down is 0.5× |
+| Wide (≥1600px) | 3× (facility 1056 × 672) |
 | Desktop | 2× (facility 704 × 448) |
 | Narrow (≤1180px) | 1× (facility 352 × 224) |
 | Aspect ratio | `--pixel-room-width / --pixel-room-height`, never letterboxed away |
@@ -873,6 +901,10 @@ signature element each:
 | Infrastructure | pale concrete | slate | Material stacks, cones, no seating |
 | Corporate | dark wood | warm | Long table, wood floor, no consoles |
 | Civic gate | pale concrete | slate | Fence line across the room, open near edge |
+
+Ending tableaux carry their own silhouette on top of the room they reuse:
+corporate capture is bright and gold, collapse is dark and empty, and an advisor
+takeover is dark and **full** with one or two lit stations.
 
 ### 39. The contrast fix, in numbers
 
