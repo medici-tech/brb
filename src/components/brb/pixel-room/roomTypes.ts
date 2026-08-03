@@ -5,6 +5,22 @@ export type GridPoint = {
   readonly x: number;
   readonly y: number;
 };
+
+/**
+ * Room-wide colour grade, applied over finished art rather than baked into it
+ * (see BRB_ART_DIRECTION.md §5). Drives `[data-lighting]` in PixelRoom.module.css.
+ *
+ * `captured` is the advisor-takeover grade: the building is intact and fully
+ * staffed, but its own institutional light has narrowed to one or two stations.
+ * It is deliberately NOT `failure` — that grade is red-black and drops the light
+ * zones to near-zero, which is collapse's language, not a takeover's.
+ */
+export type RoomLighting =
+  | "calm"
+  | "strained"
+  | "crisis"
+  | "failure"
+  | "captured";
 export type RoomLayer = {
   readonly id: string;
   readonly artKey: ArtKey;

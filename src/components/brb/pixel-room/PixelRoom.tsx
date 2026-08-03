@@ -2,7 +2,12 @@
 
 import type { CSSProperties } from "react";
 import { PixelSprite } from "@/components/brb/pixel/PixelSprite";
-import type { RoomActor, RoomDefinition, RoomLayer } from "./roomTypes";
+import type {
+  RoomActor,
+  RoomDefinition,
+  RoomLayer,
+  RoomLighting,
+} from "./roomTypes";
 import styles from "./PixelRoom.module.css";
 
 type PixelRoomProps = {
@@ -11,7 +16,7 @@ type PixelRoomProps = {
   readonly actors?: readonly RoomActor[];
   readonly layers?: readonly RoomLayer[];
   readonly className?: string;
-  readonly lighting?: "calm" | "strained" | "crisis" | "failure";
+  readonly lighting?: RoomLighting;
   readonly reducedMotion?: boolean;
   readonly testId?: string;
 };
