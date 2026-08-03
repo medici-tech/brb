@@ -136,6 +136,13 @@
     drop-shadow(0 0 3px rgba(209, 179, 68, 0.82));
 }
 
+/* Station emphasis. The SHAPE of the highlight is declared once; only its hue
+ * varies, via `--room-emphasis-glow`. Consulting an advisor keeps the amber
+ * default; an advisor takeover re-points it at the room's own phosphor.
+ *
+ * The advisor -> zone mapping repeated in these selectors is the same one
+ * `resolveLitStation` owns in presentationStateResolver.ts. CSS cannot read a
+ * TypeScript record, so that file stays the source of truth. */
 .presentation[data-lit-station="analysis"]
   :global([data-room-actor="analyst"]),
 .presentation[data-lit-station="operations"]
@@ -145,7 +152,9 @@
   filter:
     brightness(1.24)
     saturate(1.12)
-    drop-shadow(0 0 3px rgba(229, 182, 72, 0.92));
+    drop-shadow(
+      0 0 3px var(--room-emphasis-glow, rgba(229, 182, 72, 0.92))
+    );
 }
 
 .presentation[data-lit-station="analysis"]
@@ -202,6 +211,119 @@
 
 .presentation[data-ending="state_collapse"] .room {
   filter: contrast(1.14) saturate(0.28) brightness(0.48);
+}
+
+/* ── Advisor takeover ──────────────────────────────────────────────────────
+ *
+ * No foreign colour enters the building. Corporate capture is gold arriving
+ * from outside; collapse is the building going dark and emptying. A takeover
+ * keeps the room's OWN institutional phosphor intact but concentrates it into
+ * one or two hands while the rest of the floor falls to shadow — with everyone
+ * still at their desks. Dark room, FULL room, one hot pool of light: a
+ * silhouette neither other loss ending shares.
+ *
+ * Coup and cabal share the hue and differ only in distribution: one hard rim
+ * with almost no bloom versus half the rim and triple the bloom.
+ *
+ * `staffLayout.mode` stays `full` here. That is the point, not an oversight. */
+.presentation[data-authority="seized"],
+.presentation[data-authority="shared"] {
+  --room-grade: rgba(16, 22, 18, 0.34);
+  --room-emphasis-glow: rgba(166, 180, 133, 0.92);
+}
+
+/* A takeover always fires with Corporation progress in the 60–99 band, because
+ * corporate_capture claims 100+. That band is exactly what makes
+ * `data-corporation-presence` "embedded", so without this the gold corporate
+ * sheen paints straight over the takeover and the room reads as the wrong loss.
+ * Re-declare the plain treatment. */
+.presentation[data-authority="seized"]::before,
+.presentation[data-authority="shared"]::before {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(2, 5, 4, 0.12) 3px 4px
+    ),
+    radial-gradient(circle at 50% 46%, transparent 38%, var(--room-grade) 100%);
+}
+
+.presentation[data-authority="seized"] .room,
+.presentation[data-authority="shared"] .room {
+  filter: contrast(1.16) saturate(0.62) brightness(0.72);
+}
+
+/* Only one thing in the room glows. */
+.presentation[data-authority="seized"]
+  :global([data-room-object="corporation-presence"]),
+.presentation[data-authority="shared"]
+  :global([data-room-object="corporation-presence"]) {
+  filter: none;
+}
+
+.presentation[data-ending="advisor_coup"] {
+  --room-signal: rgba(166, 180, 133, 0.88);
+  --room-signal-soft: rgba(119, 131, 97, 0.1);
+  --room-authority-rest: 0.05;
+  --room-authority-zone: 0.94;
+}
+
+.presentation[data-ending="advisor_cabal"] {
+  --room-signal: rgba(166, 180, 133, 0.42);
+  --room-signal-soft: rgba(119, 131, 97, 0.3);
+  --room-authority-rest: 0.07;
+  --room-authority-zone: 0.7;
+}
+
+/* Rest-dim first, then raise the held stations — order matters, both are plain
+ * `opacity` on the same elements.
+ *
+ * Skipped entirely when no holder is known. A legacy save or a synthetic
+ * fixture can carry a takeover ending without the leverage that produced it;
+ * blacking out every zone with nothing lit would read as collapse, so such a
+ * room keeps the takeover grade and rim and simply has no lit station. */
+.presentation[data-authority="seized"]:not([data-authority-holders="none"])
+  :global([data-light-zone]),
+.presentation[data-authority="shared"]:not([data-authority-holders="none"])
+  :global([data-light-zone]) {
+  opacity: var(--room-authority-rest);
+}
+
+/* Must carry the same `[data-authority]:not([data-authority-holders="none"])`
+ * prefix as the rest-dim above. Without it this rule is one selector LESS
+ * specific than the dim, so the held station is dimmed along with the rest and
+ * the takeover has no pool of light at all. */
+.presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="analyst"]
+  :global([data-light-zone="analysis"]),
+.presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="fixer"]
+  :global([data-light-zone="operations"]),
+.presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="steward"]
+  :global([data-light-zone="institutions"]) {
+  opacity: var(--room-authority-zone);
+}
+
+/* Present, at their posts, subordinate. Declared BEFORE the holder glow below:
+ * this selector is more specific than the holder selector, so source order is
+ * what lets the held advisor stay lit. Do not reorder these two blocks. */
+.presentation[data-authority="seized"]:not([data-authority-holders="none"])
+  :global([data-room-actor]),
+.presentation[data-authority="shared"]:not([data-authority-holders="none"])
+  :global([data-room-actor]) {
+  filter: brightness(0.58) saturate(0.5);
+}
+
+.presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="analyst"]
+  :global([data-room-actor="analyst"]),
+.presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="fixer"]
+  :global([data-room-actor="fixer"]),
+.presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="steward"]
+  :global([data-room-actor="steward"]) {
+  filter:
+    brightness(1.24)
+    saturate(1.12)
+    drop-shadow(
+      0 0 3px var(--room-emphasis-glow, rgba(229, 182, 72, 0.92))
+    );
 }
 
 /* Courier crossing.

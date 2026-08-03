@@ -53,6 +53,19 @@
   box-shadow: var(--shadow-lift-panel);
 }
 
+/* Carry the takeover treatment past the room and onto the page, so the caption
+ * panel is not still wearing the default amber authority stripe while the room
+ * beside it has gone phosphor.
+ *
+ * Recolour the border directly rather than rebinding `--signal` on the shell:
+ * `.caption button` uses that token as its BACKGROUND with dark text on top, so
+ * overriding it would silently restyle the primary action and change its
+ * contrast ratio. */
+.shell[data-ending-tableau="advisor_coup"] .caption,
+.shell[data-ending-tableau="advisor_cabal"] .caption {
+  border-left-color: var(--phosphor);
+}
+
 .caption p,
 .caption span {
   margin: 0;
