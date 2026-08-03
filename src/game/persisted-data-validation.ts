@@ -1,6 +1,7 @@
-import { ARCHETYPES, ENDING_COPY, SITUATION_CARDS } from "./content";
+import { ARCHETYPES, SITUATION_CARDS } from "./content";
 import {
   ADVISOR_IDS,
+  ENDING_IDS,
   LEGACY_DIRECTIVE_IDS,
   ROUTE_IDS,
   type ArchiveV1,
@@ -25,7 +26,6 @@ import {
 } from "./validation-primitives";
 
 const ARCHETYPE_IDS = Object.keys(ARCHETYPES);
-const ENDING_IDS = Object.keys(ENDING_COPY);
 const ENDING_VARIATIONS = [
   "perfect_machine_empty_state",
   "crowd_presses_button",
@@ -147,7 +147,7 @@ export function isArchiveV0(value: unknown): value is ArchiveV0 {
     && isStringArray(record.outcomes),
   );
   return cardsValid && Object.entries(value.endings).every(
-    ([endingId, count]) => ENDING_IDS.includes(endingId) && isInteger(count, 0),
+    ([endingId, count]) => isOneOf(endingId, ENDING_IDS) && isInteger(count, 0),
   );
 }
 
@@ -198,7 +198,7 @@ export function isArchiveV1(value: unknown): value is ArchiveV1 {
     && isStringArray(record.outcomes),
   );
   return cardsValid && Object.entries(value.endings).every(
-    ([endingId, count]) => ENDING_IDS.includes(endingId) && isInteger(count, 0),
+    ([endingId, count]) => isOneOf(endingId, ENDING_IDS) && isInteger(count, 0),
   );
 }
 

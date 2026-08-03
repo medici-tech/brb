@@ -389,3 +389,25 @@
     margin-bottom: 0;
   }
 }
+
+/* Third camera tier.
+ *
+ * The fixed camera was capped at 2× (704px), so every display above ~1400px
+ * showed the same 352px room with the surplus going to empty gutter. A third
+ * tier is only safe now that PixelRoom snaps its upscale to a whole number —
+ * before that, widening the column produced a fractional scale and resampled
+ * every sprite.
+ *
+ * 1056px is 352 × 3 exactly. Added as a min-width tier rather than by changing
+ * the 704px default, so nothing below 1600px moves and the committed contract
+ * for the common case is untouched. The dossier keeps its 360px floor plus the
+ * gap, which 1600px accommodates. */
+@media (min-width: 1600px) {
+  .situationWorkspace {
+    grid-template-columns: 1056px minmax(360px, 1fr);
+  }
+
+  .sceneStage {
+    width: 1056px;
+  }
+}

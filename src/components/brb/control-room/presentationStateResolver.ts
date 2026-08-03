@@ -1,10 +1,13 @@
+import { getCabalMembers, isCoupCondition } from "../../../game/advisor-rules";
 import { getBrbCompletionPercent } from "../../../game/progression";
+import { ADVISOR_IDS } from "../../../game/types";
 import type {
   AdvisorId,
   CardType,
   EndingId,
   GameState,
 } from "../../../game/types";
+import type { RoomLighting } from "../pixel-room/roomTypes";
 import {
   PRESENTATION_THRESHOLDS,
   type PresentationThresholds,
@@ -53,6 +56,49 @@ export type BrbVisualStage =
   | "unstable"
   | "activation-ready";
 
+/**
+ * Who is actually holding the state in the current shot.
+ *
+ * `public` is every ordinary shot and the four endings that do not involve a
+ * takeover. `seized` is one advisor; `shared` is a cabal. `holders` names the
+ * stations to light and may be empty even for a takeover — a legacy save or a
+ * synthetic fixture can carry the ending without the leverage that produced it,
+ * and the room must still read as a takeover rather than as a collapse.
+ */
+export type AuthorityMode = "public" | "seized" | "shared";
+export type RoomAuthority = {
+  mode: AuthorityMode;
+  holders: readonly AdvisorId[];
+};
+
+/**
+ * Per-ending lighting OVERRIDE. `null` means the ending does not override and
+ * the derived presentation state decides, which is why this cannot be a flat
+ * `Record<EndingId, RoomLighting>`.
+ *
+ * Typed as a total record on purpose: a new ending that forgets a grade is a
+ * compile error here rather than a tableau that silently renders `calm`. That is
+ * precisely how the advisor pair shipped looking like a quiet operations shot.
+ */
+const ENDING_LIGHTING: Readonly<Record<EndingId, RoomLighting | null>> = {
+  civic_legacy: null,
+  compromised_activation: "strained",
+  corporate_capture: "crisis",
+  state_collapse: "failure",
+  advisor_coup: "captured",
+  advisor_cabal: "captured",
+};
+
+/** Per-ending authority mode. Total for the same reason as `ENDING_LIGHTING`. */
+const ENDING_AUTHORITY: Readonly<Record<EndingId, AuthorityMode>> = {
+  civic_legacy: "public",
+  compromised_activation: "public",
+  corporate_capture: "public",
+  state_collapse: "public",
+  advisor_coup: "seized",
+  advisor_cabal: "shared",
+};
+
 export type PresentationInputs = {
   stress: number;
   panic: number;
@@ -67,6 +113,14 @@ export type PresentationInputs = {
   pendingCommitment: boolean;
   pendingMilestone: boolean;
   ending: EndingId | null;
+  /**
+   * Advisors holding the state at an advisor-takeover ending. Derived, never
+   * persisted: `Ending` is validated by `isEnding` and guards both the saved run
+   * and the saved report, so a required new field there would invalidate every
+   * existing save. Re-running the same predicates on the same final state is
+   * lossless — a coup advisor is still active at leverage >= 85 when the run ends.
+   */
+  takeoverAdvisors: readonly AdvisorId[];
   persistentRoomMarks?: PersistentRoomMarks;
 };
 
@@ -82,6 +136,8 @@ export type PresentationModel = {
   litStation: LitStation;
   paperLoad: PaperLoad;
   endingId: EndingId | null;
+  lighting: RoomLighting;
+  authority: RoomAuthority;
   staffLayout: StaffLayout;
   persistentRoomMarks?: PersistentRoomMarks;
 };
@@ -112,6 +168,54 @@ export const PRESENTATION_STATE_COPY: Record<
   },
 };
 
+/**
+ * The advisors who hold the state at a takeover ending, re-derived from the
+ * final `GameState` using the engine's own predicates.
+ *
+ * `find`, not `filter`, for the coup: `endings.ts` records a coup with
+ * `ADVISOR_IDS.find(...)`, so a run where two advisors both cross the bar is
+ * recorded as singular. Filtering here would light two stations for an ending
+ * the engine considers one advisor's.
+ */
+export function resolveTakeoverAdvisors(
+  state: GameState,
+  ending: EndingId | null,
+): readonly AdvisorId[] {
+  if (ending === "advisor_coup") {
+    const holder = ADVISOR_IDS.find((id) => isCoupCondition(state, id));
+    return holder ? [holder] : [];
+  }
+  if (ending === "advisor_cabal") return getCabalMembers(state);
+  return [];
+}
+
+/**
+ * The room's colour grade. The ending overrides the derived state when it has an
+ * opinion; otherwise the state decides, which is what keeps `civic_legacy`
+ * reading as whatever the campaign actually looked like when it was won.
+ */
+export function resolveLighting(
+  state: PresentationState,
+  ending: EndingId | null,
+): RoomLighting {
+  const override = ending ? ENDING_LIGHTING[ending] : null;
+  if (override) return override;
+  if (state === "institutional-failure") return "failure";
+  if (state === "crisis") return "crisis";
+  if (state === "strained" || state === "corporate-encroachment") {
+    return "strained";
+  }
+  return "calm";
+}
+
+export function resolveAuthority(
+  ending: EndingId | null,
+  takeoverAdvisors: readonly AdvisorId[],
+): RoomAuthority {
+  const mode = ending ? ENDING_AUTHORITY[ending] : "public";
+  return { mode, holders: mode === "public" ? [] : takeoverAdvisors };
+}
+
 export function derivePresentationInputs(
   state: GameState,
   activeSituationType: CardType | null,
@@ -122,6 +226,7 @@ export function derivePresentationInputs(
     >
   > = {},
 ): PresentationInputs {
+  const ending = intent.ending ?? state.ending?.id ?? null;
   return {
     stress: state.pressures.stress,
     panic: state.pressures.panic,
@@ -135,7 +240,8 @@ export function derivePresentationInputs(
     consultedAdvisorId: state.consultation?.advisorId ?? null,
     pendingCommitment: intent.pendingCommitment ?? false,
     pendingMilestone: intent.pendingMilestone ?? false,
-    ending: intent.ending ?? state.ending?.id ?? null,
+    ending,
+    takeoverAdvisors: resolveTakeoverAdvisors(state, ending),
     persistentRoomMarks: derivePersistentRoomMarks(state),
   };
 }
@@ -208,6 +314,16 @@ export function resolvePresentationShot(
   return "operations";
 }
 
+/**
+ * Maps consultation / situation focus onto a lit station zone.
+ *
+ * The advisor → zone pairs below (analyst/analysis, fixer/operations,
+ * steward/institutions) are also restated in ControlRoomPresentation.module.css
+ * under `[data-lit-station]` and `[data-authority-holders]`. CSS cannot read a
+ * TypeScript record, so full centralisation is unavailable — keep those
+ * selectors aligned with this function when the mapping changes. This is the
+ * source of truth.
+ */
 export function resolveLitStation(
   inputs: Readonly<PresentationInputs>,
 ): LitStation {
@@ -285,6 +401,8 @@ export function resolvePresentationModel(
     litStation: resolveLitStation(inputs),
     paperLoad: resolvePaperLoad(inputs.turn, thresholds),
     endingId: inputs.ending,
+    lighting: resolveLighting(state, inputs.ending),
+    authority: resolveAuthority(inputs.ending, inputs.takeoverAdvisors),
     staffLayout: resolveStaffLayout(inputs, state, shot, thresholds),
     ...(inputs.persistentRoomMarks
       ? { persistentRoomMarks: inputs.persistentRoomMarks }

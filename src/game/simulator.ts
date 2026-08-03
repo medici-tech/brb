@@ -7,7 +7,7 @@ import {
   validateRouteIntegrity,
 } from "./engine";
 import { getCorporationResponseInterval } from "./progression";
-import { TRACK_KEYS } from "./types";
+import { ENDING_IDS, TRACK_KEYS } from "./types";
 import type {
   ActivationFailureReason,
   ActionCategory,
@@ -151,14 +151,7 @@ const PREFERRED_ARCHETYPES: Partial<Record<BotId, ArchetypeId>> = {
   civic_seeker: "populist",
   long_horizon: "technocrat",
 };
-const ALL_ENDINGS: EndingId[] = [
-  "civic_legacy",
-  "compromised_activation",
-  "corporate_capture",
-  "state_collapse",
-  "advisor_coup",
-  "advisor_cabal",
-];
+const ALL_ENDINGS: readonly EndingId[] = ENDING_IDS;
 const ALL_ACTIONS: ActionCategory[] = [
   "deposit",
   "card",

@@ -32,37 +32,12 @@ type ControlRoomPresentationProps = {
   focusOverride?: PresentationFocus;
 };
 
-type RoomLighting = "calm" | "strained" | "crisis" | "failure";
-
 /**
  * Tile anchors are declared once on the room definition. Read them here rather
  * than repeating literals, so a moved anchor moves the sprite with it.
  */
 const FACILITY = ROOM_DEFINITIONS.facility;
 const AT = FACILITY.anchors;
-
-function resolveLighting(model: PresentationModel): RoomLighting {
-  if (
-    model.state === "institutional-failure"
-    || model.endingId === "state_collapse"
-  ) {
-    return "failure";
-  }
-  if (
-    model.state === "crisis"
-    || model.endingId === "corporate_capture"
-  ) {
-    return "crisis";
-  }
-  if (
-    model.state === "strained"
-    || model.state === "corporate-encroachment"
-    || model.endingId === "compromised_activation"
-  ) {
-    return "strained";
-  }
-  return "calm";
-}
 
 function brbLayers(stage: BrbVisualStage): RoomLayer[] {
   if (stage === "sealed") return [];
@@ -316,7 +291,18 @@ export function ControlRoomPresentation({
       kind: "monitor-bank",
       artKey: "monitorScreens",
       position: AT.monitorBank,
-      frameOffset: model.state === "institutional-failure" ? 0 : 4,
+      // Deliberate frozen pose, per BRB_ART_DIRECTION.md §I8. The 11 frames of
+      // this sheet are a blink cycle rather than distinct wall states — they
+      // differ only in the small green readout's pattern — so only one pose
+      // change is defensible: a takeover parks on frame 6, the sparsest
+      // readout, because the wall is still powered and reporting almost
+      // nothing. Everything else keeps frame 4.
+      frameOffset:
+        model.state === "institutional-failure"
+          ? 0
+          : model.authority.mode === "public"
+            ? 4
+            : 6,
       hidden: model.state === "institutional-failure",
     },
     {
@@ -360,6 +346,8 @@ export function ControlRoomPresentation({
         model.persistentRoomMarks?.emergencyLevel ?? "routine"
       }
       data-ending={model.endingId ?? "none"}
+      data-authority={model.authority.mode}
+      data-authority-holders={model.authority.holders.join(" ") || "none"}
       data-focus={focus}
       data-institutional-condition={institutionalCondition}
       data-lit-station={model.litStation ?? "none"}
@@ -376,7 +364,7 @@ export function ControlRoomPresentation({
         actors={actors}
         layers={layers}
         className={styles.room!}
-        lighting={resolveLighting(model)}
+        lighting={model.lighting}
         reducedMotion={reducedMotion}
         testId="continuity-facility"
       />

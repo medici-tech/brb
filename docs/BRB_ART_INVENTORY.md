@@ -50,6 +50,12 @@ gitignored outputs.
 | `envCorporateDoor` | `Office_Door_Lime_Corp_1_16x16.png`, endpoint holds preserved | `control-room/narrative/corporate-door.png` | 1056×32; 22 × 48×32 | `32b36230172899032319a8bbda5f3327558a7ec6b6e9a93984fc263a31f349f2` | Corporate presence / suite prop | 1× inside room canvas |
 | `envCivicBarrier` | `Automatic_Barrier_1_16x16.png`, endpoint holds preserved | `control-room/narrative/civic-barrier.png` | 1760×80; 22 × 80×80 | `8c269409060aae6bb69b644c301df5aa70669e7d01a90296444f0911128f89b8` | Civic gate aftermath prop | 1× inside room canvas |
 
+`monitorScreens` is an 11-frame blink cycle of the same wall (small green readout
+pattern changes; one dark-panel frame). It does not support six meaningful poses.
+Under reduced motion the facility keeps frame 4, except advisor takeovers park on
+frame 6 (sparsest readout — still powered, reporting almost nothing). See
+`ControlRoomPresentation.tsx` and §I8.
+
 ### Orthographic room bases
 
 Composites are built by `scripts/curate-art.ts` from `scripts/room-recipes.ts` using
@@ -78,7 +84,7 @@ playback can freeze for reduced motion, while GIF playback cannot.
 | Surface | Decision |
 | --- | --- |
 | Start / doctrine selection | Intake-office room (`roomIntake`) sits beside the operational brief. Doctrine and Directive cards stay text-first; ambient staff sprites are not advisor portraits. |
-| Campaign Situation workspace | Fixed 22×14 continuity facility beside the Situation dossier at desktop sizes (704×448). A shared command rail and external LIVE bezel connect the two surfaces. At phone widths, the complete 352×224 live room appears immediately after the masthead and before the dossier. BRB tracks sit below the top playfield. Gameplay text and controls remain DOM content outside the room. |
+| Campaign Situation workspace | Fixed 22×14 continuity facility beside the Situation dossier: 2× (704×448) by default, 3× (1056×672) at ≥1600px viewports (page shell widened to 1600px at that breakpoint only). A shared command rail and external LIVE bezel connect the two surfaces. At phone widths, the complete 352×224 live room appears immediately after the masthead and before the dossier. BRB tracks sit below the top playfield. Gameplay text and controls remain DOM content outside the room. |
 | Ending | Reuses the same facility camera with final damage, occupancy, Corporation presence, BRB stage, and lighting. Ending copy and Report action stay outside the room. |
 | Advisor consultation | No advisor portraits in the supplied pack. Keep names, meters, quotes, and controls text-first. Facility world sprites represent Analysis / Operations / Institutions stations, not advisor portraits. |
 | Aftermath dialog | Six fixed 14×10 orthographic rooms via shared recipes/`PixelRoom`. Actor and prop positions use integer tile coordinates. Setup → Action → Consequence text and controls stay below the scene; no in-room actor labels. |

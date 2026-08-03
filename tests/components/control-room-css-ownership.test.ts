@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { ENDING_IDS } from "../../src/game/types.js";
 
 const CONTROL_ROOM = path.join(
   process.cwd(),
@@ -27,6 +28,63 @@ describe("orthographic control-room CSS contract", () => {
     expect(productionCss).not.toMatch(/\bperspective\s*\(/i);
     expect(productionCss).not.toMatch(/\brotate[XY]\s*\(/i);
     expect(productionCss).not.toMatch(/--sprite-scale-override:\s*[3-9]/);
+  });
+
+  it("gives every ending a visual treatment", () => {
+    // TypeScript cannot see CSS, so the total Record<EndingId, ...> maps in the
+    // resolver cannot catch an ending that has a grade but no rule. This is the
+    // only guard for that, and it is the gap the advisor endings fell through.
+    const presentation = read(
+      path.join(CONTROL_ROOM, "ControlRoomPresentation.module.css"),
+    );
+    for (const endingId of ENDING_IDS) {
+      expect(
+        presentation.includes(`[data-ending="${endingId}"]`),
+        `no [data-ending="${endingId}"] rule in ControlRoomPresentation.module.css`,
+      ).toBe(true);
+    }
+    expect(presentation).toMatch(/\[data-authority="seized"\]/);
+    expect(presentation).toMatch(/\[data-authority="shared"\]/);
+    // A takeover fires while the Corporation is "embedded", so the gold sheen
+    // must be explicitly cancelled or the room reads as the wrong loss.
+    expect(presentation).toMatch(
+      /\[data-authority="seized"\]::before[\s\S]*?\[data-authority="shared"\]::before/,
+    );
+    // The holder glow must come after the subordinate dim, which outranks it.
+    expect(
+      presentation.indexOf("filter: brightness(0.58) saturate(0.5);"),
+    ).toBeLessThan(
+      presentation.lastIndexOf('[data-authority-holders~="analyst"]'),
+    );
+
+    // Every holder selector must carry the same
+    // `[data-authority]:not([data-authority-holders="none"])` prefix as the
+    // rest-dim. Without it the holder rule is one selector LESS specific than
+    // the dim, so the held station is dimmed with everything else and the
+    // takeover renders with no pool of light at all — which no rendering test
+    // catches, because the attributes are still correct.
+    for (const holder of ["analyst", "fixer", "steward"]) {
+      const selector = `[data-authority-holders~="${holder}"]`;
+      for (const occurrence of presentation
+        .split("\n")
+        .filter((line) => line.includes(selector))) {
+        expect(
+          occurrence.includes('[data-authority]:not([data-authority-holders="none"])'),
+          `${selector} must match the rest-dim specificity, got: ${occurrence.trim()}`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("gives the advisor endings a page-shell treatment", () => {
+    const tableau = read(
+      path.join(process.cwd(), "src/components/brb/EndingTableauView.module.css"),
+    );
+    expect(tableau).toMatch(/\[data-ending-tableau="advisor_coup"\]/);
+    expect(tableau).toMatch(/\[data-ending-tableau="advisor_cabal"\]/);
+    // Rebinding --signal would silently restyle the primary action button,
+    // which uses it as a background with dark text.
+    expect(tableau).not.toMatch(/\[data-ending-tableau[^{]*\{[^}]*--signal:/);
   });
 
   it("scales the complete room canvas and fit-scales instead of cropping", () => {
@@ -86,6 +144,11 @@ describe("orthographic control-room CSS contract", () => {
 
     expect(workspace).toMatch(/grid-template-columns:\s*704px/);
     expect(workspace).toMatch(/width:\s*704px/);
+    // Third tier for wide displays. 1056 is 352 x 3 exactly; a non-integer
+    // multiple here would resample every sprite in the room.
+    expect(workspace).toMatch(/@media \(min-width:\s*1600px\)/);
+    expect(workspace).toMatch(/grid-template-columns:\s*1056px/);
+    expect(workspace).toMatch(/width:\s*1056px/);
     expect(workspace).toMatch(/aspect-ratio:\s*352\s*\/\s*224/);
     expect(workspace).toMatch(/width:\s*352px/);
     expect(workspace).toMatch(/width:\s*min\(100%,\s*352px\)/);

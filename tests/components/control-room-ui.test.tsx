@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CampaignScreen } from "../../src/components/brb/CampaignScreen.js";
 import { ControlRoomPresentation } from "../../src/components/brb/control-room/ControlRoomPresentation.js";
+import { resolveLighting } from "../../src/components/brb/control-room/presentationStateResolver.js";
 import type {
   BrbVisualStage,
   PresentationModel,
@@ -22,12 +23,32 @@ const calmModel: PresentationModel = {
   litStation: null,
   paperLoad: "sparse",
   endingId: null,
+  lighting: "calm",
+  authority: { mode: "public", holders: [] },
   staffLayout: {
     mode: "full",
     crossingVisible: false,
     crossingDirection: "left-to-right",
   },
 };
+
+/**
+ * Build a scenario model the way `resolvePresentationModel` would.
+ *
+ * `lighting` is a model field rather than something the component re-derives, so
+ * a hand-written literal can now claim `state: "crisis"` while still carrying
+ * `lighting: "calm"`. Deriving it here keeps these fixtures honest and means the
+ * scenarios exercise the real grade mapping rather than restating it.
+ */
+function scenarioModel(
+  overrides: Partial<PresentationModel>,
+): PresentationModel {
+  const merged = { ...calmModel, ...overrides };
+  return {
+    ...merged,
+    lighting: resolveLighting(merged.state, merged.endingId),
+  };
+}
 
 const originalMatchMedia = window.matchMedia;
 
@@ -319,14 +340,13 @@ describe("Living Control Room UI", () => {
     },
     {
       name: "strained construction room",
-      model: {
-        ...calmModel,
+      model: scenarioModel({
         state: "strained",
         stateLabel: "Strained",
         brbProgress: 55,
         brbStage: "construction",
         paperLoad: "burdened",
-      } satisfies PresentationModel,
+      }),
       lighting: "strained",
       staff: ["analyst", "fixer", "steward"],
       objects: [
@@ -337,8 +357,7 @@ describe("Living Control Room UI", () => {
     },
     {
       name: "institutional failure",
-      model: {
-        ...calmModel,
+      model: scenarioModel({
         state: "institutional-failure",
         stateLabel: "Institutional Failure",
         staffLayout: {
@@ -353,15 +372,14 @@ describe("Living Control Room UI", () => {
           departedAdvisors: [],
           completedRouteCount: 2,
         },
-      } satisfies PresentationModel,
+      }),
       lighting: "failure",
       staff: ["fixer"],
       objects: ["architectural-damage"],
     },
     {
       name: "embedded Corporation",
-      model: {
-        ...calmModel,
+      model: scenarioModel({
         state: "corporate-encroachment",
         stateLabel: "Corporate Encroachment",
         persistentRoomMarks: {
@@ -372,7 +390,7 @@ describe("Living Control Room UI", () => {
           departedAdvisors: ["analyst"],
           completedRouteCount: 1,
         },
-      } satisfies PresentationModel,
+      }),
       lighting: "strained",
       staff: ["fixer", "steward", "corporation-officer"],
       objects: ["corporation-presence", "architectural-damage"],

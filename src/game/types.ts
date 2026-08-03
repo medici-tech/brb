@@ -259,13 +259,26 @@ export type CorporationMove = {
   effects: Effects;
 };
 
-export type EndingId =
-  | "civic_legacy"
-  | "compromised_activation"
-  | "corporate_capture"
-  | "state_collapse"
-  | "advisor_coup"
-  | "advisor_cabal";
+/**
+ * Every ending, as an iterable tuple with the union derived from it — the same
+ * shape as `ADVISOR_IDS`, `TRACK_KEYS`, and the other id families here.
+ *
+ * `EndingId` used to be a bare union, which meant nothing could enumerate it:
+ * five hand-maintained lists and three lookup tables were free to omit an ending
+ * without a single compile error. That is exactly how `advisor_coup` and
+ * `advisor_cabal` reached players with no lighting, no CSS, and no aftermath.
+ * Derive from this tuple rather than retyping the members.
+ */
+export const ENDING_IDS = [
+  "civic_legacy",
+  "compromised_activation",
+  "corporate_capture",
+  "state_collapse",
+  "advisor_coup",
+  "advisor_cabal",
+] as const;
+
+export type EndingId = (typeof ENDING_IDS)[number];
 
 export type EndingVariationId =
   | "perfect_machine_empty_state"

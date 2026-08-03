@@ -208,6 +208,34 @@
   );
 }
 
+/* Advisor takeover. The building is intact and fully staffed — what changed is
+ * who the light is on. The wash is a dark green-cast neutral rather than
+ * `failure`'s red-black, and the zones keep the room's own phosphor rather than
+ * an alarm colour, so a takeover cannot be mistaken for collapse or for the
+ * Corporation's gold. Zone opacity rests low here; the owning presentation
+ * raises the held stations. */
+.viewport[data-lighting="captured"] .canvas::before {
+  background: rgba(14, 22, 17, 0.38);
+}
+
+.viewport[data-lighting="captured"] .light {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(166, 180, 133, 0.3),
+    transparent 72%
+  );
+  opacity: 0.1;
+}
+
+/* Third tier. The viewport caps its own width at `scale x source width`, so the
+ * workspace widening to 1056px is not enough on its own — without this the room
+ * still stops at 2x inside a 3x stage. */
+@media (min-width: 1600px) {
+  .viewport {
+    --pixel-room-scale: 3;
+  }
+}
+
 @media (max-width: 1180px) {
   .viewport {
     --pixel-room-scale: 1;

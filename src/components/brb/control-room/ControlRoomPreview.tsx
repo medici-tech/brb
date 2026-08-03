@@ -6,6 +6,8 @@ import workspaceStyles from "./SituationWorkspace.module.css";
 import styles from "./ControlRoomPreview.module.css";
 import {
   getBrbVisualStage,
+  resolveAuthority,
+  resolveLighting,
   PRESENTATION_STATE_COPY,
   PRESENTATION_STATES,
   type LitStation,
@@ -16,7 +18,8 @@ import {
   type PresentationState,
   type PresentationTempo,
 } from "./presentationStateResolver";
-import type { EndingId } from "@/game/types";
+import { ENDING_IDS } from "@/game/types";
+import type { AdvisorId, EndingId } from "@/game/types";
 import type {
   PersistentRoomMarks,
 } from "@/components/brb/narrative/sceneTypes";
@@ -53,12 +56,17 @@ const PAPER_OPTIONS: PaperLoad[] = [
   "burdened",
   "saturated",
 ];
-const ENDING_OPTIONS: Array<EndingId | "none"> = [
-  "none",
-  "civic_legacy",
-  "compromised_activation",
-  "corporate_capture",
-  "state_collapse",
+// Derived, not hand-listed. The old literal array omitted the advisor endings,
+// so the one surface built to eyeball every ending could not select the two that
+// had no treatment.
+const ENDING_OPTIONS: Array<EndingId | "none"> = ["none", ...ENDING_IDS];
+const HOLDER_OPTIONS: Array<AdvisorId[]> = [
+  [],
+  ["analyst"],
+  ["fixer"],
+  ["steward"],
+  ["analyst", "steward"],
+  ["analyst", "fixer", "steward"],
 ];
 const CONDITION_OPTIONS: PersistentRoomMarks["institutionalCondition"][] = [
   "secure",
@@ -96,6 +104,7 @@ export function ControlRoomPreview() {
     useState<PresentationModel["staffLayout"]["mode"]>("full");
   const [departedAdvisors, setDepartedAdvisors] =
     useState<PersistentRoomMarks["departedAdvisors"]>([]);
+  const [holders, setHolders] = useState<AdvisorId[]>([]);
   const copy = PRESENTATION_STATE_COPY[state];
   const brbStage = getBrbVisualStage(progress);
   const model: PresentationModel = {
@@ -110,6 +119,8 @@ export function ControlRoomPreview() {
     litStation: station,
     paperLoad,
     endingId: ending,
+    lighting: resolveLighting(state, ending),
+    authority: resolveAuthority(ending, holders),
     staffLayout: {
       mode: staffMode,
       crossingVisible: !activeSituation,
@@ -372,6 +383,26 @@ export function ControlRoomPreview() {
               type="checkbox"
               onChange={(event) =>
                 toggleDepartedAdvisor(advisor, event.target.checked)}
+            />
+          </label>
+        ))}
+
+        {/* Which advisors hold the state at a takeover ending. In real play this
+            is derived from advisor leverage; here it is picked so both the coup
+            and cabal compositions can be eyeballed, including the no-holder
+            fallback a legacy save can produce. */}
+        {ADVISOR_OPTIONS.map((advisor) => (
+          <label className={styles.previewToggle} key={`holder-${advisor}`}>
+            {advisor} holds state
+            <input
+              aria-label={`${advisor} holds state`}
+              checked={holders.includes(advisor)}
+              type="checkbox"
+              onChange={(event) =>
+                setHolders((current) =>
+                  event.target.checked
+                    ? [...current, advisor]
+                    : current.filter((candidate) => candidate !== advisor))}
             />
           </label>
         ))}
