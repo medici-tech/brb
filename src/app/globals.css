@@ -233,6 +233,10 @@ button { font: inherit; }
   outline-offset: 2px;
 }
 .shell { width: min(1440px, 100%); margin: 0 auto; padding: 24px clamp(18px, 4vw, 64px) 72px; }
+/* The 3x camera tier needs 1056 + 18 gap + a 360 dossier = 1434 of content
+   width, which does not fit inside the 1440px cap once page padding is removed.
+   Raised only at the tier's own breakpoint; every narrower layout is unchanged. */
+@media (min-width: 1600px) { .shell { width: min(1600px, 100%); } }
 .masthead {
   position: relative;
   min-height: 72px;
