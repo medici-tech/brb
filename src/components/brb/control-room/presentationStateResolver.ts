@@ -314,6 +314,16 @@ export function resolvePresentationShot(
   return "operations";
 }
 
+/**
+ * Maps consultation / situation focus onto a lit station zone.
+ *
+ * The advisor → zone pairs below (analyst/analysis, fixer/operations,
+ * steward/institutions) are also restated in ControlRoomPresentation.module.css
+ * under `[data-lit-station]` and `[data-authority-holders]`. CSS cannot read a
+ * TypeScript record, so full centralisation is unavailable — keep those
+ * selectors aligned with this function when the mapping changes. This is the
+ * source of truth.
+ */
 export function resolveLitStation(
   inputs: Readonly<PresentationInputs>,
 ): LitStation {

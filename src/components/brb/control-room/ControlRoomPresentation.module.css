@@ -292,7 +292,10 @@
 /* Must carry the same `[data-authority]:not([data-authority-holders="none"])`
  * prefix as the rest-dim above. Without it this rule is one selector LESS
  * specific than the dim, so the held station is dimmed along with the rest and
- * the takeover has no pool of light at all. */
+ * the takeover has no pool of light at all.
+ *
+ * Advisor → zone pairs match `resolveLitStation` in presentationStateResolver.ts
+ * (source of truth). Same three-place duplication as `[data-lit-station]` above. */
 .presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="analyst"]
   :global([data-light-zone="analysis"]),
 .presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="fixer"]
@@ -302,9 +305,9 @@
   opacity: var(--room-authority-zone);
 }
 
-/* Present, at their posts, subordinate. Declared BEFORE the holder glow below:
- * this selector is more specific than the holder selector, so source order is
- * what lets the held advisor stay lit. Do not reorder these two blocks. */
+/* Present, at their posts, subordinate. Declared BEFORE the holder glow below.
+ * With the matching specificity prefix, holder rules outrank this dim; source
+ * order is the backup if specificity is ever equalised. Do not reorder. */
 .presentation[data-authority="seized"]:not([data-authority-holders="none"])
   :global([data-room-actor]),
 .presentation[data-authority="shared"]:not([data-authority-holders="none"])
@@ -312,6 +315,7 @@
   filter: brightness(0.58) saturate(0.5);
 }
 
+/* Same prefix + source-order contract as the light-zone holders above. */
 .presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="analyst"]
   :global([data-room-actor="analyst"]),
 .presentation[data-authority]:not([data-authority-holders="none"])[data-authority-holders~="fixer"]
