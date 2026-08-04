@@ -122,6 +122,11 @@ Important boundaries:
 - `src/components/brb/control-room/presentationStateResolver.ts`: pure mapping from game state to presentation state. Presentation thresholds must not mutate gameplay.
 - `src/components/brb/control-room/ControlRoomPresentation.tsx`: visual room only.
 - `src/app/dev/control-room/page.tsx`: development-only presentation preview. The production build replaces its preview import with a null component through `next.config.ts`; preserve that exclusion.
+- `src/components/brb/narrative/sceneResolver.ts`: maps a `DecisionRecord` to a scene key and reads canonical state. This is the only narrative file that may import from `src/game`.
+- `src/components/brb/narrative/sceneRegistry.ts`: merges the catalogs into one lookup. Register a new scene here or `getNarrativeSceneScript` will not find it.
+- `src/components/brb/narrative/sceneCatalog*.ts`: declarative scene scripts, not logic. `sceneCatalogActions.ts` holds action, consultation, and ending scripts. The card scripts are split across three files of five cards each purely to keep them readable — `Cards1` (budget shortfall, contractor strike, insider offer, public hearing, whistleblower), `Cards2` (coalition vote, corporate lobby, emergency powers, intelligence leak, regional blackout), `Cards3` (audit discrepancy, capacity bottleneck, national march, protest spark, silent partner). The numbers carry no meaning; grep the card ID rather than guessing the file.
+- `src/components/brb/pixel-room/` and `src/components/brb/pixel/`: the orthographic room canvas and sprite primitives. Room geometry lives in `roomDefinitions.ts`.
+- `src/game-art/manifest.ts`: the curated-asset manifest. `scripts/inject-art.ts` validates it before `dev` and `build`; do not add an asset key without a manifest entry.
 
 ## React and Next.js Rules
 
@@ -131,7 +136,7 @@ Important boundaries:
 - Derive display data from canonical state instead of copying it into a second React state variable.
 - Send `MajorAction` values through `commitAction`; do not modify `GameState` directly in a click handler.
 - Use `getActionPreview`, `getActionError`, and other shared guidance helpers so disabled states and explanations match the engine.
-- The current `next/font/google` setup may need network access when font files are not cached. Treat an offline font-download failure as a reproducible-build concern; do not hide it by skipping the build.
+- Fonts load through `next/font/local` from `src/app/fonts`, so the build needs no network access. Do not reintroduce `next/font/google`: a downloaded font makes the build non-reproducible offline, and the current families are self-hosted under OFL 1.1 with their provenance recorded in `docs/THIRD_PARTY_ASSETS.md`.
 - Preserve semantic elements, button labels, dialog focus behavior, keyboard access, and `prefers-reduced-motion`.
 - Keep the political dossier/control-room visual language. Avoid generic SaaS dashboards, arbitrary gradients, default-looking cards, or constant micro-animation.
 - Use existing CSS variables and theme tokens. The main campaign has legacy global styles; the living control room uses a CSS module. Follow the local convention of the component being changed.
@@ -189,6 +194,13 @@ npm run build
 npm run dev
 ```
 
+`npm test` runs everything through `vitest.config.ts`. `vitest.game.config.ts` is a
+debugging aid, not part of the gate: it runs only `tests/game/**` in a forks pool with a
+single worker, which is how to isolate cross-test pollution or a suspected ordering
+dependency in the engine suite. It has no npm script on purpose — run it directly with
+`npx vitest run -c vitest.game.config.ts`. A green run there and a red run under `npm test`
+means the problem is shared state between suites, not the rule under test.
+
 Run `npm run build` after changing Next.js configuration, pages, imports, fonts, or client/server boundaries. Do not run a large simulation merely to validate compilation.
 
 Tests should assert player-observable contracts and invariants, not private implementation details. For deterministic behavior, compare histories or final states. For thresholds, test the boundary and the value immediately on each side.
@@ -204,7 +216,13 @@ Update documentation in the same change when behavior or terminology changes:
 - phase status or delivery gate → `BRB_PHASE_PLAN.md`;
 - guided-playtest procedure → `BRB_GUIDED_PLAYTEST.md`;
 - visual rule, palette, composition, or motion principle → `BRB_ART_DIRECTION.md`;
-- curated asset, crop, hash, or room recipe → `BRB_ART_INVENTORY.md`.
+- curated asset, crop, hash, or room recipe → `BRB_ART_INVENTORY.md`;
+- aftermath scene script, scene location, or narrative registry entry → `BRB_ART_PIPELINE.md`.
+
+Two routing rules are easy to miss:
+
+- Adding an ending, card choice, or major action means adding its narrative scene in the same change. A scene-less outcome falls back to a generic aftermath, which reads as a bug rather than an omission. `ENDING_IDS` in `src/game/types.ts` makes a missing *ending* a compile error; nothing catches a missing card or action scene, so check `sceneRegistry.ts` by hand.
+- Changing anything player-visible also means a `CHANGELOG.md` **Unreleased** entry. Presentation and art work counts as player-visible; refactors and test maintenance do not. See the changelog's own policy section.
 
 Prefer player labels in UI copy and canonical IDs in technical discussion. Name ambiguous meters fully: “Corporation Progress,” “Corporation Threat,” “BRB Stability,” or “Institutions.”
 
