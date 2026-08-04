@@ -73,6 +73,10 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 ### Security
 
 - Persisted browser data receives strict runtime validation before it can affect a run.
+- Build-toolchain dependencies advance to Next.js 16.3.0, PostCSS 8.5.23, and sharp 0.35.3,
+  clearing three high-severity advisory chains. Most of the Next.js advisories cover server
+  features a static export never deploys, so this hardens the development server and build
+  rather than the published game. No application code changed.
 
 ### Internal
 
