@@ -16,7 +16,7 @@ Three things need attention before the next round of feature work, in this order
 2. **Documentation drift.** The instruction and onboarding documents have not kept pace with the two largest subsystems added since late July. `AGENTS.md` contradicts itself about font loading, and `README.md`'s project map is 115 commits stale.
 3. **Phase 2 evidence.** Unchanged and still the binding constraint: there is no completed guided-playtest export or cross-run synthesis in the repository.
 
-The changelog gap raised yesterday is **partially closed** in the working tree; see P2 below for the entry that is still missing.
+The changelog gap raised yesterday is now **closed**, and part of that finding is withdrawn as a misreading; see the Closed section below.
 
 ## Verified quality gate
 
@@ -96,16 +96,13 @@ Unchanged from the last two audits. The accepted `5/4/3/2/1` Corporation cadence
 
 **Impact 5 · Risk 5 · Effort 4** → priority 20 by formula, but this is the project's actual exit condition and effort here is the point, not the cost.
 
-### P2 — One changelog entry is still missing; one entry references an event never logged
+### Closed — the changelog gap raised on 2026-08-03
 
-Yesterday's P1 is mostly addressed by the uncommitted `CHANGELOG.md` edit: the third camera tier is now under **Added**, and the advisor Coup/Cabal lighting and aftermath are under **Changed**. Two gaps remain:
+Resolved. The third camera tier is recorded under **Added**, and the advisor Coup/Cabal room lighting and aftermath under **Changed**.
 
-- The **captured room grade** (`e76efff`) has no entry of its own.
-- The new Changed entry ends "…distinct from Corporate Capture's gold or State Collapse's blackout," referring to a gold grade the changelog never introduced. A reader of `CHANGELOG.md` alone cannot resolve that reference.
+The 2026-08-03 audit listed "the captured room grade" as a third, separately missing entry. That was a misreading of the commit titles and is withdrawn: `BRB_ART_DIRECTION.md:196` defines `captured` as *the advisor-takeover wash*, and `e76efff`'s own message says it exists because advisor takeovers were falling through to `calm`. It is the same feature as the takeover treatment, not an additional one, and the **Changed** entry already covers it. The entry's reference to "Corporate Capture's gold" points at the Corporate encroachment grade (`BRB_ART_DIRECTION.md:183`), which shipped earlier under the existing living-control-room entry.
 
-Add one **Added** entry covering the captured/Corporate Capture room grade, which fixes both.
-
-**Impact 2 · Risk 2 · Effort 1** → priority 20.
+Worth recording as a caution for future audits: commit subject lines were treated as feature inventory without opening the art direction document, and produced a recommendation to write a changelog entry for something already logged under a different name.
 
 ### P2 — `vitest.game.config.ts` is orphaned
 
@@ -160,30 +157,28 @@ Scored as `(Impact + Risk) × (6 − Effort)`, all on 1–5 scales.
 | 1 | Fix the four `AGENTS.md`/`README.md` documentation-drift items (P1b) | 4 | 3 | 1 | 35 | Now |
 | 2 | `npm audit fix` + full gate (P1a) | 2 | 4 | 1 | 30 | Now |
 | 3 | Add CI running test/typecheck/audit (P2) | 3 | 3 | 2 | 24 | Phase 3 |
-| 4 | Complete the changelog's captured-grade entry (P2) | 2 | 2 | 1 | 20 | Now |
-| 5 | Resolve `vitest.game.config.ts`: script + document, or delete (P2) | 2 | 2 | 1 | 20 | Now |
-| 6 | Finish the six-run guided matrix and synthesis (P1c) | 5 | 5 | 4 | 20 | Now — the real gate |
-| 7 | Add `test:coverage` script (P3) | 2 | 1 | 1 | 15 | Opportunistic |
-| 7= | Decide whether `/design-system` ships (P3) | 1 | 2 | 1 | 15 | Before Phase 4 |
-| 8 | `simulate --no-log` (P2) | 2 | 1 | 1 | 15 | Opportunistic |
-| 9 | Patch-level dependency sweep (P3) | 1 | 2 | 1 | 15 | Opportunistic |
+| 4 | Resolve `vitest.game.config.ts`: script + document, or delete (P2) | 2 | 2 | 1 | 20 | Now |
+| 5 | Finish the six-run guided matrix and synthesis (P1c) | 5 | 5 | 4 | 20 | Now — the real gate |
+| 6 | Add `test:coverage` script (P3) | 2 | 1 | 1 | 15 | Opportunistic |
+| 6= | Decide whether `/design-system` ships (P3) | 1 | 2 | 1 | 15 | Before Phase 4 |
+| 7 | `simulate --no-log` (P2) | 2 | 1 | 1 | 15 | Opportunistic |
+| 8 | Patch-level dependency sweep (P3) | 1 | 2 | 1 | 15 | Opportunistic |
 
-Items 1, 2, 4, and 5 together are well under a day and clear every non-evidence finding in this audit. They are deliberately front-loaded so that item 6 — which is the only one that moves the phase — runs against a clean tree.
+Items 1, 2, and 4 together are well under a day and clear every non-evidence finding in this audit. They are deliberately front-loaded so that item 5 — the only one that moves the phase — runs against a clean tree.
 
 ## Recommended order of work
 
 1. Correct the `AGENTS.md` font contradiction, add the narrative-layer boundary and documentation-routing entries, and refresh the `README.md` project map and command list.
 2. Run `npm audit fix`, then the full verification gate, as its own small commit.
-3. Add the missing captured-room-grade changelog entry and commit the pending `CHANGELOG.md` work.
-4. Decide `vitest.game.config.ts`'s fate in the same maintenance commit.
-5. Complete or import the first three natural guided runs and their five-commitment same-seed replays; write a preliminary cross-run synthesis **before** tuning anything.
-6. Complete targeted runs 4–6 and the final guided-playtest synthesis, including defensive-style discoverability and advisor tension.
-7. Use one documented alternate seed block to check whether archetype, strategy, activation, duration, and card-tempo findings survive beyond the `20260715` prefix.
-8. Decide whether the current activation rate is intended; if not, change one balance lever only.
-9. Defer large-file refactors, dependency majors, CI, audio, PWA work, and exported-artifact browser testing until their owning phase.
+3. Decide `vitest.game.config.ts`'s fate: give it a `test:game` script and a line in AGENTS.md § Testing, or delete it.
+4. Complete or import the first three natural guided runs and their five-commitment same-seed replays; write a preliminary cross-run synthesis **before** tuning anything.
+5. Complete targeted runs 4–6 and the final guided-playtest synthesis, including defensive-style discoverability and advisor tension.
+6. Use one documented alternate seed block to check whether archetype, strategy, activation, duration, and card-tempo findings survive beyond the `20260715` prefix.
+7. Decide whether the current activation rate is intended; if not, change one balance lever only.
+8. Defer large-file refactors, dependency majors, CI, audio, PWA work, and exported-artifact browser testing until their owning phase.
 
 ## Exit recommendation
 
 **Remain in Phase 2.** Code health is the strongest it has been: tests doubled, the engine boundary is mechanically enforced, content and design documents agree numerically, and there is not one suppression marker in the tree. The debt that exists is documentation and hygiene, not architecture — cheap to clear and scored above.
 
-The binding constraint has not moved in three audits. It is not engineering capacity; it is that no human has played six guided runs and written down what happened. Clear the four short items, then spend the remaining Phase 2 budget on evidence rather than presentation.
+The binding constraint has not moved in three audits. It is not engineering capacity; it is that no human has played six guided runs and written down what happened. Clear the three short items, then spend the remaining Phase 2 budget on evidence rather than presentation.
