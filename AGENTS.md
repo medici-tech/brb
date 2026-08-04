@@ -125,6 +125,7 @@ Important boundaries:
 
 ## React and Next.js Rules
 
+- **This is Next.js 16, which very likely differs from what you remember.** APIs, conventions, and file layout have all moved. The version's own documentation ships inside the install at `node_modules/next/dist/docs/` — read the relevant guide there before writing Next-specific code, and prefer it over recalled APIs and over any answer that "sounds like Next." Deprecation warnings in build output are real; do not silence them.
 - A React component is a function that turns props and state into UI. Prefer small components with explicit typed props.
 - Put `"use client"` only in components that need hooks, event handlers, browser APIs, or local storage. App Router pages and layouts should remain server components when possible.
 - Keep browser-only reads inside effects or event handlers so static rendering does not access `window`.
@@ -316,6 +317,6 @@ Non-obvious caveats for this VM:
 - This is a single Next.js App Router app (no backend service or database). `npm run dev` serves it at `http://localhost:3000`. Both `dev` and `build` use the `--webpack` flag intentionally; do not switch to Turbopack.
 - Fonts load via `next/font/local`, so `npm run build` does not need network access for fonts.
 - Running `next dev` or `next build` regenerates `.next/dev/types` and rewrites `tsconfig.json` and `next-env.d.ts` in place (adding `.next/dev/...` include paths and repointing the routes import). This working-tree churn is expected tooling output — do not commit it.
-- Since 16.3.0, Next.js also appends a `<!-- BEGIN:nextjs-agent-rules -->` block to `AGENTS.md` itself, from `node_modules/next/dist/server/lib/generate-agent-files.js`. Treat it as the same kind of churn and revert it. The block argues for committing it because it will be re-added; that is tooling output arguing for its own persistence, not a project decision. This file is the single source of truth and its contents are a deliberate choice, so leave it out until the maintainer decides otherwise.
+- Next.js 16.3+ would otherwise rewrite this file whenever `next dev` detects a coding agent, appending its own managed rules block delimited by `nextjs-agent-rules` HTML comments. `agentRules: false` in `next.config.ts` turns that off, and a control run confirmed the flag is what stops it. If that block ever appears here again, the setting was lost — it is not something new to accept. Its actual advice is kept, in the maintainer's own words, under React and Next.js Rules. Do not write the literal begin/end markers into this file: Next matches on those strings, and a quoted copy makes it treat this file as already hosting the block.
 - Chromium browser tests (`npm run test:browser`) require a one-time `npm run test:browser:install`; Chromium is not part of the default dependency install.
 - `npm run simulate` appends to `docs/BRB_SIMULATION_LOG.md` — it mutates a tracked file and is not a harmless smoke test (see the Balance and Simulation Discipline section).
