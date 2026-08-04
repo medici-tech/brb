@@ -20,6 +20,12 @@ Phase 2 balance validation is in progress. The implemented rules currently use:
 - Ordinary forecast accuracy uses Competence, Alignment, centered Loyalty at 0.4 per point, Leverage, relationship memories capped at ±12, and a possible -10 false-plan modifier
 - Situation choices declare mandatory costs separately from floor-clamped resource damage; unaffordable choices cannot resolve
 - Accepted delay, replacement contractors, closed oversight, false plans, parallel contractors, Capacity drift, and emergency rule have deterministic downstream mechanics
+- Clearance ladder: loss +1, Necessary Regime +2, Civic Legacy +3 (Clearance remains progress to next Directive unlock)
+- Necessary Regime aftermath scar: next campaign starts with Panic +6 once; Civic Legacy clears any pending scar; losses neither set nor clear it
+
+### Victory clarity and aftermath scar — 2026-08-04
+
+Hypothesis: compromised activation felt empty because it paid the same Clearance as Civic Legacy and left only story pain. The accepted change splits Clearance (1 / 2 / 3) and adds one Archive aftermath scar (Panic +6 on the next start after Necessary Regime). Corporation cadence, deposits, recovery, cards, and activation rules are unchanged. Default bot matrices remain no-scar; human playtests gate whether the scar restores desire to chase Civic Legacy without making loss preferable to dirty win. Do not retune Corp intervals or deposits in the same experiment.
 
 The accepted activation-reachability cadence originally produced 8.34% activations at seed `20260715` and 8.02% at alternate seed `20260716`, using 5,000 runs per block. A later correctness audit changed affordability ordering without changing that cadence; the current 3,000-run seed-`20260715` no-Directive checkpoint is 8.50% activation, 40.30% State Collapse, 51.20% Corporation capture, and a 22-month median. This remains inside the automated reachability target; human fun, loss fairness, and replay desire remain unverified.
 

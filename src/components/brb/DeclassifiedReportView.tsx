@@ -1,7 +1,12 @@
 import { ADVISORS, ARCHETYPES, ROUTE_DEFINITIONS } from "../../game/content";
 import { LEGACY_DIRECTIVES } from "../../game/directives";
 import { RESOURCE_LABELS, TRACK_LABELS } from "../../game/guidance";
-import { REPORT_RULES_VERSION } from "../../game/replay";
+import {
+  getClearanceGainForEnding,
+  getEndingResultLabel,
+  NECESSARY_REGIME_AFTERMATH_PANIC,
+  REPORT_RULES_VERSION,
+} from "../../game/replay";
 import {
   ADVISOR_IDS,
   RESOURCE_KEYS,
@@ -70,7 +75,8 @@ export function DeclassifiedReportView({
   onSaveRecap,
 }: Props) {
   const recapRequired = Boolean(playtestRun && !playtestRun.recap);
-  const resultLabel = report.ending.victory ? "VICTORY" : "LOSS";
+  const resultLabel = getEndingResultLabel(report.ending.id);
+  const clearanceGain = getClearanceGainForEnding(report.ending.id);
   const legacyReport = report.rulesVersion < REPORT_RULES_VERSION;
   return (
     <main className="shell report-shell">
@@ -120,6 +126,18 @@ export function DeclassifiedReportView({
           nextStep={report.suggestedExperiment}
         />
 
+        {archive && !legacyReport ? (
+          <p className="mt-4 mb-0 text-sm leading-6 text-dossier-ink/80">
+            Clearance +{clearanceGain} (progress to next Directive unlock).
+            {report.ending.id === "compromised_activation"
+              ? ` Aftermath recorded: next campaign starts with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
+              : null}
+            {report.ending.id === "civic_legacy"
+              ? " Any Necessary Regime aftermath is cleared."
+              : null}
+          </p>
+        ) : null}
+
         {archive ? (
           <ReportSection
             eyebrow={`LEGACY CLEARANCE · ${archive.clearance} / 3`}
@@ -130,6 +148,12 @@ export function DeclassifiedReportView({
                 ? "Every Legacy Directive has been recovered."
                 : "Clearance is accumulating."}
           >
+            <p className="mt-0 text-xs leading-5 text-dossier-ink/70">
+              Clearance is progress to next Directive unlock.
+              {archive.pendingScar === "necessary_regime_aftermath"
+                ? ` Aftermath pending: next campaign opens with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
+                : null}
+            </p>
             {archive.pendingDirectiveDraft ? (
               <>
                 <p>
@@ -161,8 +185,8 @@ export function DeclassifiedReportView({
               </>
             ) : (
               <p>
-                Completed campaigns grant 1 Clearance point; victories grant 3.
-                At 3 points, a seeded Directive draft becomes available.
+                Losses grant 1 Clearance, Necessary Regime grants 2, and Civic Legacy
+                grants 3. At 3 points, a seeded Directive draft becomes available.
               </p>
             )}
           </ReportSection>

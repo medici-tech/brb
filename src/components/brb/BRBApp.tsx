@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { commitAction, consultAdvisor, createGame } from "../../game/engine";
 import {
   claimLegacyDirective,
+  consumePendingScar,
   createEmptyArchive,
   createReplayIntent,
   mergeRunIntoArchive,
@@ -122,31 +123,43 @@ export function BRBApp() {
     setView("campaign");
   }
 
+  function applyArchiveAftermathToOptions(
+    options: Parameters<typeof createGame>[0] & object,
+  ): Parameters<typeof createGame>[0] {
+    const openingAftermath = archive.pendingScar;
+    if (openingAftermath) {
+      const cleared = consumePendingScar(archive);
+      saveArchive(window.localStorage, cleared);
+      setArchive(cleared);
+    }
+    return { ...options, openingAftermath };
+  }
+
   function begin(
     archetypeId: ArchetypeId,
     legacyDirectiveId: LegacyDirectiveId | null = null,
     replay: ReplayIntent | null = intent,
   ): void {
     const seed = replay?.seed ?? randomSeed();
-    const next = createGame({
+    const next = createGame(applyArchiveAftermathToOptions({
       seed,
       archetypeId: replay?.archetypeId ?? archetypeId,
       runId: newRunId(),
       ...(replay ? { experiment: replay.experiment } : {}),
       legacyDirectiveId: replay?.legacyDirectiveId ?? legacyDirectiveId,
-    });
+    }));
     openGame(next);
   }
 
   function startGuidedRun(slotId: string): void {
     const slot = journal.matrix.find((candidate) => candidate.id === slotId);
     if (!slot) return;
-    const next = createGame({
+    const next = createGame(applyArchiveAftermathToOptions({
       seed: randomSeed(),
       archetypeId: slot.archetypeId,
       runId: newRunId(),
       legacyDirectiveId: slot.legacyDirectiveId,
-    });
+    }));
     openGame(next, startPrimaryPlaytestRun(journal, slotId, next));
   }
 
@@ -207,13 +220,13 @@ export function BRBApp() {
     const nextIntent = createReplayIntent(report, mode);
     saveReplayIntent(window.localStorage, nextIntent);
     setIntent(nextIntent);
-    const next = createGame({
+    const next = createGame(applyArchiveAftermathToOptions({
       seed: nextIntent.seed,
       archetypeId: nextIntent.archetypeId,
       runId: newRunId(),
       experiment: nextIntent.experiment,
       legacyDirectiveId: nextIntent.legacyDirectiveId,
-    });
+    }));
     const reportSlot = journal.matrix.find((slot) => slot.primaryRunId === report.runId);
     const nextJournal = mode === "same_seed" && reportSlot?.status === "awaiting_replay"
       ? startReplayPlaytestRun(journal, report.runId, next)
@@ -343,6 +356,7 @@ export function BRBApp() {
       savedRun={savedRun}
       replayIntent={intent}
       unlockedDirectiveIds={archive.unlockedDirectiveIds}
+      pendingScar={archive.pendingScar}
       onStart={(archetypeId, directiveId) => begin(archetypeId, directiveId)}
       onResume={() => {
         if (savedRun) {
