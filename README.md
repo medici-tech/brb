@@ -19,6 +19,18 @@ npm run simulate:baseline -- --notes "Describe what changed and what this run is
 
 Open `http://localhost:3000` after `npm run dev`. The production command creates a static export in `out/`, ready for later itch.io packaging. Publishing remains Phase 4 work.
 
+`dev` and `build` both run `scripts/inject-art.ts` first, which checks the curated art manifest and reports whether licensed art or the CSS fallbacks are in use. The licensed source packs are not in this repository, so a fresh clone runs in fallback mode and that is expected — the game is fully playable either way. The art commands are:
+
+```bash
+npm run art:status          # read-only: licensed or fallback mode, and which keys resolve
+npm run art:verify          # fail if any manifest asset is missing or corrupt
+npm run art:curate          # re-cut curated assets from the local licensed pack
+npm run art:contact-sheets  # preview sheets into the ignored scratchpad/
+npm run test:browser:art    # strict browser decode check across the full manifest
+```
+
+See [BRB Art Pipeline](docs/BRB_ART_PIPELINE.md) for the curation workflow and [Third-Party Assets](docs/THIRD_PARTY_ASSETS.md) for licensing.
+
 ## Project map
 
 - `src/game/content.ts`: advisors, archetypes, deposits, Corporation moves, endings, routes, and Situation Cards
@@ -30,6 +42,11 @@ Open `http://localhost:3000` after `npm run dev`. The production command creates
 - `src/game/simulator.ts`: multi-run reports
 - `scripts/simulation-log.ts`: appends a readable summary and notes for every CLI simulation
 - `src/app` and `src/components/brb`: the App Router browser interface
+- `src/components/brb/control-room`: the living control room — a pure resolver maps game state to lighting, scars, and room treatments
+- `src/components/brb/narrative`: the post-commitment aftermath scenes; a resolver picks the scene and the catalogs hold declarative scripts
+- `src/components/brb/pixel-room` and `src/components/brb/pixel`: the orthographic room canvas and sprite primitives
+- `src/game-art/manifest.ts`: the curated-art manifest that names every asset key the interface may use
+- `scripts/inject-art.ts`, `scripts/curate-art.ts`, `scripts/room-recipes.ts`: the art pipeline — curate from the licensed pack, compose room bases, and inject curated art before `dev` and `build`
 - `src/playtest`: the local solo-play journal, six-run matrix, bookmarks, recaps, and export helpers
 - `tests/game` and `tests/components`: rules and React behavior tests
 - `tests/browser`: Chromium player-flow, responsive, keyboard, reduced-motion, and axe accessibility tests
