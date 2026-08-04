@@ -7,10 +7,12 @@ import {
   ADVISOR_IDS,
   LEGACY_DIRECTIVE_IDS,
   ROUTE_IDS,
+  type ArchiveScarId,
   type ArchiveV1,
   type ArchiveV0,
   type DeclassifiedReport,
   type DecisionRecord,
+  type EndingId,
   type GameState,
   type LegacyDirectiveId,
   type ReplayIntent,
@@ -19,8 +21,31 @@ import {
   type UnseenRouteHint,
 } from "./types";
 import { assertArchiveV0, assertArchiveV1 } from "./persisted-data-validation";
+import { isRecord } from "./validation-primitives";
 
 export const REPORT_RULES_VERSION = 2;
+
+/** Panic added at the start of the next campaign after Necessary Regime. */
+export const NECESSARY_REGIME_AFTERMATH_PANIC = 6;
+
+export function getClearanceGainForEnding(endingId: EndingId): number {
+  if (endingId === "civic_legacy") return 3;
+  if (endingId === "compromised_activation") return 2;
+  return 1;
+}
+
+export function getEndingResultLabel(endingId: EndingId): string {
+  if (endingId === "civic_legacy") return "VICTORY · CIVIC LEGACY";
+  if (endingId === "compromised_activation") return "VICTORY · COMPROMISED";
+  return "LOSS";
+}
+
+export function consumePendingScar(archive: ArchiveV1): ArchiveV1 {
+  if (archive.pendingScar === null) return archive;
+  const next = structuredClone(archive);
+  next.pendingScar = null;
+  return next;
+}
 
 function routeCompletionIsValid(state: GameState, routeId: RouteId): boolean {
   const route = state.routes[routeId];
@@ -268,6 +293,7 @@ export function createEmptyArchive(): ArchiveV1 {
     rewardRngState: INITIAL_DIRECTIVE_REWARD_SEED,
     unlockedDirectiveIds: [],
     pendingDirectiveDraft: null,
+    pendingScar: null,
   };
 }
 
@@ -298,7 +324,12 @@ export function mergeRunIntoArchive(archive: ArchiveV1, state: GameState): Archi
   next.processedRunIds.push(state.runId);
   next.endings[state.ending.id] = (next.endings[state.ending.id] ?? 0) + 1;
   if (next.unlockedDirectiveIds.length < LEGACY_DIRECTIVE_IDS.length) {
-    next.clearance += state.ending.victory ? 3 : 1;
+    next.clearance += getClearanceGainForEnding(state.ending.id);
+  }
+  if (state.ending.id === "civic_legacy") {
+    next.pendingScar = null;
+  } else if (state.ending.id === "compromised_activation") {
+    next.pendingScar = "necessary_regime_aftermath" satisfies ArchiveScarId;
   }
 
   for (const encounter of state.cardHistory) {
@@ -367,7 +398,16 @@ function migrateArchiveV0(archive: ArchiveV0): ArchiveV1 {
     rewardRngState: INITIAL_DIRECTIVE_REWARD_SEED,
     unlockedDirectiveIds: [],
     pendingDirectiveDraft: null,
+    pendingScar: null,
   };
+}
+
+function normalizeArchiveV1Blob(value: unknown): unknown {
+  if (!isRecord(value) || value.version !== 1) return value;
+  if (!("pendingScar" in value)) {
+    return { ...value, pendingScar: null };
+  }
+  return value;
 }
 
 export function deserializeArchive(serialized: string): ArchiveV1 {
@@ -381,6 +421,7 @@ export function deserializeArchive(serialized: string): ArchiveV1 {
     assertArchiveV0(parsed);
     return migrateArchiveV0(parsed);
   }
-  assertArchiveV1(parsed);
-  return parsed;
+  const normalized = normalizeArchiveV1Blob(parsed);
+  assertArchiveV1(normalized);
+  return normalized;
 }

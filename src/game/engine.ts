@@ -33,7 +33,7 @@ import {
   surfaceForecastEchoes,
   surfaceSystemModifier,
 } from "./echoes";
-import { buildDeclassifiedReport } from "./replay";
+import { buildDeclassifiedReport, NECESSARY_REGIME_AFTERMATH_PANIC } from "./replay";
 import {
   applyCompletionPressure,
   describeCompletionPressure,
@@ -128,7 +128,10 @@ function createAdvisorState(id: AdvisorId): AdvisorState {
 function normalizeCreateOptions(
   seedOrOptions: number | CreateGameOptions,
   archetypeId: ArchetypeId,
-): Required<Omit<CreateGameOptions, "experiment">> & { experiment: string | null } {
+): Required<Omit<CreateGameOptions, "experiment" | "openingAftermath">> & {
+  experiment: string | null;
+  openingAftermath: CreateGameOptions["openingAftermath"];
+} {
   if (typeof seedOrOptions === "number") {
     const seed = seedOrOptions >>> 0;
     return {
@@ -137,6 +140,7 @@ function normalizeCreateOptions(
       runId: `run-${seed}-${archetypeId}`,
       experiment: null,
       legacyDirectiveId: null,
+      openingAftermath: null,
     };
   }
   const seed = seedOrOptions.seed >>> 0;
@@ -147,6 +151,7 @@ function normalizeCreateOptions(
     runId: seedOrOptions.runId ?? `run-${seed}-${chosenArchetype}`,
     experiment: seedOrOptions.experiment ?? null,
     legacyDirectiveId: seedOrOptions.legacyDirectiveId ?? null,
+    openingAftermath: seedOrOptions.openingAftermath ?? null,
   };
 }
 
@@ -244,6 +249,14 @@ export function createGame(
   };
 
   applyArchetype(state);
+  if (options.openingAftermath === "necessary_regime_aftermath") {
+    state.pressures.panic = clamp(state.pressures.panic + NECESSARY_REGIME_AFTERMATH_PANIC);
+    addHistory(
+      state,
+      "system",
+      `Aftermath of the Necessary Regime raised opening Panic by ${NECESSARY_REGIME_AFTERMATH_PANIC}.`,
+    );
+  }
   drawSituationCard(state);
   addHistory(state, "system", `${ARCHETYPES[state.archetypeId].name} run started.`);
   return state;

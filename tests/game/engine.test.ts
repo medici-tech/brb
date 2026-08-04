@@ -903,3 +903,18 @@ describe("advisor takeover endings", () => {
     expect(deserializeGame(serializeGame(ended))).toEqual(ended);
   });
 });
+
+describe("Necessary Regime opening aftermath", () => {
+  it("raises starting Panic by 6 when the Archive scar is applied", () => {
+    const baseline = createGame({ seed: 610, runId: "no-scar" });
+    expect(baseline.pressures.panic).toBe(8);
+
+    const scarred = createGame({
+      seed: 610,
+      runId: "with-scar",
+      openingAftermath: "necessary_regime_aftermath",
+    });
+    expect(scarred.pressures.panic).toBe(14);
+    expect(scarred.history.some((entry) => /Aftermath of the Necessary Regime/i.test(entry.message))).toBe(true);
+  });
+});

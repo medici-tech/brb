@@ -295,6 +295,10 @@ export type Ending = {
   variationTitle: string | null;
 };
 
+/** Temporary next-run aftermath recorded in the Archive after a compromised win. */
+export const ARCHIVE_SCAR_IDS = ["necessary_regime_aftermath"] as const;
+export type ArchiveScarId = (typeof ARCHIVE_SCAR_IDS)[number];
+
 export type Consequence = {
   turn: number;
   source: "player" | "advisor" | "corporation" | "card" | "pressure" | "system";
@@ -565,6 +569,8 @@ export type CreateGameOptions = {
   runId?: string;
   experiment?: string;
   legacyDirectiveId?: LegacyDirectiveId | null;
+  /** Archive aftermath applied once at run start (e.g. Necessary Regime Panic scar). */
+  openingAftermath?: ArchiveScarId | null;
 };
 
 export type DepositAction = {
@@ -627,6 +633,7 @@ export type ArchiveV1 = {
   rewardRngState: number;
   unlockedDirectiveIds: LegacyDirectiveId[];
   pendingDirectiveDraft: LegacyDirectiveDraft | null;
+  pendingScar: ArchiveScarId | null;
 };
 
 export type ReplayIntent = {
