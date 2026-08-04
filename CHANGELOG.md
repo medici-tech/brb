@@ -19,9 +19,16 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 - Deterministic Chromium coverage for the campaign, reports, replay, Archive, keyboard use,
   narrow layouts, reduced motion, and automated accessibility scans.
 - Self-hosted IBM Plex Sans, IBM Plex Mono, and Barlow Condensed fonts with OFL licenses.
+- A third fixed-camera tier for the continuity facility: the room renders at 3×
+  (1056×672) on viewports 1600px and wider, instead of stretching the existing
+  2× camera.
 
 ### Changed
 
+- Advisor Coup and Advisor Cabal now render their own room lighting and aftermath
+  instead of falling back to a shared default: the facility keeps its own phosphor
+  but narrows it to the advisor holding the state while the rest of the floor
+  darkens, distinct from Corporate Capture's gold or State Collapse's blackout.
 - Advisor departure now follows visible Loyalty thresholds; Alignment continues to affect
   ordinary consultation accuracy.
 - Campaign commitments and reports expose clearer costs, known changes, ending reasons,
