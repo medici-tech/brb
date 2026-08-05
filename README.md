@@ -47,7 +47,7 @@ See [BRB Art Pipeline](docs/BRB_ART_PIPELINE.md) for the curation workflow and [
 - `src/components/brb/pixel-room` and `src/components/brb/pixel`: the orthographic room canvas and sprite primitives
 - `src/game-art/manifest.ts`: the curated-art manifest that names every asset key the interface may use
 - `scripts/inject-art.ts`, `scripts/curate-art.ts`, `scripts/room-recipes.ts`: the art pipeline — curate from the licensed pack, compose room bases, and inject curated art before `dev` and `build`
-- `src/playtest`: the local solo-play journal, six-run matrix, bookmarks, recaps, and export helpers
+- `src/playtest`: the local free-play journal, run input log, markers, coverage, replay, and export helpers
 - `tests/game` and `tests/components`: rules and React behavior tests
 - `tests/browser`: Chromium player-flow, responsive, keyboard, reduced-motion, and axe accessibility tests
 - `docs`: current design and phase documents
@@ -58,7 +58,7 @@ Player-visible, compatibility, security, and delivery changes are tracked in the
 [changelog](CHANGELOG.md). Feature and fix pull requests update its **Unreleased** section;
 simulation experiments keep their detailed evidence in the simulation log.
 
-For guided self-play, open **Internal Playtest** in the app and follow [BRB Solo Guided Playtest](docs/BRB_GUIDED_PLAYTEST.md). The journal stays in browser storage and can be exported as JSON at any time.
+Every campaign is recorded automatically. Press **M** during a run to drop a one-line marker, then open **Playtest Journal** to review coverage and notes; see [BRB Playtest Journal](docs/BRB_PLAYTEST_JOURNAL.md). The journal stays in browser storage, exports as JSON, and any exported run can be reproduced with `npm run replay`.
 
 Simulation summaries are recorded in [BRB Simulation Run Log](docs/BRB_SIMULATION_LOG.md).
 Use 3,000 runs for routine comparisons of common outcomes, campaign duration, and card tempo. Use 5,000 when activation or sub-percentage-point movement matters; rare Civic Legacy and individual-strategy results still need more evidence or multiple seed blocks. A 10,000-run comparison requires an explicit request. See the [sample-size convergence audit](docs/BRB_BALANCE_TARGETS.md#normal-strategy-sample-size-convergence-audit) for the evidence behind these defaults.

@@ -96,6 +96,8 @@ Unchanged from the last two audits. The accepted `5/4/3/2/1` Corporation cadence
 
 **Impact 5 · Risk 5 · Effort 4** → priority 20 by formula, but this is the project's actual exit condition and effort here is the point, not the cost.
 
+> **2026-08-05 update.** The six-run guided matrix was replaced by free play; the exit-checklist row is now "Free-play coverage and marker triage." The gap itself is unchanged — no exported journal or triage synthesis is stored in the repository — but coverage is now reported by the app rather than tracked by hand, and recorded runs are reproducible with `npm run replay`. See [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md).
+
 ### Closed — the changelog gap raised on 2026-08-03
 
 Resolved. The third camera tier is recorded under **Added**, and the advisor Coup/Cabal room lighting and aftermath under **Changed**.
@@ -167,6 +169,8 @@ Scored as `(Impact + Risk) × (6 − Effort)`, all on 1–5 scales.
 Items 1, 2, and 4 together are well under a day and clear every non-evidence finding in this audit. They are deliberately front-loaded so that item 5 — the only one that moves the phase — runs against a clean tree.
 
 ## Recommended order of work
+
+> **2026-08-05 update.** Items 4 and 5 below have since been overtaken: the six-run matrix was replaced by free play, so "complete runs 1–6" is no longer the shape of the gate. Read them as the priority the audit assigned to human evidence, not as the procedure. The current procedure is [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md).
 
 1. Correct the `AGENTS.md` font contradiction, add the narrative-layer boundary and documentation-routing entries, and refresh the `README.md` project map and command list.
 2. Run `npm audit fix`, then the full verification gate, as its own small commit.
