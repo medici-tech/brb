@@ -1,65 +1,70 @@
 "use client";
 
-import { ARCHETYPES, ENDING_COPY } from "../../game/content";
+import { ARCHETYPES, ENDING_COPY, SITUATION_CARDS } from "../../game/content";
 import { LEGACY_DIRECTIVES } from "../../game/directives";
-import { serializePlaytestJournal, summarizePlaytestJournal } from "../../playtest/journal";
-import type { PlaytestJournalV1 } from "../../playtest/types";
+import { formatCampaignTime } from "../../game/progression";
+import { summarizePlaytestCoverage } from "../../playtest/coverage";
+import { serializePlaytestJournal } from "../../playtest/journal";
+import type { PlaytestJournalV2, PlaytestRunEntry } from "../../playtest/types";
 import { Button } from "../ui/button";
 import { ConfirmActionDialog } from "./ui/decisions";
 import { CreditsDialog } from "./CreditsDialog";
 import {
   ConsolePanel,
   DossierPanel,
-  GuidedObjective,
   JournalSlot,
   MetricStrip,
   SectionHeading,
 } from "./ui";
 
 type Props = {
-  journal: PlaytestJournalV1;
-  hasActiveRun: boolean;
-  hasLatestReport: boolean;
+  journal: PlaytestJournalV2;
+  activeRunId: string | null;
+  reportRunId: string | null;
   onBack: () => void;
-  onStartSlot: (slotId: string) => void;
   onResumeActiveRun: () => void;
   onOpenLatestReport: () => void;
-  onClearActiveRun: () => void;
   onDeleteJournal: () => void;
 };
 
 const STATUS_LABELS = {
-  pending: "Pending",
-  active: "Run in progress",
-  awaiting_recap: "Recap required",
-  awaiting_replay: "Replay sample required",
-  replay_active: "Replay in progress",
+  active: "In progress",
   completed: "Complete",
+  abandoned: "Abandoned",
 } as const;
+
+/** Older runs stay in the export; the view stops listing them. */
+const VISIBLE_RUNS = 20;
+
+function directiveTitle(run: PlaytestRunEntry): string {
+  return run.legacyDirectiveId ? LEGACY_DIRECTIVES[run.legacyDirectiveId].title : "No Directive";
+}
+
+function runTitle(run: PlaytestRunEntry): string {
+  if (run.endingId) return ENDING_COPY[run.endingId].title;
+  return run.status === "abandoned" ? "Abandoned before an ending" : "In progress";
+}
 
 export function PlaytestJournalView({
   journal,
-  hasActiveRun,
-  hasLatestReport,
+  activeRunId,
+  reportRunId,
   onBack,
-  onStartSlot,
   onResumeActiveRun,
   onOpenLatestReport,
-  onClearActiveRun,
   onDeleteJournal,
 }: Props) {
-  const summary = summarizePlaytestJournal(journal);
-  const firstIncompleteIndex = journal.matrix.findIndex((slot) => slot.status !== "completed");
-  const nextSlot = firstIncompleteIndex >= 0 ? journal.matrix[firstIncompleteIndex] : null;
-  const nextStep = !nextSlot
-    ? "All six guided runs are complete. Export the journal for review."
-    : nextSlot.status === "pending"
-      ? `Start ${ARCHETYPES[nextSlot.archetypeId].name}: ${nextSlot.label}.`
-      : nextSlot.status === "active" || nextSlot.status === "replay_active"
-        ? `Resume ${ARCHETYPES[nextSlot.archetypeId].name}: ${nextSlot.label}.`
-        : nextSlot.status === "awaiting_recap"
-          ? "Open the latest report and save its recap."
-          : "Open the latest report and begin the required five-commitment same-seed replay.";
+  const coverage = summarizePlaytestCoverage(journal);
+  const runs = [...journal.runs].reverse();
+  const visibleRuns = runs.slice(0, VISIBLE_RUNS);
+  const markers = [...journal.markers].reverse();
+
+  const notYetObserved = [
+    ...coverage.archetypes.missing.map((id) => ARCHETYPES[id].name),
+    ...coverage.directives.missing.map((id) => (id === "none" ? "a run with no Directive" : LEGACY_DIRECTIVES[id].title)),
+    ...(coverage.endings.missing.length > 0 ? [`${coverage.endings.missing.length} endings`] : []),
+    ...(coverage.cards.missing.length > 0 ? [`${coverage.cards.missing.length} Situation files`] : []),
+  ];
 
   function download(): void {
     const blob = new Blob([serializePlaytestJournal(journal)], { type: "application/json" });
@@ -75,8 +80,8 @@ export function PlaytestJournalView({
     <main className="shell journal-shell">
       <header className="masthead">
         <div>
-          <p className="eyebrow">GUIDED INTERNAL PLAYTEST · {journal.buildId}</p>
-          <strong>{summary.completedSlots} / {summary.totalSlots} matrix runs complete</strong>
+          <p className="eyebrow">PLAYTEST JOURNAL · {journal.buildId}</p>
+          <strong>{coverage.runs.total} runs recorded · {coverage.markers.total} markers</strong>
         </div>
         <div className="header-actions">
           <CreditsDialog />
@@ -85,102 +90,143 @@ export function PlaytestJournalView({
       </header>
 
       <DossierPanel
-        eyebrow="SOLO TEST PROTOCOL"
-        title="Play consistently. Record the moments that matter."
+        eyebrow="FREE PLAY"
+        title="Play as you like. The journal records what you covered."
         headingLevel="h1"
-        summary="Finish the three natural runs before tuning balance. The final three runs deliberately probe alternative strategies."
+        summary="Every campaign is recorded automatically. Press M during a run to drop a one-line marker the moment something confuses you; coverage below is information, not a requirement."
       >
         <Button variant="command" type="button" onClick={download}>Export playtest journal</Button>
       </DossierPanel>
-      <GuidedObjective
-        className="mt-6"
-        eyebrow="NEXT REQUIRED STEP"
-        title={nextStep}
-        description=""
-        compact
-      />
 
-      <section className="mt-12" aria-labelledby="matrix-title">
-        <SectionHeading eyebrow="SIX-RUN MATRIX" title="Current test sequence" titleId="matrix-title" />
-        {journal.matrix.map((slot, index) => {
-          const locked = firstIncompleteIndex >= 0 && index > firstIncompleteIndex;
-          return (
-            <JournalSlot
-              order={`0${slot.order}`}
-              eyebrow={`${ARCHETYPES[slot.archetypeId].name} · ${STATUS_LABELS[slot.status]}`}
-              title={slot.label}
-              action={(
-                <>
-                  {slot.status === "pending" ? (
-                    <Button variant="command" type="button" disabled={locked || hasActiveRun} onClick={() => onStartSlot(slot.id)}>
-                      {locked ? "Complete prior run" : "Start guided run"}
-                    </Button>
-                  ) : null}
-                  {(slot.status === "active" || slot.status === "replay_active") && hasActiveRun ? (
-                    <Button variant="command" type="button" onClick={onResumeActiveRun}>Resume run</Button>
-                  ) : null}
-                  {(slot.status === "awaiting_recap" || slot.status === "awaiting_replay") && hasLatestReport ? (
-                    <Button variant="command" type="button" onClick={onOpenLatestReport}>Open report</Button>
-                  ) : null}
-                  {slot.status === "completed" ? <strong className="brb-telemetry text-phosphor">✓ Complete</strong> : null}
-                </>
-              )}
-              key={slot.id}
-            >
-                <p>{slot.strategy}</p>
-                <small>
-                  Directive: {slot.legacyDirectiveId
-                    ? LEGACY_DIRECTIVES[slot.legacyDirectiveId].title
-                    : "No Directive (legacy matrix)"}
-                </small>
-                {slot.replayRequired ? <small>Includes a five-commitment same-seed replay · {slot.replayCommitments} / 5 recorded</small> : null}
-            </JournalSlot>
-          );
-        })}
-      </section>
-
-      <section className="mt-14" aria-labelledby="summary-title">
-        <SectionHeading eyebrow="ROLLING SUMMARY" title="What the journal has observed" titleId="summary-title" />
+      <section className="mt-12" aria-labelledby="coverage-title">
+        <SectionHeading eyebrow="COVERAGE" title="What these sessions have reached" titleId="coverage-title" />
         <MetricStrip
-          columns={3}
+          columns={4}
           stats={[
-            { label: "Average campaign", value: summary.averageCampaignMonths === null ? "—" : `${summary.averageCampaignMonths.toFixed(1)} months` },
-            { label: "Bookmarks", value: journal.bookmarks.length },
-            { label: "Recurring high-severity categories", value: summary.recurringHighSeverityCategories.join(", ") || "None" },
+            { label: "Archetypes", value: `${coverage.archetypes.covered} / ${coverage.archetypes.total}` },
+            { label: "Directives", value: `${coverage.directives.covered} / ${coverage.directives.total}` },
+            { label: "Endings", value: `${coverage.endings.covered} / ${coverage.endings.total}` },
+            { label: "Situation files", value: `${coverage.cards.covered} / ${coverage.cards.total}` },
           ]}
         />
         <div className="mt-5 grid gap-5 lg:grid-cols-3">
           <ConsolePanel>
-            <h3>Endings</h3>
-            {Object.entries(summary.endings).length === 0 ? <p>No completed runs yet.</p> : Object.entries(summary.endings).map(([endingId, count]) => <p key={endingId}>{ENDING_COPY[endingId as keyof typeof ENDING_COPY].title}: {count}</p>)}
+            <h3>Endings seen</h3>
+            {coverage.endings.covered === 0
+              ? <p>No completed runs yet.</p>
+              : Object.entries(coverage.endings.counts).map(([endingId, count]) => (
+                <p key={endingId}>{ENDING_COPY[endingId as keyof typeof ENDING_COPY].title}: {count}</p>
+              ))}
           </ConsolePanel>
           <ConsolePanel>
-            <h3>Bookmark categories</h3>
-            {Object.entries(summary.bookmarkCategories).length === 0 ? <p>No bookmarks yet.</p> : Object.entries(summary.bookmarkCategories).map(([category, count]) => <p key={category}>{category.replaceAll("_", " ")}: {count}</p>)}
+            <h3>Directives used</h3>
+            {Object.entries(coverage.directives.counts).map(([id, count]) => (
+              <p key={id}>{id === "none" ? "No Directive" : LEGACY_DIRECTIVES[id as keyof typeof LEGACY_DIRECTIVES].title}: {count}</p>
+            ))}
+            {coverage.runs.total === 0 ? <p>No runs yet.</p> : null}
           </ConsolePanel>
           <ConsolePanel>
-            <h3>Replay divergence</h3>
-            {journal.matrix.filter((slot) => slot.replayRequired).map((slot) => {
-              const divergence = summary.replayDivergence[slot.id];
-              return <p key={slot.id}>{ARCHETYPES[slot.archetypeId].name}: {divergence ? `decision ${divergence}` : "not recorded"}</p>;
-            })}
+            <h3>Campaign length</h3>
+            {coverage.months.median === null
+              ? <p>No completed runs yet.</p>
+              : (
+                <>
+                  <p>Shortest {coverage.months.shortest} · median {coverage.months.median} · longest {coverage.months.longest} months</p>
+                  {coverage.months.histogram.map((bucket) => (
+                    <p key={bucket.label}>{bucket.label} months: {bucket.runs}</p>
+                  ))}
+                </>
+              )}
           </ConsolePanel>
         </div>
+        {notYetObserved.length > 0 ? (
+          <p className="mt-5 text-sm leading-6 text-muted-foreground">
+            Not yet observed: {notYetObserved.join(" · ")}.
+          </p>
+        ) : null}
+      </section>
+
+      <section className="mt-14" aria-labelledby="run-log-title">
+        <SectionHeading eyebrow="RUN LOG" title="Every campaign this browser recorded" titleId="run-log-title" />
+        {visibleRuns.length === 0 ? (
+          <p className="text-sm leading-6 text-muted-foreground">
+            No runs yet. Start a campaign from the opening file and it will appear here.
+          </p>
+        ) : null}
+        {visibleRuns.map((run, index) => (
+          <JournalSlot
+            key={run.runId}
+            order={`${runs.length - index}`}
+            eyebrow={`${ARCHETYPES[run.archetypeId].name} · ${STATUS_LABELS[run.status]}${run.kind === "replay" ? " · replay" : ""}`}
+            title={runTitle(run)}
+            action={(
+              <>
+                {run.runId === activeRunId ? (
+                  <Button variant="command" type="button" onClick={onResumeActiveRun}>Resume run</Button>
+                ) : null}
+                {run.runId === reportRunId ? (
+                  <Button variant="command" type="button" onClick={onOpenLatestReport}>Open report</Button>
+                ) : null}
+              </>
+            )}
+          >
+            <p>
+              Seed {run.seed} · {directiveTitle(run)}
+              {run.months === null ? null : ` · ${formatCampaignTime(run.months)}`}
+            </p>
+            <small>
+              {run.steps.length} recorded {run.steps.length === 1 ? "input" : "inputs"} ·{" "}
+              {run.cardsSeen.length} of {SITUATION_CARDS.length} Situation files ·{" "}
+              {journal.markers.filter((marker) => marker.runId === run.runId).length} markers
+            </small>
+            {run.replayComplete ? null : (
+              <small>Partially recorded — this run cannot be replayed.</small>
+            )}
+          </JournalSlot>
+        ))}
+        {runs.length > VISIBLE_RUNS ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            + {runs.length - VISIBLE_RUNS} earlier runs in the export.
+          </p>
+        ) : null}
+      </section>
+
+      <section className="mt-14" aria-labelledby="markers-title">
+        <SectionHeading eyebrow="MARKERS" title="What you flagged while playing" titleId="markers-title" />
+        {markers.length === 0 ? (
+          <p className="text-sm leading-6 text-muted-foreground">
+            No markers yet. Press M during a campaign to record one without leaving the run.
+          </p>
+        ) : (
+          <div className="grid gap-2.5">
+            {markers.map((marker) => (
+              <ConsolePanel key={marker.id}>
+                <p className="file-label">
+                  {marker.location === "report" ? "REPORT" : "CAMPAIGN"}
+                  {marker.snapshot ? ` · ${formatCampaignTime(marker.snapshot.turn)}` : null}
+                </p>
+                <p>{marker.note}</p>
+                {marker.snapshot ? (
+                  <small>
+                    Panic {marker.snapshot.pressures.panic} · Stress {marker.snapshot.pressures.stress} ·
+                    Corporation {marker.snapshot.corporation.strategy.replaceAll("_", " ")} at{" "}
+                    {marker.snapshot.corporation.progress}
+                    {marker.snapshot.summary ? ` · after: ${marker.snapshot.summary}` : null}
+                  </small>
+                ) : null}
+              </ConsolePanel>
+            ))}
+          </div>
+        )}
       </section>
 
       <ConsolePanel className="mt-14 border-[color:#5d403e]" label="Local data controls">
         <p className="file-label">LOCAL DATA CONTROLS</p>
         <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
           <ConfirmActionDialog
-            trigger={<Button variant="quiet" type="button" disabled={!hasActiveRun}>Clear active run</Button>}
-            title="Clear only the active run?"
-            description="The current browser save will be removed. Completed journal entries and prior notes remain available."
-            confirmAction={{ label: "Clear active run", disabled: !hasActiveRun, onSelect: onClearActiveRun }}
-          />
-          <ConfirmActionDialog
             trigger={<Button variant="quiet" type="button">Delete journal</Button>}
             title="Permanently delete the playtest journal?"
-            description="All matrix progress, run captures, bookmarks, and recaps will be removed from this browser. Export first if you need a copy."
+            description="Every recorded run, marker, and coverage figure will be removed from this browser. Export first if you need a copy."
             tone="critical"
             confirmAction={{ label: "Delete journal", onSelect: onDeleteJournal }}
           />
