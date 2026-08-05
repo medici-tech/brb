@@ -42,7 +42,7 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
           eyebrow="KNOWLEDGE + LIMITED AUTHORITY"
           title="What has been witnessed cannot be unwitnessed."
           headingLevel="h1"
-          summary={`${countLabel(totalEncounters, "card encounter")} recorded. Completed files also build Clearance (progress to next Directive unlock) toward optional, one-use campaign Directives.`}
+          summary={`${countLabel(totalEncounters, "card encounter")} recorded. Completed files also build Clearance toward optional, one-use campaign Directives.`}
         >
           <div
             className="grid gap-px border border-[color:var(--paper-line)] bg-[color:var(--paper-line)] sm:grid-cols-3"
@@ -82,8 +82,8 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
         </p>
         {archive.pendingScar === "necessary_regime_aftermath" ? (
           <p className="text-sm leading-6 text-muted-foreground" role="status">
-            Aftermath pending: next campaign starts with Panic +{NECESSARY_REGIME_AFTERMATH_PANIC}
-            from your last Necessary Regime.
+            Aftermath pending from your last Necessary Regime: your next ordinary
+            campaign starts with Panic +{NECESSARY_REGIME_AFTERMATH_PANIC}.
           </p>
         ) : null}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
