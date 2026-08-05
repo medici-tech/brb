@@ -245,11 +245,21 @@ describe("versioned browser persistence", () => {
     });
   });
 
+  it("rejects a report carrying an unknown opening aftermath ID", () => {
+    const storage = memoryStorage();
+    const tampered = JSON.parse(JSON.stringify(completedReport()));
+    tampered.openingAftermath = "not-a-scar";
+    storage.setItem(STORAGE_KEYS.latestReport, JSON.stringify(tampered));
+
+    expect(loadLatestReport(storage)).toBeNull();
+  });
+
   it("reads a v2 report without deleting it and creates a current-rules replay intent", () => {
     const storage = memoryStorage();
     const legacy = JSON.parse(JSON.stringify(completedReport()));
     delete legacy.rulesVersion;
     delete legacy.finalSnapshot;
+    delete legacy.openingAftermath;
     storage.setItem(STORAGE_KEYS.legacyLatestReport, JSON.stringify(legacy));
 
     const restored = loadLatestReport(storage);
@@ -257,6 +267,7 @@ describe("versioned browser persistence", () => {
     expect(restored).toMatchObject({
       rulesVersion: 0,
       finalSnapshot: null,
+      openingAftermath: null,
       seed: legacy.seed,
       archetypeId: legacy.archetypeId,
     });

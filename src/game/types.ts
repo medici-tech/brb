@@ -457,6 +457,8 @@ export type DeclassifiedReport = {
   seed: number;
   archetypeId: ArchetypeId;
   legacyDirective: LegacyDirectiveRunState;
+  /** Archive aftermath the campaign opened under, or null. */
+  openingAftermath: ArchiveScarId | null;
   ending: Ending;
   pivotalDecision: PivotalDecision;
   narrativePivot: PivotalDecision;
@@ -530,6 +532,8 @@ export type GameState = {
   phase: "briefing" | "consulted" | "ended";
   archetypeId: ArchetypeId;
   legacyDirective: LegacyDirectiveRunState;
+  /** Archive aftermath applied once at run start, or null for an unscarred run. */
+  openingAftermath: ArchiveScarId | null;
   experiment: string | null;
   resources: ResourcePool;
   deposited: ResourcePool;

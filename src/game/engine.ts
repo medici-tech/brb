@@ -68,6 +68,7 @@ import {
   type AdvisorId,
   type AdvisorState,
   type ArchetypeId,
+  type ArchiveScarId,
   type CivicLegacyEvaluation,
   type CommitOptions,
   type ConsultationResult,
@@ -130,7 +131,7 @@ function normalizeCreateOptions(
   archetypeId: ArchetypeId,
 ): Required<Omit<CreateGameOptions, "experiment" | "openingAftermath">> & {
   experiment: string | null;
-  openingAftermath: CreateGameOptions["openingAftermath"];
+  openingAftermath: ArchiveScarId | null;
 } {
   if (typeof seedOrOptions === "number") {
     const seed = seedOrOptions >>> 0;
@@ -174,6 +175,7 @@ export function createGame(
       used: false,
       usedOnDecisionId: null,
     },
+    openingAftermath: options.openingAftermath,
     experiment: options.experiment,
     resources: { ...BASE_RESOURCES },
     deposited: { money: 0, influence: 0, intelligence: 0, trust: 0, capacity: 0 },
@@ -249,7 +251,7 @@ export function createGame(
   };
 
   applyArchetype(state);
-  if (options.openingAftermath === "necessary_regime_aftermath") {
+  if (state.openingAftermath === "necessary_regime_aftermath") {
     state.pressures.panic = clamp(state.pressures.panic + NECESSARY_REGIME_AFTERMATH_PANIC);
     addHistory(
       state,

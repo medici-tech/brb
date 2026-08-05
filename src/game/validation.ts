@@ -3,6 +3,7 @@ import { validateRouteIntegrity } from "./routes";
 import { isDeclassifiedReport, isEnding } from "./persisted-data-validation";
 import {
   ADVISOR_IDS,
+  ARCHIVE_SCAR_IDS,
   ECHO_TYPES,
   LEGACY_DIRECTIVE_IDS,
   RESOURCE_KEYS,
@@ -314,6 +315,8 @@ export function isGameState(value: unknown): value is GameState {
       ? value.legacyDirective.equippedId === null
         || value.legacyDirective.usedOnDecisionId === null
       : value.legacyDirective.usedOnDecisionId !== null)
+    || !(value.openingAftermath === null
+      || isOneOf(value.openingAftermath, ARCHIVE_SCAR_IDS))
     || !(value.experiment === null || isString(value.experiment))
     || !isResourcePool(value.resources)
     || !isResourcePool(value.deposited, true)

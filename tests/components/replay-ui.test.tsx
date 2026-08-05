@@ -26,6 +26,7 @@ function reportFixture(): DeclassifiedReport {
       used: false,
       usedOnDecisionId: null,
     },
+    openingAftermath: null,
     ending: {
       id: "compromised_activation",
       title: "The Necessary Regime",

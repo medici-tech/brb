@@ -59,6 +59,18 @@ export function deserializeGame(serialized: string): GameState {
     }
   }
 
+  // Additive openingAftermath: saves written before the Archive scar omit it on
+  // both the run and its embedded report; normalize to null rather than bump v5.
+  if (typeof migrated.openingAftermath === "undefined") {
+    migrated.openingAftermath = null;
+  }
+  if (migrated.report && typeof migrated.report === "object") {
+    const report = migrated.report as Record<string, unknown>;
+    if (typeof report.openingAftermath === "undefined") {
+      report.openingAftermath = null;
+    }
+  }
+
   // Additive DecisionRecord.subject: legacy saves omit it; normalize to null.
   if (Array.isArray(migrated.decisionHistory)) {
     for (const decision of migrated.decisionHistory) {
