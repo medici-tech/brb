@@ -22,6 +22,13 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 - `npm run replay`, which reproduces any recorded run from an exported journal and
   distinguishes an engine change from an unrecorded input when one no longer reproduces.
 - **Abandon the active file** on the opening screen, beside Resume.
+- Graded victory reporting: `VICTORY · CIVIC LEGACY` and `VICTORY · COMPROMISED` now carry
+  distinct labels and badge colours instead of one shared "VICTORY".
+- A Clearance ladder that pays by ending grade — a loss earns 1, the Necessary Regime earns 2,
+  and Civic Legacy earns 3.
+- A one-campaign Necessary Regime aftermath: the next ordinary campaign opens with Panic +6,
+  spent on its first commitment. Civic Legacy clears a pending aftermath; losses neither create
+  nor clear it, and a same-seed replay holds it back so the sample stays comparable.
 - Deterministic downstream effects for relationship memories and system modifiers.
 - Mandatory Situation choice costs with affordability checks.
 - Versioned Declassified Reports with final-state snapshots and safe legacy loading.
@@ -57,6 +64,8 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
   active-response status explicit, and keep costs and risks legible at decision size.
 - The mechanics guide and internal run notebook now appear as the Field Manual and Playtest
   Journal, while first-turn guidance uses a quieter console brief instead of a second dossier.
+- Saved campaigns and reports record the aftermath a run opened under. Data written before this
+  change loads unchanged with no aftermath; an unrecognized aftermath ID still fails closed.
 
 ### Removed
 

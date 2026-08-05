@@ -42,7 +42,7 @@ The run ends through activation, Corporation capture, state collapse, or the los
 | Situation file | A Situation Card |
 | Legacy Directive | A permanently unlocked reward card equipped for one use in a campaign |
 | Clearance | Archive progress to the next Directive unlock; 3 points creates a seeded draft (loss +1, Necessary Regime +2, Civic Legacy +3) |
-| Necessary Regime aftermath | Archive scar after a compromised win; next campaign starts with Panic +6 once |
+| Necessary Regime aftermath | Archive scar after a compromised win; the next ordinary campaign starts with Panic +6 once, spent on its first commitment |
 | Commitment | The one turn-advancing player action for the month |
 | Corporation posture | The Corporation's current strategy |
 | Counterfactual objective / Next-run theory | The suggested experiment attached to a replay |
@@ -500,6 +500,12 @@ It is a valid sequence of recorded route transitions ending in `completed`. A ro
 ### Is a victory always good?
 
 No. Both Civic Legacy and Compromised Activation are marked as victories (`victory: true`), but they are graded differently. Civic Legacy is the clean win. Necessary Regime still finishes the job and earns more Clearance than a loss, but it records a next-run Panic aftermath and pays less Clearance than Civic Legacy. A victory is therefore not always the proudest ending — only the cleanest one is.
+
+### When exactly does the aftermath apply, and when is it spent?
+
+It applies to the next **ordinary** campaign: a run started from the opening file, or "Open a New File" from a report. It does not apply to a same-seed replay — that is a controlled comparison, and a hidden Panic swing would make it useless as evidence. Holding it back does not destroy it; the aftermath simply waits for the next ordinary campaign.
+
+Within the scarred campaign, the Panic is present from the opening state, but the Archive only marks the aftermath as spent once you accept your first commitment. Starting a campaign and abandoning it therefore leaves the aftermath waiting rather than discarding it.
 
 ## Codex maintenance guide
 
