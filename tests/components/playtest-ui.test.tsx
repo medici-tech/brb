@@ -204,7 +204,9 @@ describe("free-play playtest UI", () => {
     fireEvent.keyDown(document.body, { key: "m" });
     const input = screen.getByLabelText(/one-line playtest marker/i);
     fireEvent.change(input, { target: { value: "  The save did not resume.  " } });
-    fireEvent.submit(input.closest("form")!);
+    // Enter is handled on the input rather than left to implicit form
+    // submission, which does not fire reliably for a single-field form.
+    fireEvent.keyDown(input, { key: "Enter" });
 
     expect(onSave).toHaveBeenCalledWith("The save did not resume.");
     expect(screen.getByRole("status")).toHaveTextContent(/marker saved at month 4/i);
@@ -236,8 +238,23 @@ describe("free-play playtest UI", () => {
     fireEvent.keyDown(document.body, { key: "m" });
     const input = screen.getByLabelText(/one-line playtest marker/i);
     fireEvent.change(input, { target: { value: "   " } });
+    fireEvent.keyDown(input, { key: "Enter" });
     fireEvent.submit(input.closest("form")!);
     expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it("saves exactly once when Enter also reaches the form", () => {
+    const onSave = vi.fn();
+    render(<PlaytestMarkerBar onSave={onSave} />);
+    fireEvent.keyDown(document.body, { key: "m" });
+    const input = screen.getByLabelText(/one-line playtest marker/i);
+    fireEvent.change(input, { target: { value: "once only" } });
+
+    const form = input.closest("form")!;
+    fireEvent.keyDown(input, { key: "Enter" });
+    fireEvent.submit(form);
+
+    expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it("stays out of the way while the player is typing or reading a dialog", () => {

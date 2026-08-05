@@ -68,8 +68,7 @@ export function PlaytestMarkerBar({ onSave, momentLabel }: Props) {
     toggleRef.current?.focus();
   }
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
+  function save(): void {
     const trimmed = note.trim();
     if (!trimmed) return;
     onSave(trimmed);
@@ -77,13 +76,27 @@ export function PlaytestMarkerBar({ onSave, momentLabel }: Props) {
     close();
   }
 
+  function submit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    save();
+  }
+
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key !== "Escape") return;
-    // Stop the key before any dialog ancestor can act on it.
+    // Stop both keys before any dialog ancestor can act on them.
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      event.preventDefault();
+      setConfirmation("");
+      close();
+      return;
+    }
+    if (event.key !== "Enter") return;
+    // Handled here rather than left to implicit form submission, which does not
+    // fire reliably for a single-field form across every browser and input
+    // method. preventDefault keeps it from also submitting and saving twice.
     event.stopPropagation();
     event.preventDefault();
-    setConfirmation("");
-    close();
+    save();
   }
 
   return (

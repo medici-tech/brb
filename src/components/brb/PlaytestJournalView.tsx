@@ -36,6 +36,10 @@ const STATUS_LABELS = {
 /** Older runs stay in the export; the view stops listing them. */
 const VISIBLE_RUNS = 20;
 
+function pluralize(value: number, singular: string, plural = `${singular}s`): string {
+  return `${value} ${value === 1 ? singular : plural}`;
+}
+
 function directiveTitle(run: PlaytestRunEntry): string {
   return run.legacyDirectiveId ? LEGACY_DIRECTIVES[run.legacyDirectiveId].title : "No Directive";
 }
@@ -81,7 +85,7 @@ export function PlaytestJournalView({
       <header className="masthead">
         <div>
           <p className="eyebrow">PLAYTEST JOURNAL · {journal.buildId}</p>
-          <strong>{coverage.runs.total} runs recorded · {coverage.markers.total} markers</strong>
+          <strong>{pluralize(coverage.runs.total, "run")} recorded · {pluralize(coverage.markers.total, "marker")}</strong>
         </div>
         <div className="header-actions">
           <CreditsDialog />
@@ -175,9 +179,9 @@ export function PlaytestJournalView({
               {run.months === null ? null : ` · ${formatCampaignTime(run.months)}`}
             </p>
             <small>
-              {run.steps.length} recorded {run.steps.length === 1 ? "input" : "inputs"} ·{" "}
+              {pluralize(run.steps.length, "recorded input")} ·{" "}
               {run.cardsSeen.length} of {SITUATION_CARDS.length} Situation files ·{" "}
-              {journal.markers.filter((marker) => marker.runId === run.runId).length} markers
+              {pluralize(journal.markers.filter((marker) => marker.runId === run.runId).length, "marker")}
             </small>
             {run.replayComplete ? null : (
               <small>Partially recorded — this run cannot be replayed.</small>

@@ -91,11 +91,11 @@ test("report and Archive render only the three approved faces", async ({ page })
   expect(await collectOffBrandFaces(page)).toEqual([]);
 });
 
-test("internal playtest tools render only the three approved faces", async ({ page }) => {
+test("the playtest journal renders only the three approved faces", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Playtest Journal" }).click();
   await expect(
-    page.getByRole("heading", { name: "Play consistently. Record the moments that matter." }),
+    page.getByRole("heading", { name: "Play as you like. The journal records what you covered." }),
   ).toBeVisible();
   expect(await collectOffBrandFaces(page)).toEqual([]);
 });
