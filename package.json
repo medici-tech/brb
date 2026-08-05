@@ -19,6 +19,7 @@
     "test:browser:install": "playwright install chromium",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "replay": "tsx scripts/replay.ts",
     "simulate": "tsx scripts/simulate.ts",
     "simulate:baseline": "tsx scripts/simulate.ts 5000 20260715"
   },
