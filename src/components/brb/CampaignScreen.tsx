@@ -16,7 +16,6 @@ import type {
   GameState,
   MajorAction,
 } from "../../game/types";
-import type { BookmarkInput, GuidedRunObjective } from "../../playtest/journal";
 import { BrbTracksPanel } from "./BrbTracksPanel";
 import { CampaignAdvisors } from "./CampaignAdvisors";
 import { CampaignSituationWorkspace } from "./CampaignSituationWorkspace";
@@ -28,7 +27,7 @@ import {
 import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { OtherCommitmentsPanel } from "./OtherCommitmentsPanel";
-import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
+import { PlaytestMarkerBar } from "./PlaytestMarkerBar";
 import { TurnTransitionDialog } from "./TurnTransitionDialog";
 import {
   ConsolePanel,
@@ -44,8 +43,7 @@ type Props = {
   onConsult: (advisorId: AdvisorId, useAbility: boolean) => void;
   onOpenArchive: () => void;
   onOpenPlaytest?: () => void;
-  onBookmark?: (input: BookmarkInput) => void;
-  guidedObjective?: GuidedRunObjective | null;
+  onMark?: (note: string) => void;
 };
 
 const ONBOARDING_STEPS = [
@@ -73,8 +71,7 @@ export function CampaignScreen({
   onConsult,
   onOpenArchive,
   onOpenPlaytest,
-  onBookmark,
-  guidedObjective = null,
+  onMark,
 }: Props) {
   const card = getActiveCard(state);
   const valid = getValidActions(state);
@@ -182,7 +179,7 @@ export function CampaignScreen({
         <div className="header-actions">
           <HowToPlayDialog />
           <CreditsDialog />
-          {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
+          {onMark ? <PlaytestMarkerBar onSave={onMark} momentLabel={formatCampaignTime(state.turn)} /> : null}
           {onOpenPlaytest ? (
             <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>
               Playtest Journal
@@ -240,17 +237,6 @@ export function CampaignScreen({
             </p>
           </div>
         </ConsolePanel>
-      ) : null}
-      {guidedObjective ? (
-        <GuidedObjective
-          className="campaign-playtest-objective mb-5"
-          eyebrow="ACTIVE PLAYTEST DIRECTIVE"
-          title={guidedObjective.label}
-          titleId="guided-objective-title"
-          description={guidedObjective.strategy}
-        >
-          <ul>{guidedObjective.checklist.map((item) => <li key={item}>{item}</li>)}</ul>
-        </GuidedObjective>
       ) : null}
       {onboarding ? (
         <GuidedObjective

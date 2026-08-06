@@ -152,13 +152,11 @@ describe("LimeZu credits", () => {
     render(
       <PlaytestJournalView
         journal={createEmptyPlaytestJournal()}
-        hasActiveRun={false}
-        hasLatestReport={false}
+        activeRunId={null}
+        reportRunId={null}
         onBack={vi.fn()}
-        onStartSlot={vi.fn()}
         onResumeActiveRun={vi.fn()}
         onOpenLatestReport={vi.fn()}
-        onClearActiveRun={vi.fn()}
         onDeleteJournal={vi.fn()}
       />,
     );

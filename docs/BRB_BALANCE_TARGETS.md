@@ -58,7 +58,7 @@ The accepted experiment changes only the base Corporation response intervals fro
 | `20260715` | 417 (8.34%) | 1,351 | 40.38% | 51.28% | 22 | 55 |
 | `20260716` | 401 (8.02%) | 1,386 | 40.76% | 51.22% | 22 | 57 |
 
-Every normal strategy activated in both blocks. Balanced and Legitimacy-first led the two samples rather than Rush, while Fixer and Command were the weakest. No campaign exceeded five years, so the cadence did not create indefinite recovery loops. The automated 8–12% evaluation target is accepted; do not tune another lever before the six-run human matrix tests whether the added reachability feels fair and replayable.
+Every normal strategy activated in both blocks. Balanced and Legitimacy-first led the two samples rather than Rush, while Fixer and Command were the weakest. No campaign exceeded five years, so the cadence did not create indefinite recovery loops. The automated 8–12% evaluation target is accepted; do not tune another lever before free-play sessions test whether the added reachability feels fair and replayable.
 
 ## Run length
 

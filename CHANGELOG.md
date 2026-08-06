@@ -7,8 +7,21 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 
 ## [Unreleased]
 
+> **Saved-data notice.** Playtest journals written by earlier builds are **discarded, not
+> migrated** — they recorded a guided matrix that no longer exists. Export anything you need
+> before updating. Campaign saves, reports, and Archive data are unaffected.
+
 ### Added
 
+- Free-play playtesting: every campaign is recorded automatically with whatever archetype
+  and Legacy Directive the player chose.
+- A one-line playtest marker on the **M** key, with a visible **Drop marker (M)** control,
+  that records a note and the exact board state without interrupting the run.
+- A passive coverage readout across archetypes, Directives, endings, Situation files, and
+  campaign length, plus a per-run log and a browsable list of marker notes.
+- `npm run replay`, which reproduces any recorded run from an exported journal and
+  distinguishes an engine change from an unrecorded input when one no longer reproduces.
+- **Abandon the active file** on the opening screen, beside Resume.
 - Deterministic downstream effects for relationship memories and system modifiers.
 - Mandatory Situation choice costs with affordability checks.
 - Versioned Declassified Reports with final-state snapshots and safe legacy loading.
@@ -19,9 +32,18 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 - Deterministic Chromium coverage for the campaign, reports, replay, Archive, keyboard use,
   narrow layouts, reduced motion, and automated accessibility scans.
 - Self-hosted IBM Plex Sans, IBM Plex Mono, and Barlow Condensed fonts with OFL licenses.
+- A third fixed-camera tier for the continuity facility: the room renders at 3×
+  (1056×672) on viewports 1600px and wider, instead of stretching the existing
+  2× camera.
 
 ### Changed
 
+- The Playtest Journal is a passive record rather than a prescribed sequence: it reports
+  what recent sessions covered instead of assigning the next required run.
+- Advisor Coup and Advisor Cabal now render their own room lighting and aftermath
+  instead of falling back to a shared default: the facility keeps its own phosphor
+  but narrows it to the advisor holding the state while the rest of the floor
+  darkens, distinct from Corporate Capture's gold or State Collapse's blackout.
 - Advisor departure now follows visible Loyalty thresholds; Alignment continues to affect
   ordinary consultation accuracy.
 - Campaign commitments and reports expose clearer costs, known changes, ending reasons,
@@ -35,6 +57,15 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
   active-response status explicit, and keep costs and risks legible at decision size.
 - The mechanics guide and internal run notebook now appear as the Field Manual and Playtest
   Journal, while first-turn guidance uses a quieter console brief instead of a second dossier.
+
+### Removed
+
+- The six-run guided playtest matrix, its assigned archetype and Directive loadouts, the
+  required-next-step banner, the five-commitment same-seed replay checkpoint, the ten-field
+  end-of-run recap form, and bookmark categories and severities. The archived protocol is
+  kept in `docs/archive/BRB_GUIDED_PLAYTEST.md`.
+- **Clear active run** from the Playtest Journal; abandoning the file now happens on the
+  opening screen.
 
 ### Fixed
 
@@ -73,6 +104,10 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 ### Security
 
 - Persisted browser data receives strict runtime validation before it can affect a run.
+- Build-toolchain dependencies advance to Next.js 16.3.0, PostCSS 8.5.23, and sharp 0.35.3,
+  clearing three high-severity advisory chains. Most of the Next.js advisories cover server
+  features a static export never deploys, so this hardens the development server and build
+  rather than the published game. No application code changed.
 
 ### Internal
 

@@ -16,6 +16,7 @@ import {
 } from "../../game/types";
 import { NECESSARY_REGIME_AFTERMATH_PANIC } from "../../game/replay";
 import { Button } from "../ui/button";
+import { ConfirmActionDialog } from "./ui/decisions";
 import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
 import { PlayerRoomScene } from "./pixel-room/PlayerRoomScene";
@@ -36,6 +37,7 @@ type Props = {
   onResume: () => void;
   onOpenArchive: () => void;
   onOpenPlaytest?: () => void;
+  onAbandonSavedRun?: () => void;
   newRunBlocked?: boolean;
 };
 
@@ -52,6 +54,7 @@ export function StartScreen({
   onResume,
   onOpenArchive,
   onOpenPlaytest,
+  onAbandonSavedRun,
   newRunBlocked = false,
 }: Props) {
   const [selectedDirectiveId, setSelectedDirectiveId] = useState<LegacyDirectiveId | null>(null);
@@ -125,7 +128,16 @@ export function StartScreen({
             <Button className="mt-7" variant="authorize" onClick={onResume}>
               Resume file · {formatCampaignTime(savedRun.turn)}
             </Button>
-            <p className="mt-3 mb-0 max-w-xl text-[13px] text-dossier-ink/70">Resume or clear the active file from the Playtest Journal before starting another run.</p>
+            <p className="mt-3 mb-0 max-w-xl text-[13px] text-dossier-ink/70">Resume the active file, or abandon it to open a new one.</p>
+            {onAbandonSavedRun ? (
+              <ConfirmActionDialog
+                trigger={<Button className="mt-3" variant="quiet" type="button">Abandon the active file</Button>}
+                title="Abandon the active file?"
+                description="The current campaign save is removed from this browser. Its journal entry is kept and marked abandoned."
+                tone="critical"
+                confirmAction={{ label: "Abandon the file", onSelect: onAbandonSavedRun }}
+              />
+            ) : null}
           </>
         ) : null}
         </Hero>

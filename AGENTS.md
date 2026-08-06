@@ -48,7 +48,7 @@ Assume the maintainer is still learning React and Next.js. When handing off work
 4. `docs/BRB_REPLAY_ENGINE.md` defines deterministic cards, routes, echoes, reports, replay, and Archive behavior.
 5. `docs/BRB_BALANCE_TARGETS.md` records current targets and chronological experiments.
 6. `docs/BRB_PHASE_PLAN.md` identifies the current phase and next gate.
-7. `docs/BRB_GUIDED_PLAYTEST.md` defines the internal human-playtest protocol.
+7. `docs/BRB_PLAYTEST_JOURNAL.md` defines the free-play human-playtest protocol.
 8. `docs/BRB_ART_DIRECTION.md` is binding for anything visual. Read Part 0 before
    touching an asset.
 
@@ -71,7 +71,7 @@ During Phase 2:
 - change one balance lever per experiment;
 - use a fixed seed for comparisons;
 - distinguish reachability from approved balance;
-- do not tune during or between the first three natural guided-playtest runs;
+- do not tune during a run, and review at least three natural free-play runs before changing a lever;
 - do not compensate for an indirect effect by quietly changing another value.
 
 ## Locked Game Contract
@@ -105,7 +105,7 @@ Think of the repository as four layers:
 3. **Presentation — `src/app` and `src/components/brb`**
    React renders state and sends typed actions to the engine. It may explain rules, but it does not invent or resolve them.
 4. **Platform — `src/game/storage.ts`, `src/playtest`, and `BRBApp.tsx`**
-   Adapters orchestrate local storage, active runs, reports, replay intent, Archive data, and the guided-playtest journal.
+   Adapters orchestrate local storage, active runs, reports, replay intent, Archive data, and the free-play playtest journal.
 
 Important boundaries:
 
@@ -122,16 +122,22 @@ Important boundaries:
 - `src/components/brb/control-room/presentationStateResolver.ts`: pure mapping from game state to presentation state. Presentation thresholds must not mutate gameplay.
 - `src/components/brb/control-room/ControlRoomPresentation.tsx`: visual room only.
 - `src/app/dev/control-room/page.tsx`: development-only presentation preview. The production build replaces its preview import with a null component through `next.config.ts`; preserve that exclusion.
+- `src/components/brb/narrative/sceneResolver.ts`: maps a `DecisionRecord` to a scene key and reads canonical state. This is the only narrative file that may import from `src/game`.
+- `src/components/brb/narrative/sceneRegistry.ts`: merges the catalogs into one lookup. Register a new scene here or `getNarrativeSceneScript` will not find it.
+- `src/components/brb/narrative/sceneCatalog*.ts`: declarative scene scripts, not logic. `sceneCatalogActions.ts` holds action, consultation, and ending scripts. The card scripts are split across three files of five cards each purely to keep them readable — `Cards1` (budget shortfall, contractor strike, insider offer, public hearing, whistleblower), `Cards2` (coalition vote, corporate lobby, emergency powers, intelligence leak, regional blackout), `Cards3` (audit discrepancy, capacity bottleneck, national march, protest spark, silent partner). The numbers carry no meaning; grep the card ID rather than guessing the file.
+- `src/components/brb/pixel-room/` and `src/components/brb/pixel/`: the orthographic room canvas and sprite primitives. Room geometry lives in `roomDefinitions.ts`.
+- `src/game-art/manifest.ts`: the curated-asset manifest. `scripts/inject-art.ts` validates it before `dev` and `build`; do not add an asset key without a manifest entry.
 
 ## React and Next.js Rules
 
+- **This is Next.js 16, which very likely differs from what you remember.** APIs, conventions, and file layout have all moved. The version's own documentation ships inside the install at `node_modules/next/dist/docs/` — read the relevant guide there before writing Next-specific code, and prefer it over recalled APIs and over any answer that "sounds like Next." Deprecation warnings in build output are real; do not silence them.
 - A React component is a function that turns props and state into UI. Prefer small components with explicit typed props.
 - Put `"use client"` only in components that need hooks, event handlers, browser APIs, or local storage. App Router pages and layouts should remain server components when possible.
 - Keep browser-only reads inside effects or event handlers so static rendering does not access `window`.
 - Derive display data from canonical state instead of copying it into a second React state variable.
 - Send `MajorAction` values through `commitAction`; do not modify `GameState` directly in a click handler.
 - Use `getActionPreview`, `getActionError`, and other shared guidance helpers so disabled states and explanations match the engine.
-- The current `next/font/google` setup may need network access when font files are not cached. Treat an offline font-download failure as a reproducible-build concern; do not hide it by skipping the build.
+- Fonts load through `next/font/local` from `src/app/fonts`, so the build needs no network access. Do not reintroduce `next/font/google`: a downloaded font makes the build non-reproducible offline, and the current families are self-hosted under OFL 1.1 with their provenance recorded in `docs/THIRD_PARTY_ASSETS.md`.
 - Preserve semantic elements, button labels, dialog focus behavior, keyboard access, and `prefers-reduced-motion`.
 - Keep the political dossier/control-room visual language. Avoid generic SaaS dashboards, arbitrary gradients, default-looking cards, or constant micro-animation.
 - Use existing CSS variables and theme tokens. The main campaign has legacy global styles; the living control room uses a CSS module. Follow the local convention of the component being changed.
@@ -156,6 +162,7 @@ Use automated simulation to form hypotheses, not to replace human play.
 - A longer deterministic prefix does not test seed-to-seed robustness. Use a documented alternate seed or multiple seed blocks when robustness across seeds is the question.
 - A 10,000-run comparison requires an explicit user request.
 - `npm run simulate` appends to `docs/BRB_SIMULATION_LOG.md`; it is a mutating evidence command, not a harmless smoke test.
+- `npm run replay` reproduces a recorded run from an exported playtest journal. Unlike `simulate`, it is non-mutating: it reads a journal and writes no tracked file.
 - Always provide a useful `--label` and `--notes` when running a balance experiment.
 - Use the established seed `20260715` for comparable baselines unless the experiment requires another seed.
 - Keep `long_horizon` diagnostic-only unless a deliberate design decision promotes it.
@@ -187,7 +194,15 @@ npm test
 npm run typecheck
 npm run build
 npm run dev
+npm run replay -- <exported-journal.json> --list
 ```
+
+`npm test` runs everything through `vitest.config.ts`. `vitest.game.config.ts` is a
+debugging aid, not part of the gate: it runs only `tests/game/**` in a forks pool with a
+single worker, which is how to isolate cross-test pollution or a suspected ordering
+dependency in the engine suite. It has no npm script on purpose — run it directly with
+`npx vitest run -c vitest.game.config.ts`. A green run there and a red run under `npm test`
+means the problem is shared state between suites, not the rule under test.
 
 Run `npm run build` after changing Next.js configuration, pages, imports, fonts, or client/server boundaries. Do not run a large simulation merely to validate compilation.
 
@@ -202,9 +217,15 @@ Update documentation in the same change when behavior or terminology changes:
 - cards, echoes, route provenance, replay, report, Archive, or persistence → `BRB_REPLAY_ENGINE.md`;
 - balance target or experiment → `BRB_BALANCE_TARGETS.md` and the automatic simulation log;
 - phase status or delivery gate → `BRB_PHASE_PLAN.md`;
-- guided-playtest procedure → `BRB_GUIDED_PLAYTEST.md`;
+- playtest procedure, markers, coverage, or replay → `BRB_PLAYTEST_JOURNAL.md`;
 - visual rule, palette, composition, or motion principle → `BRB_ART_DIRECTION.md`;
-- curated asset, crop, hash, or room recipe → `BRB_ART_INVENTORY.md`.
+- curated asset, crop, hash, or room recipe → `BRB_ART_INVENTORY.md`;
+- aftermath scene script, scene location, or narrative registry entry → `BRB_ART_PIPELINE.md`.
+
+Two routing rules are easy to miss:
+
+- Adding an ending, card choice, or major action means adding its narrative scene in the same change. A scene-less outcome falls back to a generic aftermath, which reads as a bug rather than an omission. `ENDING_IDS` in `src/game/types.ts` makes a missing *ending* a compile error; nothing catches a missing card or action scene, so check `sceneRegistry.ts` by hand.
+- Changing anything player-visible also means a `CHANGELOG.md` **Unreleased** entry. Presentation and art work counts as player-visible; refactors and test maintenance do not. See the changelog's own policy section.
 
 Prefer player labels in UI copy and canonical IDs in technical discussion. Name ambiguous meters fully: “Corporation Progress,” “Corporation Threat,” “BRB Stability,” or “Institutions.”
 
@@ -235,7 +256,7 @@ Use `game-studio:game-studio` when a request spans design, UI, assets, architect
 | --- | --- | --- |
 | State ownership, save boundaries, input or asset policy | `game-studio:web-game-foundations` | Preserve pure simulation, DOM presentation, serializable saves, and explicit actions |
 | Campaign UI, onboarding, HUD, menus, responsive presentation | `game-studio:game-ui-frontend` | Treat the Situation workspace as the playfield; protect decision hierarchy and thematic clarity |
-| Browser smoke test, screenshots, responsive or motion review | `game-studio:game-playtest` | Test Start → Campaign → Report → Replay/Archive and the guided-playtest path |
+| Browser smoke test, screenshots, responsive or motion review | `game-studio:game-playtest` | Test Start → Campaign → Report → Replay/Archive and the playtest journal path |
 | Animated 2D character or effect strips | `game-studio:sprite-pipeline` | Only after one approved in-game seed frame; generate the whole strip, normalize, and preview |
 
 Image generation is **step 4** of the production hierarchy in `BRB_ART_DIRECTION.md` §0.2, not the default. Curate from the licensed pack, compose through `scripts/room-recipes.ts`, and measure against the documented rules first; generate only for concept work or a genuinely missing asset class, and say why the steps above could not serve. Generated work reaches `public/assets/` only after the §34 checklist plus technical and licensing review. Note that advisor portraits are ruled out by §15 — figures in BRB are roles, not likenesses. The 3D specialists are out of scope unless the user explicitly requests a 3D direction.
@@ -316,5 +337,6 @@ Non-obvious caveats for this VM:
 - This is a single Next.js App Router app (no backend service or database). `npm run dev` serves it at `http://localhost:3000`. Both `dev` and `build` use the `--webpack` flag intentionally; do not switch to Turbopack.
 - Fonts load via `next/font/local`, so `npm run build` does not need network access for fonts.
 - Running `next dev` or `next build` regenerates `.next/dev/types` and rewrites `tsconfig.json` and `next-env.d.ts` in place (adding `.next/dev/...` include paths and repointing the routes import). This working-tree churn is expected tooling output — do not commit it.
+- Next.js 16.3+ would otherwise rewrite this file whenever `next dev` detects a coding agent, appending its own managed rules block delimited by `nextjs-agent-rules` HTML comments. `agentRules: false` in `next.config.ts` turns that off, and a control run confirmed the flag is what stops it. If that block ever appears here again, the setting was lost — it is not something new to accept. Its actual advice is kept, in the maintainer's own words, under React and Next.js Rules. Do not write the literal begin/end markers into this file: Next matches on those strings, and a quoted copy makes it treat this file as already hosting the block.
 - Chromium browser tests (`npm run test:browser`) require a one-time `npm run test:browser:install`; Chromium is not part of the default dependency install.
 - `npm run simulate` appends to `docs/BRB_SIMULATION_LOG.md` — it mutates a tracked file and is not a harmless smoke test (see the Balance and Simulation Discipline section).

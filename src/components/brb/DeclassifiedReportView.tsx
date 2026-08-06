@@ -15,13 +15,10 @@ import {
   type DeclassifiedReport,
   type LegacyDirectiveId,
 } from "../../game/types";
-import type { BookmarkInput } from "../../playtest/journal";
-import type { PlaytestRecap, PlaytestRunEntry } from "../../playtest/types";
 import { Button } from "../ui/button";
 import { CreditsDialog } from "./CreditsDialog";
 import { HowToPlayDialog } from "./HowToPlayDialog";
-import { PlaytestBookmarkDialog } from "./PlaytestBookmarkDialog";
-import { PlaytestRecapForm } from "./PlaytestRecapForm";
+import { PlaytestMarkerBar } from "./PlaytestMarkerBar";
 import { PlayerRoomScene } from "./pixel-room/PlayerRoomScene";
 import {
   DossierPanel,
@@ -55,10 +52,7 @@ type Props = {
   onOpenNewFile: () => void;
   onArchive: () => void;
   onOpenPlaytest?: () => void;
-  onBookmark?: (input: BookmarkInput) => void;
-  playtestRun?: PlaytestRunEntry | null;
-  guidedReplayRequired?: boolean;
-  onSaveRecap?: (recap: Omit<PlaytestRecap, "recordedAt">) => void;
+  onMark?: (note: string) => void;
 };
 
 export function DeclassifiedReportView({
@@ -69,12 +63,8 @@ export function DeclassifiedReportView({
   onOpenNewFile,
   onArchive,
   onOpenPlaytest,
-  onBookmark,
-  playtestRun = null,
-  guidedReplayRequired = false,
-  onSaveRecap,
+  onMark,
 }: Props) {
-  const recapRequired = Boolean(playtestRun && !playtestRun.recap);
   const resultLabel = getEndingResultLabel(report.ending.id);
   const clearanceGain = getClearanceGainForEnding(report.ending.id);
   const legacyReport = report.rulesVersion < REPORT_RULES_VERSION;
@@ -85,7 +75,7 @@ export function DeclassifiedReportView({
         <div className="header-actions">
           <HowToPlayDialog />
           <CreditsDialog />
-          {onBookmark ? <PlaytestBookmarkDialog onSave={onBookmark} /> : null}
+          {onMark ? <PlaytestMarkerBar onSave={onMark} momentLabel="the Declassified Report" /> : null}
           {onOpenPlaytest ? <button className="text-button internal-tool-button" type="button" onClick={onOpenPlaytest}>Playtest Journal</button> : null}
           <button className="text-button" type="button" onClick={onArchive}>Intelligence Archive</button>
         </div>
@@ -291,13 +281,12 @@ export function DeclassifiedReportView({
             Recommended experiment: {report.suggestedExperiment}
           </p>
           <div className="my-6 flex flex-col gap-2.5 sm:flex-row">
-            <Button variant="command" disabled={guidedReplayRequired && recapRequired} onClick={onTestTheory}>Test This Theory</Button>
+            <Button variant="command" onClick={onTestTheory}>Test This Theory</Button>
             <Button variant="outline" onClick={onOpenNewFile}>Open a New File</Button>
           </div>
-          <small className="text-dossier-ink/65">{guidedReplayRequired && recapRequired ? "Save the playtest recap before beginning the required replay sample. " : null}Test This Theory repeats the seed and equipped Directive under current rules. Open a New File creates a fresh seed with the same loadout.</small>
+          <small className="text-dossier-ink/65">Test This Theory repeats the seed and equipped Directive under current rules. Open a New File creates a fresh seed with the same loadout.</small>
         </section>
 
-        {playtestRun && onSaveRecap ? <PlaytestRecapForm key={playtestRun.runId} existing={playtestRun.recap} onSave={onSaveRecap} /> : null}
         </DossierPanel>
         <aside className="player-room-scene" aria-label="Completed-run records office scene">
           <PlayerRoomScene

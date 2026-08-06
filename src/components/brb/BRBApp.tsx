@@ -34,20 +34,22 @@ import type {
 } from "../../game/types";
 import {
   abandonActivePlaytestRun,
-  addPlaytestBookmark,
+  addPlaytestMarker,
+  adoptUntrackedRun,
   clearPlaytestJournal,
   completePlaytestRun,
   createEmptyPlaytestJournal,
-  getGuidedRunObjective,
   loadPlaytestJournal,
-  recordPlaytestDecision,
+  normalizePlaytestCommitOptions,
+  recordPlaytestStep,
   savePlaytestJournal,
-  savePlaytestRecap,
-  startPrimaryPlaytestRun,
-  startReplayPlaytestRun,
-  type BookmarkInput,
+  startPlaytestRun,
 } from "../../playtest/journal";
-import type { PlaytestJournalV1, PlaytestRecap } from "../../playtest/types";
+import type {
+  PlaytestActionStep,
+  PlaytestJournalV2,
+  PlaytestRunKind,
+} from "../../playtest/types";
 import { ArchiveView } from "./ArchiveView";
 import { CampaignScreen } from "./CampaignScreen";
 import { DeclassifiedReportView } from "./DeclassifiedReportView";
@@ -84,42 +86,50 @@ export function BRBApp() {
   const [report, setReport] = useState<DeclassifiedReport | null>(null);
   const [intent, setIntent] = useState<ReplayIntent | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [journal, setJournal] = useState<PlaytestJournalV1>(() => createEmptyPlaytestJournal());
+  const [journal, setJournal] = useState<PlaytestJournalV2>(() => createEmptyPlaytestJournal());
 
   useEffect(() => {
     const loadedRun = loadActiveRun(window.localStorage);
     const loadedReport = loadLatestReport(window.localStorage);
-    const loadedJournal = loadPlaytestJournal(window.localStorage);
-    setSavedRun(loadedRun?.phase === "ended" ? null : loadedRun);
+    const activeRun = loadedRun?.phase === "ended" ? null : loadedRun;
+    let loadedJournal = loadPlaytestJournal(window.localStorage);
+
+    // A campaign can outlive its journal entry when the journal is reset or
+    // written by an earlier build. Adopt it as unreproducible rather than
+    // opening a step log mid-campaign, which would replay as a divergence that
+    // says nothing about the engine.
+    if (activeRun && !loadedJournal.runs.some((run) => run.runId === activeRun.runId)) {
+      loadedJournal = adoptUntrackedRun(loadedJournal, activeRun);
+      savePlaytestJournal(window.localStorage, loadedJournal);
+    }
+
+    setSavedRun(activeRun);
     setArchive(loadArchive(window.localStorage) ?? createEmptyArchive());
     setReport(loadedReport);
     setIntent(loadReplayIntent(window.localStorage));
     setJournal(loadedJournal);
-    if (loadedReport) {
-      const reportSlot = loadedJournal.matrix.find((slot) => slot.primaryRunId === loadedReport.runId);
-      if (!loadedRun || reportSlot?.status === "awaiting_recap") {
-        setView("report");
-      }
-    }
+    if (loadedReport && !activeRun) setView("report");
   }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [view]);
 
-  function persistJournal(next: PlaytestJournalV1): void {
+  function persistJournal(next: PlaytestJournalV2): void {
+    // A failed write means the origin quota is exhausted. The journal is a
+    // record, never the source of truth, so play continues either way.
     savePlaytestJournal(window.localStorage, next);
     setJournal(next);
   }
 
-  function openGame(next: GameState, nextJournal?: PlaytestJournalV1): void {
+  function openGame(next: GameState, kind: PlaytestRunKind = "primary"): void {
     saveActiveRun(window.localStorage, next);
     clearReplayIntent(window.localStorage);
     setIntent(null);
     setSavedRun(next);
     setState(next);
     setError(null);
-    if (nextJournal) persistJournal(nextJournal);
+    persistJournal(startPlaytestRun(journal, next, kind));
     setView("campaign");
   }
 
@@ -148,25 +158,12 @@ export function BRBApp() {
       ...(replay ? { experiment: replay.experiment } : {}),
       legacyDirectiveId: replay?.legacyDirectiveId ?? legacyDirectiveId,
     }));
-    openGame(next);
+    openGame(next, replay ? "replay" : "primary");
   }
 
-  function startGuidedRun(slotId: string): void {
-    const slot = journal.matrix.find((candidate) => candidate.id === slotId);
-    if (!slot) return;
-    const next = createGame(applyArchiveAftermathToOptions({
-      seed: randomSeed(),
-      archetypeId: slot.archetypeId,
-      runId: newRunId(),
-      legacyDirectiveId: slot.legacyDirectiveId,
-    }));
-    openGame(next, startPrimaryPlaytestRun(journal, slotId, next));
-  }
-
-  function finish(next: GameState, baseJournal: PlaytestJournalV1 = journal): void {
+  function finish(next: GameState, baseJournal: PlaytestJournalV2 = journal): void {
     if (!next.report) return;
-    const tracked = baseJournal.runs.some((run) => run.runId === next.runId);
-    if (tracked) persistJournal(completePlaytestRun(baseJournal, next));
+    persistJournal(completePlaytestRun(baseJournal, next));
     const merged = mergeRunIntoArchive(archive, next);
     saveArchive(window.localStorage, merged);
     saveLatestReport(window.localStorage, next.report);
@@ -187,19 +184,23 @@ export function BRBApp() {
     }
     setError(null);
     setState(result.state);
-    const tracked = journal.runs.some((run) => run.runId === result.state.runId && run.status === "active");
-    const recorded = tracked ? recordPlaytestDecision(journal, result.state) : { journal, checkpointReached: false };
-    if (tracked) persistJournal(recorded.journal);
-    if (result.state.phase === "ended") finish(result.state, recorded.journal);
-    else if (recorded.checkpointReached) {
-      clearActiveRun(window.localStorage);
-      setSavedRun(null);
-      setState(null);
-      setView("playtest");
-    } else {
-      saveActiveRun(window.localStorage, result.state);
-      setSavedRun(result.state);
+
+    const step: PlaytestActionStep = {
+      kind: "commit",
+      action,
+      options: normalizePlaytestCommitOptions(options),
+    };
+
+    if (result.state.phase === "ended") {
+      finish(result.state, recordPlaytestStep(journal, step, result.state));
+      return;
     }
+
+    // The campaign save is the source of truth and has to land before the
+    // journal: a failed journal write must never cost the player a turn.
+    saveActiveRun(window.localStorage, result.state);
+    setSavedRun(result.state);
+    persistJournal(recordPlaytestStep(journal, step, result.state));
   }
 
   function handleConsult(advisorId: AdvisorId, useAbility: boolean): void {
@@ -213,6 +214,13 @@ export function BRBApp() {
     setState(result.state);
     setSavedRun(result.state);
     saveActiveRun(window.localStorage, result.state);
+    // A consultation writes no DecisionRecord but still advances the RNG, so
+    // the log has to carry it or the run stops being reproducible.
+    persistJournal(recordPlaytestStep(
+      journal,
+      { kind: "consult", advisorId, useArchetypeAbility: useAbility },
+      result.state,
+    ));
   }
 
   function replay(mode: ReplayIntent["mode"]): void {
@@ -227,11 +235,7 @@ export function BRBApp() {
       experiment: nextIntent.experiment,
       legacyDirectiveId: nextIntent.legacyDirectiveId,
     }));
-    const reportSlot = journal.matrix.find((slot) => slot.primaryRunId === report.runId);
-    const nextJournal = mode === "same_seed" && reportSlot?.status === "awaiting_replay"
-      ? startReplayPlaytestRun(journal, report.runId, next)
-      : undefined;
-    openGame(next, nextJournal);
+    openGame(next, "replay");
   }
 
   function claimDirective(directiveId: LegacyDirectiveId): void {
@@ -240,29 +244,23 @@ export function BRBApp() {
     setArchive(next);
   }
 
-  function bookmarkCampaign(input: BookmarkInput): void {
+  function markCampaign(note: string): void {
     if (!state || !journal.runs.some((run) => run.runId === state.runId)) return;
-    persistJournal(addPlaytestBookmark(journal, state.runId, "campaign", input, state));
+    persistJournal(addPlaytestMarker(journal, state.runId, "campaign", note, state));
   }
 
-  function bookmarkReport(input: BookmarkInput): void {
+  function markReport(note: string): void {
     if (!report || !journal.runs.some((run) => run.runId === report.runId)) return;
     const matchingState = state?.runId === report.runId ? state : null;
-    persistJournal(addPlaytestBookmark(journal, report.runId, "report", input, matchingState));
+    persistJournal(addPlaytestMarker(journal, report.runId, "report", note, matchingState));
   }
 
-  function saveRecap(recap: Omit<PlaytestRecap, "recordedAt">): void {
-    if (!report) return;
-    persistJournal(savePlaytestRecap(journal, report.runId, recap));
-  }
-
-  function clearCurrentRun(): void {
+  function abandonActiveRun(): void {
     clearActiveRun(window.localStorage);
     persistJournal(abandonActivePlaytestRun(journal));
     setState(null);
     setSavedRun(null);
     setError(null);
-    setView("playtest");
   }
 
   function deleteJournal(): void {
@@ -270,8 +268,7 @@ export function BRBApp() {
     setJournal(createEmptyPlaytestJournal());
   }
 
-  const reportRun = report ? journal.runs.find((run) => run.runId === report.runId && run.kind === "primary") ?? null : null;
-  const reportSlot = reportRun ? journal.matrix.find((slot) => slot.id === reportRun.slotId) ?? null : null;
+  const reportRun = report ? journal.runs.find((run) => run.runId === report.runId) ?? null : null;
 
   if (view === "archive") {
     const returnView = state && state.phase !== "ended" ? "campaign" : report ? "report" : "start";
@@ -290,8 +287,6 @@ export function BRBApp() {
     );
   }
   if (view === "campaign" && state) {
-    const trackedRun = journal.runs.find((run) => run.runId === state.runId);
-    const isTracked = Boolean(trackedRun);
     return (
       <CampaignScreen
         state={state}
@@ -300,8 +295,7 @@ export function BRBApp() {
         onConsult={handleConsult}
         onOpenArchive={() => setView("archive")}
         onOpenPlaytest={() => setView("playtest")}
-        guidedObjective={trackedRun ? getGuidedRunObjective(trackedRun.slotId) : null}
-        {...(isTracked ? { onBookmark: bookmarkCampaign } : {})}
+        onMark={markCampaign}
       />
     );
   }
@@ -323,9 +317,7 @@ export function BRBApp() {
         onOpenNewFile={() => replay("fresh_seed")}
         onArchive={() => setView("archive")}
         onOpenPlaytest={() => setView("playtest")}
-        playtestRun={reportRun}
-        guidedReplayRequired={Boolean(reportSlot?.replayRequired)}
-        {...(reportRun ? { onBookmark: bookmarkReport, onSaveRecap: saveRecap } : {})}
+        onMark={markReport}
       />
     );
   }
@@ -333,10 +325,9 @@ export function BRBApp() {
     return (
       <PlaytestJournalView
         journal={journal}
-        hasActiveRun={Boolean(savedRun)}
-        hasLatestReport={Boolean(report)}
+        activeRunId={savedRun?.runId ?? null}
+        reportRunId={report?.runId ?? null}
         onBack={() => setView(savedRun ? "campaign" : "start")}
-        onStartSlot={startGuidedRun}
         onResumeActiveRun={() => {
           if (savedRun) {
             setState(savedRun);
@@ -346,7 +337,6 @@ export function BRBApp() {
         onOpenLatestReport={() => {
           if (report) setView("report");
         }}
-        onClearActiveRun={clearCurrentRun}
         onDeleteJournal={deleteJournal}
       />
     );
@@ -366,6 +356,7 @@ export function BRBApp() {
       }}
       onOpenArchive={() => setView("archive")}
       onOpenPlaytest={() => setView("playtest")}
+      onAbandonSavedRun={abandonActiveRun}
       newRunBlocked={Boolean(savedRun)}
     />
   );
