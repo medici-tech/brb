@@ -179,7 +179,14 @@ For the full game, continue evaluating horizontal unlocks such as archetypes, ca
 
 ### Containment Brief (Operator-gated) — provisional
 
-Hypothesis: one rare Operator-tagged Directive can deepen doctrine fantasy without becoming a second generic resource whip. The hard equip gate means a default mixed-archetype 5,000-run block only applies the card on Operator runs; non-Operator runs strip to no Directive. Treat overall activation movement as diluted relative to a full-equip card, and inspect Operator archetype slices before accepting or rejecting. Do not retune Corp intervals, deposits, or the other six Directives in the same experiment. Human playtests gate whether Fixer Leverage +10 makes Cabal feel inevitable.
+Hypothesis: one rare Operator-tagged Directive can deepen doctrine fantasy without becoming a second generic resource whip. The hard equip gate means a default mixed-archetype 5,000-run block only applies the card on Operator runs; non-Operator runs strip to no Directive. Treat overall activation movement as diluted relative to a full-equip card, and inspect Operator archetype slices / coup rates before accepting or rejecting. Do not retune Corp intervals, deposits, or the other six Directives in the same experiment.
+
+| Loadout | Activations | Coup | Decision |
+| --- | ---: | ---: | --- |
+| Containment Brief (+6 Influence, Fixer Leverage +10) | 395 (7.9%) | 503 (10.06%) | Rejected; below 8% band; coup spike vs recent no-Directive ~8.26% / 7.66% coup |
+| Containment Brief (+6 Influence, Fixer Leverage +6) | 417 (8.34%) | 441 (8.82%) | Accepted retune; inside band; retain for human playtest on Cabal feel |
+
+Authored values are Influence +6 / Fixer Leverage +6. Human playtests still gate whether the leverage drawback makes Cabal feel inevitable.
 
 ### Initial Legacy Directive fixed-seed checkpoint — 2026-07-23
 

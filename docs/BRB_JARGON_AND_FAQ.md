@@ -482,7 +482,7 @@ Yes. An advisor becomes inactive when Loyalty falls below their visible breaking
 
 ### Does the Intelligence Archive make later runs easier?
 
-Yes, but only through one deliberately bounded exception: an unlocked Legacy Directive may be equipped and used once in a campaign. Containment Brief (`containment_brief`) is a rare Operator-only equip: Influence +6 with Fixer Leverage +10. Other doctrines cannot carry it (`createGame` strips a mismatched loadout). The Archive does not grant extra starting resources, higher base values, better card odds, Directive levels, or multiple equipment slots.
+Yes, but only through one deliberately bounded exception: an unlocked Legacy Directive may be equipped and used once in a campaign. Containment Brief (`containment_brief`) is a rare Operator-only equip: Influence +6 with Fixer Leverage +6. Other doctrines cannot carry it (`createGame` strips a mismatched loadout). The Archive does not grant extra starting resources, higher base values, better card odds, Directive levels, or multiple equipment slots.
 
 ### What does “echo” mean?
 

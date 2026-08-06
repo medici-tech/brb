@@ -63,7 +63,7 @@ describe("Legacy Directives", () => {
 
     const brief = useDirective("containment_brief", 31, "operator");
     expect(brief.lastTurnResolution?.commitment.delta.resources.influence).toBe(6);
-    expect(brief.lastTurnResolution?.commitment.delta.advisors.fixer?.leverage).toBe(10);
+    expect(brief.lastTurnResolution?.commitment.delta.advisors.fixer?.leverage).toBe(6);
   });
 
   it("gates Containment Brief to the Operator doctrine", () => {

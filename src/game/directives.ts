@@ -80,10 +80,10 @@ export const LEGACY_DIRECTIVES: Record<LegacyDirectiveId, LegacyDirective> = {
     rarity: "rare",
     description: "Authorize a quiet Fixer containment package before one commitment.",
     benefit: "Influence +6",
-    warning: "Fixer Leverage +10",
+    warning: "Fixer Leverage +6",
     effects: {
       resources: { influence: 6 },
-      advisors: { fixer: { leverage: 10 } },
+      advisors: { fixer: { leverage: 6 } },
     },
     requiredArchetypeId: "operator",
   },
