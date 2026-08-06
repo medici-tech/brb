@@ -14,7 +14,7 @@ Three things need attention before the next round of feature work, in this order
 
 1. **Dependency advisories.** `npm audit` reports three high-severity chains (Next.js, PostCSS, sharp) and `npm audit fix` resolves all three with a forward patch bump and no downgrade. This is still open from yesterday's pass.
 2. **Documentation drift.** The instruction and onboarding documents have not kept pace with the two largest subsystems added since late July. `AGENTS.md` contradicts itself about font loading, and `README.md`'s project map is 115 commits stale.
-3. **Phase 2 evidence.** Unchanged and still the binding constraint: there is no completed guided-playtest export or cross-run synthesis in the repository.
+3. **Phase 2 evidence.** Unchanged and still the binding constraint: there is no completed human-playtest export or cross-run synthesis in the repository. *(2026-08-05: the evidence shape is now free-play coverage and marker triage — see [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md) — not the six-run matrix named below.)*
 
 The changelog gap raised yesterday is now **closed**, and part of that finding is withdrawn as a misreading; see the Closed section below.
 
@@ -185,4 +185,4 @@ Items 1, 2, and 4 together are well under a day and clear every non-evidence fin
 
 **Remain in Phase 2.** Code health is the strongest it has been: tests doubled, the engine boundary is mechanically enforced, content and design documents agree numerically, and there is not one suppression marker in the tree. The debt that exists is documentation and hygiene, not architecture — cheap to clear and scored above.
 
-The binding constraint has not moved in three audits. It is not engineering capacity; it is that no human has played six guided runs and written down what happened. Clear the three short items, then spend the remaining Phase 2 budget on evidence rather than presentation.
+The binding constraint has not moved in three audits. It is not engineering capacity; it is human evidence. *(2026-08-05: that evidence is now free-play coverage and marker triage, not six guided runs — see [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md).)* Clear the three short items, then spend the remaining Phase 2 budget on evidence rather than presentation.
