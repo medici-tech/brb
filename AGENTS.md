@@ -48,7 +48,7 @@ Assume the maintainer is still learning React and Next.js. When handing off work
 4. `docs/BRB_REPLAY_ENGINE.md` defines deterministic cards, routes, echoes, reports, replay, and Archive behavior.
 5. `docs/BRB_BALANCE_TARGETS.md` records current targets and chronological experiments.
 6. `docs/BRB_PHASE_PLAN.md` identifies the current phase and next gate.
-7. `docs/BRB_GUIDED_PLAYTEST.md` defines the internal human-playtest protocol.
+7. `docs/BRB_PLAYTEST_JOURNAL.md` defines the free-play human-playtest protocol.
 8. `docs/BRB_ART_DIRECTION.md` is binding for anything visual. Read Part 0 before
    touching an asset.
 
@@ -71,7 +71,7 @@ During Phase 2:
 - change one balance lever per experiment;
 - use a fixed seed for comparisons;
 - distinguish reachability from approved balance;
-- do not tune during or between the first three natural guided-playtest runs;
+- do not tune during a run, and review at least three natural free-play runs before changing a lever;
 - do not compensate for an indirect effect by quietly changing another value.
 
 ## Locked Game Contract
@@ -105,7 +105,7 @@ Think of the repository as four layers:
 3. **Presentation — `src/app` and `src/components/brb`**
    React renders state and sends typed actions to the engine. It may explain rules, but it does not invent or resolve them.
 4. **Platform — `src/game/storage.ts`, `src/playtest`, and `BRBApp.tsx`**
-   Adapters orchestrate local storage, active runs, reports, replay intent, Archive data, and the guided-playtest journal.
+   Adapters orchestrate local storage, active runs, reports, replay intent, Archive data, and the free-play playtest journal.
 
 Important boundaries:
 
@@ -162,6 +162,7 @@ Use automated simulation to form hypotheses, not to replace human play.
 - A longer deterministic prefix does not test seed-to-seed robustness. Use a documented alternate seed or multiple seed blocks when robustness across seeds is the question.
 - A 10,000-run comparison requires an explicit user request.
 - `npm run simulate` appends to `docs/BRB_SIMULATION_LOG.md`; it is a mutating evidence command, not a harmless smoke test.
+- `npm run replay` reproduces a recorded run from an exported playtest journal. Unlike `simulate`, it is non-mutating: it reads a journal and writes no tracked file.
 - Always provide a useful `--label` and `--notes` when running a balance experiment.
 - Use the established seed `20260715` for comparable baselines unless the experiment requires another seed.
 - Keep `long_horizon` diagnostic-only unless a deliberate design decision promotes it.
@@ -193,6 +194,7 @@ npm test
 npm run typecheck
 npm run build
 npm run dev
+npm run replay -- <exported-journal.json> --list
 ```
 
 `npm test` runs everything through `vitest.config.ts`. `vitest.game.config.ts` is a
@@ -215,7 +217,7 @@ Update documentation in the same change when behavior or terminology changes:
 - cards, echoes, route provenance, replay, report, Archive, or persistence → `BRB_REPLAY_ENGINE.md`;
 - balance target or experiment → `BRB_BALANCE_TARGETS.md` and the automatic simulation log;
 - phase status or delivery gate → `BRB_PHASE_PLAN.md`;
-- guided-playtest procedure → `BRB_GUIDED_PLAYTEST.md`;
+- playtest procedure, markers, coverage, or replay → `BRB_PLAYTEST_JOURNAL.md`;
 - visual rule, palette, composition, or motion principle → `BRB_ART_DIRECTION.md`;
 - curated asset, crop, hash, or room recipe → `BRB_ART_INVENTORY.md`;
 - aftermath scene script, scene location, or narrative registry entry → `BRB_ART_PIPELINE.md`.
@@ -254,7 +256,7 @@ Use `game-studio:game-studio` when a request spans design, UI, assets, architect
 | --- | --- | --- |
 | State ownership, save boundaries, input or asset policy | `game-studio:web-game-foundations` | Preserve pure simulation, DOM presentation, serializable saves, and explicit actions |
 | Campaign UI, onboarding, HUD, menus, responsive presentation | `game-studio:game-ui-frontend` | Treat the Situation workspace as the playfield; protect decision hierarchy and thematic clarity |
-| Browser smoke test, screenshots, responsive or motion review | `game-studio:game-playtest` | Test Start → Campaign → Report → Replay/Archive and the guided-playtest path |
+| Browser smoke test, screenshots, responsive or motion review | `game-studio:game-playtest` | Test Start → Campaign → Report → Replay/Archive and the playtest journal path |
 | Animated 2D character or effect strips | `game-studio:sprite-pipeline` | Only after one approved in-game seed frame; generate the whole strip, normalize, and preview |
 
 Image generation is **step 4** of the production hierarchy in `BRB_ART_DIRECTION.md` §0.2, not the default. Curate from the licensed pack, compose through `scripts/room-recipes.ts`, and measure against the documented rules first; generate only for concept work or a genuinely missing asset class, and say why the steps above could not serve. Generated work reaches `public/assets/` only after the §34 checklist plus technical and licensing review. Note that advisor portraits are ruled out by §15 — figures in BRB are roles, not likenesses. The 3D specialists are out of scope unless the user explicitly requests a 3D direction.

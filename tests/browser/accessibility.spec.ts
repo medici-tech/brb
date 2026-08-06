@@ -46,6 +46,24 @@ test("campaign and confirmation dialog pass accessibility scans", async ({ page 
   await expectNoAxeViolations(page);
 });
 
+test("the playtest marker opens from the keyboard and passes an accessibility scan", async ({ page }) => {
+  await installActiveRun(page, createActiveRunFixture());
+  await resumeInstalledRun(page);
+
+  const marker = page.getByLabel("One-line playtest marker");
+  await expect(marker).toBeHidden();
+
+  // The shortcut is the point of the feature; the button is the visible fallback.
+  await page.keyboard.press("m");
+  await expect(marker).toBeFocused();
+  await expectNoAxeViolations(page);
+
+  await page.keyboard.press("Escape");
+  await expect(marker).toBeHidden();
+  // Focus returns to the control that opened it, not to the document.
+  await expect(page.getByRole("button", { name: /Drop marker/ })).toBeFocused();
+});
+
 test("report and Archive pass accessibility scans", async ({ page }) => {
   await openReportFromReadyRun(page);
   await expectNoAxeViolations(page);

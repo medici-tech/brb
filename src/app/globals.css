@@ -296,6 +296,19 @@ button { font: inherit; }
   border-color: color-mix(in oklab, var(--muted-foreground) 42%, transparent);
 }
 .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 18px; flex-wrap: wrap; }
+/* The marker input appears inline in the masthead and carries no transition:
+ * the reduced-motion browser check asserts zero running animations. */
+.playtest-marker-form { display: flex; align-items: center; gap: 10px; }
+.playtest-marker-input {
+  min-width: 0;
+  width: clamp(180px, 26vw, 320px);
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
 .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 8px; background: #444640; border: 1px solid #444640; }
 .guide-grid section { padding: 18px; background: #202320; }
 .guide-grid strong { color: var(--cream); }

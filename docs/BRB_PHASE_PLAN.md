@@ -82,13 +82,13 @@ replaces the Phase 3 external onboarding gate.
 | Deterministic rules, replay, storage, and route provenance | Complete | Preserve the green gate while tuning. |
 | Current fixed-seed automated baseline | Complete for reachability | The current 3,000/5,000 checkpoints are not precise enough to approve rare endings. |
 | Loyalty departure experiment | Automated safety accepted | Validate whether players understand disapproval, Loyalty loss, departure risk, and Manage Advisor. |
-| Six-run guided matrix and three five-commitment replays | Unverified | The matrix now assigns one Legacy Directive to each primary run, preserves it for required same-seed replays, and records timing, drawback meaning, and ignored-file ordering clarity. No completed journal export or cross-run synthesis is stored in the repository. Finish the first three without tuning, then complete the three targeted strategy runs. |
-| Archetype and normal-strategy parity | Automated comparison complete | Both seed blocks include every archetype and normal strategy; validate the weaker Fixer and Command results through guided play. |
+| Free-play coverage and marker triage | Unverified | Replaces the six-run guided matrix (archived 2026-08-05). Every campaign is now recorded automatically with a replayable input log, and the Playtest Journal reports coverage directly. The gate is met when every archetype has been played, every Legacy Directive has been used at least once, at least three natural runs have been reviewed together before any lever is changed, and marker triage is complete with findings sorted into rules/balance, interface clarity, pacing, replay motivation, and defects. No exported journal or triage synthesis is stored in the repository yet. |
+| Archetype and normal-strategy parity | Automated comparison complete | Both seed blocks include every archetype and normal strategy; validate the weaker Fixer and Command results through free play. |
 | Activation, premium-ending, and late-game targets | Automated target accepted | The isolated cadence produced 8.02–8.34% activation; validate near-wins, loss fairness, and activation payoff with humans. |
-| Card tempo and defensive-style discoverability | Incomplete | Confirm through guided play whether players notice and enjoy the slower survival path. |
+| Card tempo and defensive-style discoverability | Incomplete | Confirm through free play whether players notice and enjoy the slower survival path. |
 | Final Phase 2 recommendation | Incomplete | Accept or reject the tested lever, rerun the proportionate baseline, and record the decision without rewriting historical checkpoints. |
 
-**Remaining work:** Finish the six-run guided evidence without tuning between the first three natural runs. Use the final three for defensive, aggressive, and institution-focused play, asking what the player was building, why the run ended, what they would change, and whether they want another run. Remain in Phase 2 until those human results explicitly accept or reject the cadence.
+**Remaining work:** Play free-play sessions until the coverage gate above is met, without tuning between runs. The Playtest Journal reports the first two criteria directly; the third and fourth are discipline, not automation. Ask after a run what the player was building, why it ended, what they would change, and whether they want another. Remain in Phase 2 until those human results explicitly accept or reject the cadence.
 
 ## Phase 3: Human playtest build
 

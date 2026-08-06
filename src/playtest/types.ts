@@ -4,51 +4,74 @@ import type {
   ArchetypeId,
   CorporationStrategy,
   EndingId,
+  GameState,
   LegacyDirectiveId,
+  MajorAction,
   PressurePool,
   ResourcePool,
   TrackPool,
 } from "../game/types";
 
-export const PLAYTEST_BOOKMARK_CATEGORIES = [
-  "bug",
-  "confusion",
-  "pacing",
-  "balance",
-  "consequence_clarity",
-  "replay_idea",
-  "delight",
-] as const;
+/** Derived from the engine so the two cannot drift. */
+export type PlaytestGamePhase = GameState["phase"];
 
-export const PLAYTEST_SEVERITIES = ["low", "medium", "high"] as const;
+/**
+ * The version and build ID are part of the schema, so they live beside it —
+ * both the writer and the validator need them, and neither should import the
+ * other.
+ */
+export const PLAYTEST_JOURNAL_VERSION = 2 as const;
+export const PLAYTEST_BUILD_ID = "free-play-v2" as const;
 
-export type PlaytestBookmarkCategory = (typeof PLAYTEST_BOOKMARK_CATEGORIES)[number];
-export type PlaytestSeverity = (typeof PLAYTEST_SEVERITIES)[number];
 export type PlaytestRunKind = "primary" | "replay";
-export type PlaytestRunStatus = "active" | "completed" | "checkpoint_reached" | "abandoned";
-export type PlaytestMatrixStatus =
-  | "pending"
-  | "active"
-  | "awaiting_recap"
-  | "awaiting_replay"
-  | "replay_active"
-  | "completed";
+export type PlaytestRunStatus = "active" | "completed" | "abandoned";
+export type PlaytestMarkerLocation = "campaign" | "report";
 
-export type PlaytestMatrixSlot = {
-  id: string;
-  order: number;
-  archetypeId: ArchetypeId;
-  label: string;
-  strategy: string;
-  replayRequired: boolean;
-  legacyDirectiveId: LegacyDirectiveId | null;
-  status: PlaytestMatrixStatus;
-  primaryRunId: string | null;
-  replayRunId: string | null;
-  replayCommitments: number;
+/**
+ * Canonical `CommitOptions`: falsey flags are omitted rather than stored as
+ * `false`, so an exported journal stays byte-stable and its diffs stay readable.
+ */
+export type PlaytestCommitOptions = {
+  confirmCardAbandonment?: true;
+  useLegacyDirective?: true;
 };
 
-type PlaytestStateCapture = {
+/**
+ * Exactly the arguments an engine entry point received, and nothing derived
+ * from them. Replaying a run means folding these from a fresh `createGame`.
+ *
+ * The journal records inputs rather than `decisionHistory` because that history
+ * is lossy: an ordinary consultation writes no `DecisionRecord` yet still
+ * advances `rngState`, and `confirmCardAbandonment` has no output
+ * representation at all. See `tests/game/replay-fold.test.ts`.
+ */
+export type PlaytestActionStep =
+  | { kind: "consult"; advisorId: AdvisorId; useArchetypeAbility: boolean }
+  | { kind: "commit"; action: MajorAction; options: PlaytestCommitOptions };
+
+/** Engine state after a step. The replayer asserts each of these. */
+export type PlaytestStepCheckpoint = {
+  turn: number;
+  rngState: number;
+  phase: PlaytestGamePhase;
+  decisionCount: number;
+  latestDecisionId: string | null;
+  endingId: EndingId | null;
+};
+
+export type PlaytestStepRecord = {
+  /** 1-based position in the accepted-input sequence. */
+  index: number;
+  step: PlaytestActionStep;
+  after: PlaytestStepCheckpoint;
+  recordedAt: string;
+};
+
+/**
+ * A full board capture, attached to a marker so a note can be read back against
+ * the state that produced it.
+ */
+export type PlaytestMomentSnapshot = {
   turn: number;
   activeCardId: string | null;
   resources: ResourcePool;
@@ -63,9 +86,6 @@ type PlaytestStateCapture = {
   advisorLeverage: Record<AdvisorId, number>;
   endingId: EndingId | null;
   capturedAt: string;
-};
-
-export type PlaytestMomentSnapshot = PlaytestStateCapture & {
   decisionId: string | null;
   category: ActionCategory | null;
   summary: string | null;
@@ -73,32 +93,8 @@ export type PlaytestMomentSnapshot = PlaytestStateCapture & {
   choiceId: string | null;
 };
 
-export type PlaytestDecisionSnapshot = PlaytestStateCapture & {
-  decisionId: string;
-  category: ActionCategory;
-  summary: string;
-  cardId: string | null;
-  choiceId: string | null;
-};
-
-export type PlaytestRecap = {
-  fairness: 1 | 2 | 3 | 4 | 5;
-  pacing: "too_short" | "about_right" | "too_long";
-  lateGamePressure: "gradual" | "sudden" | "unclear";
-  consequenceClarity: 1 | 2 | 3 | 4 | 5;
-  strategyViability: 1 | 2 | 3 | 4 | 5;
-  replayInterest: 1 | 2 | 3 | 4 | 5;
-  directiveUseMonth: number | null;
-  directiveTimingReason: string;
-  directiveDrawbackMeaning: 1 | 2 | 3 | 4 | 5;
-  ignoredOrderingClarity: 1 | 2 | 3 | 4 | 5;
-  nextExperiment: string;
-  recordedAt: string;
-};
-
 export type PlaytestRunEntry = {
   runId: string;
-  slotId: string;
   kind: PlaytestRunKind;
   seed: number;
   archetypeId: ArchetypeId;
@@ -109,39 +105,44 @@ export type PlaytestRunEntry = {
   status: PlaytestRunStatus;
   endingId: EndingId | null;
   months: number | null;
-  decisions: PlaytestDecisionSnapshot[];
-  finalSnapshot: PlaytestDecisionSnapshot | null;
-  recap: PlaytestRecap | null;
+  steps: PlaytestStepRecord[];
+  /**
+   * Every card the run drew, taken from `state.deck.drawCounts`. Sourced from
+   * the deck rather than the step log so that ignored and expired cards — which
+   * produce no commitment — still count toward coverage.
+   */
+  cardsSeen: string[];
+  finalSnapshot: PlaytestMomentSnapshot | null;
+  /**
+   * False when the step log cannot reproduce the run: the journal was reset or
+   * replaced mid-campaign, or a write failed. The replayer refuses these rather
+   * than reporting a divergence that says nothing about the engine.
+   */
+  replayComplete: boolean;
 };
 
-export type PlaytestBookmark = {
+export type PlaytestMarker = {
   id: string;
   runId: string;
-  slotId: string;
-  location: "campaign" | "report";
-  category: PlaytestBookmarkCategory;
-  severity: PlaytestSeverity;
+  location: PlaytestMarkerLocation;
+  /** One line, trimmed and non-empty. Triage assigns category and severity. */
   note: string;
   createdAt: string;
   snapshot: PlaytestMomentSnapshot | null;
 };
 
-export type PlaytestJournalV1 = {
-  version: 1;
-  buildId: "guided-internal-v1";
+export type PlaytestJournalV2 = {
+  version: 2;
+  buildId: "free-play-v2";
   createdAt: string;
   updatedAt: string;
-  matrix: PlaytestMatrixSlot[];
   runs: PlaytestRunEntry[];
-  bookmarks: PlaytestBookmark[];
+  markers: PlaytestMarker[];
 };
 
-export type PlaytestJournalSummary = {
-  completedSlots: number;
-  totalSlots: number;
-  endings: Partial<Record<EndingId, number>>;
-  averageCampaignMonths: number | null;
-  bookmarkCategories: Partial<Record<PlaytestBookmarkCategory, number>>;
-  recurringHighSeverityCategories: PlaytestBookmarkCategory[];
-  replayDivergence: Record<string, number | null>;
+/** The exported envelope, which is also the input format of `npm run replay`. */
+export type PlaytestJournalExport = {
+  exportedAt: string;
+  version: 2;
+  journal: PlaytestJournalV2;
 };

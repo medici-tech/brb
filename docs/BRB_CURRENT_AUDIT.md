@@ -14,7 +14,7 @@ Three things need attention before the next round of feature work, in this order
 
 1. **Dependency advisories.** `npm audit` reports three high-severity chains (Next.js, PostCSS, sharp) and `npm audit fix` resolves all three with a forward patch bump and no downgrade. This is still open from yesterday's pass.
 2. **Documentation drift.** The instruction and onboarding documents have not kept pace with the two largest subsystems added since late July. `AGENTS.md` contradicts itself about font loading, and `README.md`'s project map is 115 commits stale.
-3. **Phase 2 evidence.** Unchanged and still the binding constraint: there is no completed guided-playtest export or cross-run synthesis in the repository.
+3. **Phase 2 evidence.** Unchanged and still the binding constraint: there is no completed human-playtest export or cross-run synthesis in the repository. *(2026-08-05: the evidence shape is now free-play coverage and marker triage — see [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md) — not the six-run matrix named below.)*
 
 The changelog gap raised yesterday is now **closed**, and part of that finding is withdrawn as a misreading; see the Closed section below.
 
@@ -96,6 +96,8 @@ Unchanged from the last two audits. The accepted `5/4/3/2/1` Corporation cadence
 
 **Impact 5 · Risk 5 · Effort 4** → priority 20 by formula, but this is the project's actual exit condition and effort here is the point, not the cost.
 
+> **2026-08-05 update.** The six-run guided matrix was replaced by free play; the exit-checklist row is now "Free-play coverage and marker triage." The gap itself is unchanged — no exported journal or triage synthesis is stored in the repository — but coverage is now reported by the app rather than tracked by hand, and recorded runs are reproducible with `npm run replay`. See [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md).
+
 ### Closed — the changelog gap raised on 2026-08-03
 
 Resolved. The third camera tier is recorded under **Added**, and the advisor Coup/Cabal room lighting and aftermath under **Changed**.
@@ -168,6 +170,8 @@ Items 1, 2, and 4 together are well under a day and clear every non-evidence fin
 
 ## Recommended order of work
 
+> **2026-08-05 update.** Items 4 and 5 below have since been overtaken: the six-run matrix was replaced by free play, so "complete runs 1–6" is no longer the shape of the gate. Read them as the priority the audit assigned to human evidence, not as the procedure. The current procedure is [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md).
+
 1. Correct the `AGENTS.md` font contradiction, add the narrative-layer boundary and documentation-routing entries, and refresh the `README.md` project map and command list.
 2. Run `npm audit fix`, then the full verification gate, as its own small commit.
 3. Decide `vitest.game.config.ts`'s fate: give it a `test:game` script and a line in AGENTS.md § Testing, or delete it.
@@ -181,4 +185,4 @@ Items 1, 2, and 4 together are well under a day and clear every non-evidence fin
 
 **Remain in Phase 2.** Code health is the strongest it has been: tests doubled, the engine boundary is mechanically enforced, content and design documents agree numerically, and there is not one suppression marker in the tree. The debt that exists is documentation and hygiene, not architecture — cheap to clear and scored above.
 
-The binding constraint has not moved in three audits. It is not engineering capacity; it is that no human has played six guided runs and written down what happened. Clear the three short items, then spend the remaining Phase 2 budget on evidence rather than presentation.
+The binding constraint has not moved in three audits. It is not engineering capacity; it is human evidence. *(2026-08-05: that evidence is now free-play coverage and marker triage, not six guided runs — see [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md).)* Clear the three short items, then spend the remaining Phase 2 budget on evidence rather than presentation.

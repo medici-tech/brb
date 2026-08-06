@@ -19,7 +19,7 @@ Supporting evidence:
 
 - [Current-State Audit](BRB_CURRENT_AUDIT.md): latest implementation, validation, and delivery-risk review
 - [BRB Simulation Run Log](BRB_SIMULATION_LOG.md): runs recorded after automatic logging was introduced
-- [BRB Solo Guided Playtest](BRB_GUIDED_PLAYTEST.md): six-run self-play matrix, journal workflow, and evaluation rules
+- [BRB Playtest Journal](BRB_PLAYTEST_JOURNAL.md): free-play protocol, markers, coverage, export, and `npm run replay`
 - [Third-Party Assets](THIRD_PARTY_ASSETS.md): locally stored font sources, licenses, LimeZu handling, and deferred audio policy
 - [BRB Art Pipeline](BRB_ART_PIPELINE.md): LimeZu curation, room composites, `PixelRoom`, narrative aftermath scenes, and deploy injection
 - [BRB Art Inventory](BRB_ART_INVENTORY.md): curated keys, room bases, hashes, and screen matrix

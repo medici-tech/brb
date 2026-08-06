@@ -3,20 +3,24 @@ import { commitAction, consultAdvisor, createGame } from "../../src/game/index.j
 import type { GameState } from "../../src/game/types.js";
 import {
   PLAYTEST_STORAGE_KEY,
+  RETAINED_STEP_LOG_RUNS,
   abandonActivePlaytestRun,
-  addPlaytestBookmark,
+  addPlaytestMarker,
+  adoptUntrackedRun,
   clearPlaytestJournal,
   completePlaytestRun,
   createEmptyPlaytestJournal,
   loadPlaytestJournal,
-  recordPlaytestDecision,
+  normalizePlaytestCommitOptions,
+  recordPlaytestStep,
   savePlaytestJournal,
-  savePlaytestRecap,
   serializePlaytestJournal,
-  startPrimaryPlaytestRun,
-  startReplayPlaytestRun,
-  summarizePlaytestJournal,
+  startPlaytestRun,
 } from "../../src/playtest/journal.js";
+import { deserializePlaytestJournal } from "../../src/playtest/journal-validation.js";
+import type { PlaytestJournalV2 } from "../../src/playtest/types.js";
+
+const LEGACY_STORAGE_KEY = "brb.playtest-journal.v1";
 
 function memoryStorage(): Storage {
   const values = new Map<string, string>();
@@ -30,6 +34,10 @@ function memoryStorage(): Storage {
   };
 }
 
+function newGame(runId: string, seed = 20260715): GameState {
+  return createGame({ seed, archetypeId: "technocrat", runId, legacyDirectiveId: "emergency_appropriation" });
+}
+
 function commitOne(state: GameState): GameState {
   const prepared = structuredClone(state);
   prepared.activeCardId = null;
@@ -38,18 +46,10 @@ function commitOne(state: GameState): GameState {
   return result.state;
 }
 
-function createTechnocratMatrixGame(seed: number, runId: string): GameState {
-  return createGame({
-    seed,
-    archetypeId: "technocrat",
-    runId,
-    legacyDirectiveId: "emergency_appropriation",
-  });
-}
-
 function endedState(state: GameState): GameState {
   const ended = structuredClone(state);
   ended.phase = "ended";
+  ended.turn = 14;
   ended.ending = {
     id: "state_collapse",
     title: "The Empty Chamber",
@@ -62,174 +62,304 @@ function endedState(state: GameState): GameState {
   return ended;
 }
 
-const recap = {
-  fairness: 3 as const,
-  pacing: "about_right" as const,
-  lateGamePressure: "gradual" as const,
-  consequenceClarity: 4 as const,
-  strategyViability: 3 as const,
-  replayInterest: 5 as const,
-  directiveUseMonth: 8,
-  directiveTimingReason: "The resource gain made the next commitment affordable.",
-  directiveDrawbackMeaning: 4 as const,
-  ignoredOrderingClarity: 5 as const,
-  nextExperiment: "Delay the first deposit.",
-};
-
-describe("solo playtest journal", () => {
-  it("creates the six-run matrix and safely replaces malformed local data", () => {
+describe("free-play journal storage", () => {
+  it("starts empty and round-trips through local storage", () => {
     const storage = memoryStorage();
-    const journal = createEmptyPlaytestJournal("2026-07-16T12:00:00.000Z");
-    expect(journal.matrix).toHaveLength(6);
-    expect(journal.matrix.slice(0, 3).every((slot) => slot.replayRequired)).toBe(true);
-    expect(journal.matrix.map((slot) => slot.legacyDirectiveId)).toEqual([
-      "emergency_appropriation",
-      "coalition_whip",
-      "protected_channel",
-      "public_confidence_reserve",
-      "industrial_surge",
-      "continuity_freeze_order",
-    ]);
-    savePlaytestJournal(storage, journal);
+    const journal = createEmptyPlaytestJournal();
+
+    expect(journal.version).toBe(2);
+    expect(journal.runs).toEqual([]);
+    expect(journal.markers).toEqual([]);
+
+    expect(savePlaytestJournal(storage, journal)).toBe(true);
     expect(loadPlaytestJournal(storage)).toEqual(journal);
 
-    const legacy = structuredClone(journal) as unknown as {
-      matrix: Array<Record<string, unknown>>;
-      runs: Array<Record<string, unknown>>;
-    };
-    legacy.matrix.forEach((slot) => { delete slot.legacyDirectiveId; });
-    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify(legacy));
-    expect(loadPlaytestJournal(storage).matrix.every((slot) => slot.legacyDirectiveId === null)).toBe(true);
-
-    const invalidDirective = structuredClone(journal) as unknown as {
-      matrix: Array<Record<string, unknown>>;
-    };
-    invalidDirective.matrix[0]!.legacyDirectiveId = "not-a-directive";
-    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify(invalidDirective));
-    expect(loadPlaytestJournal(storage).matrix.every((slot) => slot.status === "pending")).toBe(true);
-
-    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify({ version: 99 }));
-    expect(loadPlaytestJournal(storage, "2026-07-17T12:00:00.000Z").matrix.every((slot) => slot.status === "pending")).toBe(true);
-    storage.setItem(PLAYTEST_STORAGE_KEY, "not-json");
-    expect(loadPlaytestJournal(storage).runs).toEqual([]);
     clearPlaytestJournal(storage);
     expect(storage.getItem(PLAYTEST_STORAGE_KEY)).toBeNull();
   });
 
-  it("captures accepted commitments and attaches exact state to bookmarks", () => {
-    const state = createTechnocratMatrixGame(18, "primary-1");
-    let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
-    const nextState = commitOne(state);
-    journal = recordPlaytestDecision(journal, nextState, "2026-07-16T12:01:00.000Z").journal;
-    journal = addPlaytestBookmark(
-      journal,
-      state.runId,
-      "campaign",
-      { category: "confusion", severity: "high", note: "The pressure source was unclear." },
-      nextState,
-      "2026-07-16T12:02:00.000Z",
-      "bookmark-1",
-    );
-
-    expect(journal.runs[0]?.decisions).toHaveLength(1);
-    expect(journal.runs[0]?.legacyDirectiveId).toBe("emergency_appropriation");
-    expect(journal.bookmarks[0]).toMatchObject({ id: "bookmark-1", runId: "primary-1", category: "confusion" });
-    expect(journal.bookmarks[0]?.snapshot?.turn).toBe(nextState.turn - 1);
-    expect(journal.bookmarks[0]?.snapshot?.corporation.progress).toBe(nextState.corporation.progress);
-  });
-
-  it("captures the current briefing when bookmarked before the first commitment", () => {
-    const state = createTechnocratMatrixGame(19, "primary-briefing");
-    let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
-    journal = addPlaytestBookmark(
-      journal,
-      state.runId,
-      "campaign",
-      { category: "confusion", severity: "medium", note: "The opening file needs context." },
-      state,
-      "2026-07-16T12:00:30.000Z",
-      "bookmark-opening",
-    );
-
-    expect(journal.runs[0]?.seed).toBe(state.seed);
-    expect(journal.runs[0]?.decisions).toEqual([]);
-    expect(journal.bookmarks[0]?.snapshot).toMatchObject({
-      decisionId: null,
-      category: null,
-      summary: null,
-      turn: 1,
-      activeCardId: state.activeCardId,
-      resources: state.resources,
-      tracks: state.tracks,
-      pressures: state.pressures,
-    });
-
+  it("discards a journal from an earlier build and removes its dead blob", () => {
     const storage = memoryStorage();
-    savePlaytestJournal(storage, journal);
-    expect(loadPlaytestJournal(storage).bookmarks[0]?.snapshot).toEqual(journal.bookmarks[0]?.snapshot);
+    storage.setItem(LEGACY_STORAGE_KEY, JSON.stringify({ version: 1, buildId: "guided-internal-v1" }));
+    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify({ version: 1, buildId: "guided-internal-v1" }));
+
+    const loaded = loadPlaytestJournal(storage);
+    expect(loaded.version).toBe(2);
+    expect(loaded.runs).toEqual([]);
+
+    savePlaytestJournal(storage, loaded);
+    expect(storage.getItem(LEGACY_STORAGE_KEY)).toBeNull();
   });
 
-  it("requires a recap before advancing a natural slot to replay", () => {
-    const state = createTechnocratMatrixGame(21, "primary-2");
-    let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
-    const completed = endedState(commitOne(state));
-    journal = completePlaytestRun(recordPlaytestDecision(journal, completed).journal, completed);
-    expect(journal.matrix[0]?.status).toBe("awaiting_recap");
+  it("degrades to an empty journal rather than throwing at the storage boundary", () => {
+    const storage = memoryStorage();
 
-    journal = savePlaytestRecap(journal, state.runId, recap, "2026-07-16T13:00:00.000Z");
-    expect(journal.matrix[0]?.status).toBe("awaiting_replay");
-    expect(journal.runs[0]?.recap?.nextExperiment).toBe("Delay the first deposit.");
+    storage.setItem(PLAYTEST_STORAGE_KEY, "not-json");
+    expect(loadPlaytestJournal(storage).runs).toEqual([]);
+
+    storage.setItem(PLAYTEST_STORAGE_KEY, JSON.stringify({ version: 99 }));
+    expect(loadPlaytestJournal(storage).runs).toEqual([]);
   });
 
-  it("stops a replay after five accepted commitments and ignores consultations", () => {
-    const primaryState = createTechnocratMatrixGame(33, "primary-3");
-    let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", primaryState);
-    const completed = endedState(commitOne(primaryState));
-    journal = completePlaytestRun(recordPlaytestDecision(journal, completed).journal, completed);
-    journal = savePlaytestRecap(journal, primaryState.runId, recap);
+  it("reports a failed write instead of throwing, so the campaign save still lands", () => {
+    const storage = memoryStorage();
+    storage.setItem = () => { throw new Error("QuotaExceededError"); };
+    expect(savePlaytestJournal(storage, createEmptyPlaytestJournal())).toBe(false);
+  });
+});
 
-    let replayState = createGame({
-      seed: 33,
-      archetypeId: "technocrat",
-      runId: "replay-3",
-      experiment: "Try another path.",
-      legacyDirectiveId: "emergency_appropriation",
+describe("free-play journal validation", () => {
+  function journalWithOneStep(): PlaytestJournalV2 {
+    const state = newGame("run-validate");
+    const committed = commitOne(state);
+    return recordPlaytestStep(
+      startPlaytestRun(createEmptyPlaytestJournal(), state),
+      { kind: "commit", action: { type: "recover_resource", resource: "money" }, options: {} },
+      committed,
+    );
+  }
+
+  it("accepts both a bare journal and an exported envelope", () => {
+    const journal = journalWithOneStep();
+    expect(deserializePlaytestJournal(serializePlaytestJournal(journal))).toEqual(journal);
+    expect(deserializePlaytestJournal(JSON.stringify(journal))).toEqual(journal);
+  });
+
+  it("throws on a journal written by an earlier build", () => {
+    expect(() => deserializePlaytestJournal(JSON.stringify({ version: 1, buildId: "guided-internal-v1" })))
+      .toThrow(/unsupported version 1/);
+  });
+
+  it("fails closed on a step log that names content the engine does not have", () => {
+    const journal = journalWithOneStep();
+    const broken = structuredClone(journal);
+    broken.runs[0]!.steps[0]!.step = {
+      kind: "commit",
+      action: { type: "recover_resource", resource: "prestige" },
+      options: {},
+    } as never;
+
+    expect(() => deserializePlaytestJournal(JSON.stringify(broken))).toThrow(/unknown resource/);
+  });
+
+  it("rejects a non-canonical commit option rather than replaying it", () => {
+    const journal = journalWithOneStep();
+    const broken = structuredClone(journal);
+    broken.runs[0]!.steps[0]!.step = {
+      kind: "commit",
+      action: { type: "recover_resource", resource: "money" },
+      options: { useLegacyDirective: false },
+    } as never;
+
+    expect(() => deserializePlaytestJournal(JSON.stringify(broken))).toThrow(/non-canonical commit option/);
+  });
+
+  it("rejects a marker pointing at a run the journal does not hold", () => {
+    const journal = journalWithOneStep();
+    const broken = structuredClone(journal);
+    broken.markers.push({
+      id: "marker-1",
+      runId: "run-that-does-not-exist",
+      location: "campaign",
+      note: "orphan",
+      createdAt: new Date().toISOString(),
+      snapshot: null,
     });
-    journal = startReplayPlaytestRun(journal, primaryState.runId, replayState);
-    let checkpointReached = false;
-    for (let index = 0; index < 4; index += 1) {
-      replayState = commitOne(replayState);
-      const recorded = recordPlaytestDecision(journal, replayState);
-      journal = recorded.journal;
-      checkpointReached = recorded.checkpointReached;
-    }
-    expect(checkpointReached).toBe(false);
-    expect(journal.matrix[0]?.replayCommitments).toBe(4);
 
-    replayState.phase = "briefing";
-    replayState.consultation = null;
-    const consulted = consultAdvisor(replayState, "analyst");
-    expect(consulted.accepted).toBe(true);
-    const afterConsult = recordPlaytestDecision(journal, consulted.state);
-    journal = afterConsult.journal;
-    expect(journal.matrix[0]?.replayCommitments).toBe(4);
+    expect(() => deserializePlaytestJournal(JSON.stringify(broken))).toThrow(/does not hold/);
+  });
+});
 
-    replayState = commitOne(consulted.state);
-    const recorded = recordPlaytestDecision(journal, replayState);
-    expect(recorded.checkpointReached).toBe(true);
-    expect(recorded.journal.matrix[0]).toMatchObject({ status: "completed", replayCommitments: 5 });
-    expect(recorded.journal.runs.find((run) => run.runId === "replay-3")?.status).toBe("checkpoint_reached");
+describe("recording a free-play run", () => {
+  it("records the run the player actually chose, with no assigned loadout", () => {
+    const state = createGame({ seed: 4242, archetypeId: "populist", runId: "run-a", legacyDirectiveId: null });
+    const journal = startPlaytestRun(createEmptyPlaytestJournal(), state);
+
+    expect(journal.runs).toHaveLength(1);
+    expect(journal.runs[0]).toMatchObject({
+      runId: "run-a",
+      kind: "primary",
+      seed: 4242,
+      archetypeId: "populist",
+      legacyDirectiveId: null,
+      status: "active",
+      replayComplete: true,
+    });
   });
 
-  it("abandons only the active slot and produces a stable summary/export payload", () => {
-    const state = createTechnocratMatrixGame(45, "primary-4");
-    let journal = startPrimaryPlaytestRun(createEmptyPlaytestJournal(), "technocrat-natural", state);
-    journal = abandonActivePlaytestRun(journal, "2026-07-16T14:00:00.000Z");
-    expect(journal.matrix[0]).toMatchObject({ status: "pending", primaryRunId: null });
-    expect(journal.runs[0]?.status).toBe("abandoned");
-    expect(summarizePlaytestJournal(journal).completedSlots).toBe(0);
-    const exported = JSON.parse(serializePlaytestJournal(journal));
-    expect(exported.journal.buildId).toBe("guided-internal-v1");
-    expect(exported.journal.runs[0].status).toBe("abandoned");
+  it("does not start a second entry for a run it already holds", () => {
+    const state = newGame("run-a");
+    const once = startPlaytestRun(createEmptyPlaytestJournal(), state);
+    expect(startPlaytestRun(once, state).runs).toHaveLength(1);
+  });
+
+  it("appends each accepted input with the state it produced", () => {
+    const state = newGame("run-a");
+    const consulted = consultAdvisor(state, "analyst");
+    expect(consulted.accepted).toBe(true);
+    const committed = commitOne(consulted.state);
+
+    let journal = startPlaytestRun(createEmptyPlaytestJournal(), state);
+    journal = recordPlaytestStep(journal, { kind: "consult", advisorId: "analyst", useArchetypeAbility: false }, consulted.state);
+    journal = recordPlaytestStep(journal, { kind: "commit", action: { type: "recover_resource", resource: "money" }, options: {} }, committed);
+
+    const steps = journal.runs[0]!.steps;
+    expect(steps.map((entry) => entry.index)).toEqual([1, 2]);
+    expect(steps[0]!.step).toEqual({ kind: "consult", advisorId: "analyst", useArchetypeAbility: false });
+    expect(steps[0]!.after.rngState).toBe(consulted.state.rngState);
+    expect(steps[1]!.after.turn).toBe(committed.turn);
+    expect(steps[1]!.after.decisionCount).toBe(committed.decisionHistory.length);
+  });
+
+  it("tracks every card the deck drew, including ones never committed against", () => {
+    const state = newGame("run-a");
+    const journal = startPlaytestRun(createEmptyPlaytestJournal(), state);
+    expect(journal.runs[0]!.cardsSeen).toEqual(Object.keys(state.deck.drawCounts).sort());
+  });
+
+  it("drops falsey commit options instead of storing them", () => {
+    expect(normalizePlaytestCommitOptions({ confirmCardAbandonment: false, useLegacyDirective: true }))
+      .toEqual({ useLegacyDirective: true });
+    expect(normalizePlaytestCommitOptions()).toEqual({});
+  });
+
+  it("ignores a step for a run that is no longer active", () => {
+    const state = newGame("run-a");
+    const completed = completePlaytestRun(startPlaytestRun(createEmptyPlaytestJournal(), state), endedState(state));
+    const after = recordPlaytestStep(completed, { kind: "consult", advisorId: "analyst", useArchetypeAbility: false }, state);
+    expect(after.runs[0]!.steps).toHaveLength(0);
+  });
+});
+
+describe("the recorder's contract", () => {
+  /**
+   * The whole feature rests on this: whatever `recordPlaytestStep` stored has
+   * to fold back into the same campaign. `tests/game/replay-fold.test.ts` proves
+   * the engine is deterministic; this proves the journal captures enough of it.
+   */
+  it("stores a step log that folds back into the same state", () => {
+    const setup = { seed: 90210, archetypeId: "operator" as const, runId: "run-fold", legacyDirectiveId: null };
+    let state = createGame(setup);
+    let journal = startPlaytestRun(createEmptyPlaytestJournal(), state);
+
+    const consulted = consultAdvisor(state, "fixer");
+    expect(consulted.accepted).toBe(true);
+    state = consulted.state;
+    journal = recordPlaytestStep(journal, { kind: "consult", advisorId: "fixer", useArchetypeAbility: false }, state);
+
+    for (const resource of ["money", "influence", "trust"] as const) {
+      const options = state.activeCardId !== null ? { confirmCardAbandonment: true as const } : {};
+      const result = commitAction(state, { type: "recover_resource", resource }, options);
+      expect(result.accepted).toBe(true);
+      state = result.state;
+      journal = recordPlaytestStep(journal, { kind: "commit", action: { type: "recover_resource", resource }, options }, state);
+    }
+
+    let replayed = createGame(setup);
+    for (const record of journal.runs[0]!.steps) {
+      const result = record.step.kind === "consult"
+        ? consultAdvisor(replayed, record.step.advisorId, record.step.useArchetypeAbility)
+        : commitAction(replayed, record.step.action, record.step.options);
+      expect(result.accepted).toBe(true);
+      replayed = result.state;
+      expect(replayed.rngState).toBe(record.after.rngState);
+      expect(replayed.turn).toBe(record.after.turn);
+    }
+
+    expect(replayed).toEqual(state);
+  });
+});
+
+describe("finishing and abandoning runs", () => {
+  it("records the ending, campaign length, and a final snapshot", () => {
+    const state = newGame("run-a");
+    const journal = completePlaytestRun(startPlaytestRun(createEmptyPlaytestJournal(), state), endedState(state));
+    const run = journal.runs[0]!;
+
+    expect(run.status).toBe("completed");
+    expect(run.endingId).toBe("state_collapse");
+    expect(run.months).toBe(14);
+    expect(run.finalSnapshot?.endingId).toBe("state_collapse");
+  });
+
+  it("keeps an abandoned run in the record rather than erasing it", () => {
+    const state = newGame("run-a");
+    const journal = abandonActivePlaytestRun(startPlaytestRun(createEmptyPlaytestJournal(), state));
+
+    expect(journal.runs[0]!.status).toBe("abandoned");
+    expect(journal.runs[0]!.completedAt).not.toBeNull();
+  });
+
+  it("adopts a campaign that survived a journal reset, marked unreproducible", () => {
+    const state = newGame("run-orphan");
+    const journal = adoptUntrackedRun(createEmptyPlaytestJournal(), state);
+
+    expect(journal.runs[0]!.replayComplete).toBe(false);
+    expect(journal.runs[0]!.steps).toEqual([]);
+  });
+
+  it("degrades old step logs so an unbounded number of sessions cannot fill storage", () => {
+    let journal = createEmptyPlaytestJournal();
+
+    for (let index = 0; index < RETAINED_STEP_LOG_RUNS + 3; index += 1) {
+      const state = newGame(`run-${index}`, 20260715 + index);
+      journal = startPlaytestRun(journal, state);
+      journal = recordPlaytestStep(
+        journal,
+        { kind: "commit", action: { type: "recover_resource", resource: "money" }, options: {} },
+        commitOne(state),
+      );
+      const ended = endedState(state);
+      // Completion times order the retention window.
+      journal = completePlaytestRun(journal, ended, new Date(Date.UTC(2026, 7, 1, 0, index)).toISOString());
+    }
+
+    const withSteps = journal.runs.filter((run) => run.steps.length > 0);
+    expect(withSteps).toHaveLength(RETAINED_STEP_LOG_RUNS);
+    expect(journal.runs.filter((run) => !run.replayComplete)).toHaveLength(3);
+    // Nothing is deleted — the summary and coverage of every run survive.
+    expect(journal.runs).toHaveLength(RETAINED_STEP_LOG_RUNS + 3);
+  });
+});
+
+describe("markers", () => {
+  function activeJournal(): { journal: PlaytestJournalV2; state: GameState } {
+    const state = newGame("run-a");
+    return { journal: startPlaytestRun(createEmptyPlaytestJournal(), state), state };
+  }
+
+  it("captures the board the note was written against", () => {
+    const { journal, state } = activeJournal();
+    const next = addPlaytestMarker(journal, "run-a", "campaign", "  Panic spiked and I could not tell why  ", state);
+    const marker = next.markers[0]!;
+
+    expect(marker.note).toBe("Panic spiked and I could not tell why");
+    expect(marker.location).toBe("campaign");
+    expect(marker.snapshot?.turn).toBe(state.turn);
+    expect(marker.snapshot?.resources).toEqual(state.resources);
+  });
+
+  it("works before the first commitment, when there is no decision yet", () => {
+    const { journal, state } = activeJournal();
+    const marker = addPlaytestMarker(journal, "run-a", "campaign", "Opening screen is unclear", state).markers[0]!;
+
+    expect(marker.snapshot).not.toBeNull();
+    expect(marker.snapshot?.decisionId).toBeNull();
+    expect(marker.snapshot?.category).toBeNull();
+  });
+
+  it("falls back to the final snapshot when marking a finished report", () => {
+    const { journal, state } = activeJournal();
+    const completed = completePlaytestRun(journal, endedState(state));
+    const marker = addPlaytestMarker(completed, "run-a", "report", "The grade surprised me").markers[0]!;
+
+    expect(marker.location).toBe("report");
+    expect(marker.snapshot?.endingId).toBe("state_collapse");
+  });
+
+  it("refuses an empty note and an unknown run", () => {
+    const { journal, state } = activeJournal();
+    expect(() => addPlaytestMarker(journal, "run-a", "campaign", "   ", state)).toThrow(/needs a note/);
+    expect(() => addPlaytestMarker(journal, "run-missing", "campaign", "note", state)).toThrow(/not found/);
   });
 });
