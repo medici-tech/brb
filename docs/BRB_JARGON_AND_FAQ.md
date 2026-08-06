@@ -40,7 +40,7 @@ The run ends through activation, Corporation capture, state collapse, or the los
 | Resume file | Continue the saved active run |
 | Operating doctrine / Doctrine | The selected archetype |
 | Situation file | A Situation Card |
-| Legacy Directive | A permanently unlocked reward card equipped for one use in a campaign |
+| Legacy Directive | A permanently unlocked reward card equipped for one use in a campaign; some rares also require a matching operating doctrine |
 | Clearance | Archive progress; 3 points creates a seeded Directive draft |
 | Commitment | The one turn-advancing player action for the month |
 | Corporation posture | The Corporation's current strategy |
@@ -482,7 +482,7 @@ Yes. An advisor becomes inactive when Loyalty falls below their visible breaking
 
 ### Does the Intelligence Archive make later runs easier?
 
-Yes, but only through one deliberately bounded exception: an unlocked Legacy Directive may be equipped and used once in a campaign. The Archive does not grant extra starting resources, higher base values, better card odds, Directive levels, or multiple equipment slots.
+Yes, but only through one deliberately bounded exception: an unlocked Legacy Directive may be equipped and used once in a campaign. Containment Brief (`containment_brief`) is a rare Operator-only equip: Influence +6 with Fixer Leverage +10. Other doctrines cannot carry it (`createGame` strips a mismatched loadout). The Archive does not grant extra starting resources, higher base values, better card odds, Directive levels, or multiple equipment slots.
 
 ### What does “echo” mean?
 

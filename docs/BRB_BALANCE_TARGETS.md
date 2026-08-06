@@ -171,11 +171,15 @@ Target behavior: variation comes from requirements, weights, prior choices, cool
 
 ## Roguelite progression
 
-Prototype runs use seeded randomness, three archetypes, and Archive v1 Legacy Directives. Completed runs earn 1 Clearance, victories earn 3, and 3 Clearance creates a deterministic draft. An unlocked Directive is permanent, but only one may be equipped and used once per campaign.
+Prototype runs use seeded randomness, three archetypes, and Archive v1 Legacy Directives. Completed runs earn 1 Clearance, victories earn 3, and 3 Clearance creates a deterministic draft. An unlocked Directive is permanent, but only one may be equipped and used once per campaign. Containment Brief (`containment_brief`) is a rare Operator-only card (Influence +6, Fixer Leverage +10); other doctrines cannot equip it.
 
 The no-Directive run remains the balance baseline. Evaluate each Directive as the only changed lever in a 5,000-run fixed-seed comparison beginning with `20260715`; reject or retune any card that moves overall activation outside the 8–12% evaluation band or creates clear archetype dominance. Directive rarity controls reward frequency and specialization, not an approved power tier. Levels remain out of scope.
 
 For the full game, continue evaluating horizontal unlocks such as archetypes, cards, scenarios, advisors, and mutators separately from baseline balance.
+
+### Containment Brief (Operator-gated) — provisional
+
+Hypothesis: one rare Operator-tagged Directive can deepen doctrine fantasy without becoming a second generic resource whip. The hard equip gate means a default mixed-archetype 5,000-run block only applies the card on Operator runs; non-Operator runs strip to no Directive. Treat overall activation movement as diluted relative to a full-equip card, and inspect Operator archetype slices before accepting or rejecting. Do not retune Corp intervals, deposits, or the other six Directives in the same experiment. Human playtests gate whether Fixer Leverage +10 makes Cabal feel inevitable.
 
 ### Initial Legacy Directive fixed-seed checkpoint — 2026-07-23
 

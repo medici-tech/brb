@@ -53,7 +53,7 @@ Choose an archetype, pursue a strategy, build or fail to build the BRB, reach an
 
 ### Meta-progression
 
-Archive v1 unlocks limited power through six Legacy Directives. A completed run earns 1 Clearance and a victory earns 3; every 3 Clearance produces a deterministic draft of up to three locked Directives. The chosen Directive remains permanently unlocked, but the player may equip only one and use it once in a campaign. Each benefit carries a visible political cost. This is a bounded exception to the knowledge-only rule, not an open-ended stat ladder.
+Archive v1 unlocks limited power through seven Legacy Directives. A completed run earns 1 Clearance and a victory earns 3; every 3 Clearance produces a deterministic draft of up to three locked Directives. The chosen Directive remains permanently unlocked, but the player may equip only one and use it once in a campaign. Each benefit carries a visible political cost. One rare card, Containment Brief, also requires the Operator doctrine at equip time; mismatched doctrines fail closed and leave the run unequipped. This is a bounded exception to the knowledge-only rule, not an open-ended stat ladder.
 
 Future progression should still favor horizontal options—archetypes, scenarios, modifiers, advisors, and endings—over cumulative numerical power. Directive levels, consumable copies, multiple equipped cards, and starting-stat upgrades remain excluded until the one-card system is validated.
 

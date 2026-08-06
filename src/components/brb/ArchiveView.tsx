@@ -1,4 +1,4 @@
-import { ENDING_COPY, ROUTE_DEFINITIONS, SITUATION_CARDS } from "../../game/content";
+import { ARCHETYPES, ENDING_COPY, ROUTE_DEFINITIONS, SITUATION_CARDS } from "../../game/content";
 import { LEGACY_DIRECTIVES } from "../../game/directives";
 import {
   LEGACY_DIRECTIVE_IDS,
@@ -82,9 +82,12 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
           {LEGACY_DIRECTIVE_IDS.map((id) => {
             const directive = LEGACY_DIRECTIVES[id];
             const unlocked = archive.unlockedDirectiveIds.includes(id);
+            const doctrineName = directive.requiredArchetypeId
+              ? ARCHETYPES[directive.requiredArchetypeId].name
+              : null;
             return unlocked ? (
               <FileIndexCard
-                fileId={`${directive.rarity} · unlocked`}
+                fileId={`${directive.rarity} · unlocked${doctrineName ? ` · ${doctrineName} only` : ""}`}
                 state="discovered"
                 title={directive.title}
                 metadata={directive.description}
@@ -93,6 +96,11 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
               >
                 <strong className="text-sm text-foreground">{directive.benefit}</strong>
                 <p className="mt-2 mb-0 text-xs leading-5 text-muted-foreground">Cost: {directive.warning}</p>
+                {doctrineName ? (
+                  <p className="mt-2 mb-0 text-xs leading-5 text-muted-foreground">
+                    Equip only with the {doctrineName} doctrine.
+                  </p>
+                ) : null}
               </FileIndexCard>
             ) : (
               <FileIndexCard
