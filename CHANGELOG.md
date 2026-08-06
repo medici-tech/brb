@@ -13,6 +13,12 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 
 ### Added
 
+- Graded victory reporting: `VICTORY · CIVIC LEGACY` and `VICTORY · COMPROMISED`
+  now distinguish the two successful outcomes.
+- A Clearance ladder that pays by ending grade: losses earn 1, the Necessary Regime
+  earns 2, and Civic Legacy earns 3.
+- A persistent Necessary Regime aftermath: the next campaign opens with Panic +6;
+  Civic Legacy clears a pending aftermath, while losses neither create nor clear it.
 - Free-play playtesting: every campaign is recorded automatically with whatever archetype
   and Legacy Directive the player chose.
 - A one-line playtest marker on the **M** key, with a visible **Drop marker (M)** control,
