@@ -41,7 +41,8 @@ The run ends through activation, Corporation capture, state collapse, or the los
 | Operating doctrine / Doctrine | The selected archetype |
 | Situation file | A Situation Card |
 | Legacy Directive | A permanently unlocked reward card equipped for one use in a campaign |
-| Clearance | Archive progress; 3 points creates a seeded Directive draft |
+| Clearance | Archive progress to the next Directive unlock; 3 points creates a seeded draft (loss +1, Necessary Regime +2, Civic Legacy +3) |
+| Necessary Regime aftermath | Archive scar after a compromised win; next campaign starts with Panic +6 once |
 | Commitment | The one turn-advancing player action for the month |
 | Corporation posture | The Corporation's current strategy |
 | Counterfactual objective / Next-run theory | The suggested experiment attached to a replay |
@@ -363,8 +364,8 @@ The Activate BRB action becomes valid when Engineering, Access, Legitimacy, and 
 
 | Ending | Code ID | Result | Rule |
 | --- | --- | --- | --- |
-| A Republic Still Standing | `civic_legacy` | Victory | Every Civic Legacy requirement passes |
-| The Necessary Regime | `compromised_activation` | Victory with permanent compromise | Activation is safe from capture but at least one Civic Legacy requirement fails |
+| A Republic Still Standing | `civic_legacy` | Victory · Civic Legacy | Every Civic Legacy requirement passes; earns 3 Clearance and clears any pending aftermath |
+| The Necessary Regime | `compromised_activation` | Victory · Compromised | Activation is safe from capture but at least one Civic Legacy requirement fails; earns 2 Clearance and records Panic +6 aftermath for the next campaign |
 | Terms and Conditions | `corporate_capture` | Loss | Corporation reaches 100, or activation occurs with Corporation Progress 80+ / unsafe Access |
 | The Project Outlived the State | `state_collapse` | Loss | Panic reaches 100, Institutions reach 0, or all advisors leave |
 
@@ -498,7 +499,7 @@ It is a valid sequence of recorded route transitions ending in `completed`. A ro
 
 ### Is a victory always good?
 
-No. Both Civic Legacy and Compromised Activation are marked as victories, but Compromised Activation means the BRB worked while emergency arrangements became permanent.
+No. Both Civic Legacy and Compromised Activation are marked as victories (`victory: true`), but they are graded differently. Civic Legacy is the clean win. Necessary Regime still finishes the job and earns more Clearance than a loss, but it records a next-run Panic aftermath and pays less Clearance than Civic Legacy. A victory is therefore not always the proudest ending — only the cleanest one is.
 
 ## Codex maintenance guide
 

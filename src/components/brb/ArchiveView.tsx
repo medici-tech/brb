@@ -1,5 +1,6 @@
 import { ENDING_COPY, ROUTE_DEFINITIONS, SITUATION_CARDS } from "../../game/content";
 import { LEGACY_DIRECTIVES } from "../../game/directives";
+import { NECESSARY_REGIME_AFTERMATH_PANIC } from "../../game/replay";
 import {
   LEGACY_DIRECTIVE_IDS,
   type ArchiveV1,
@@ -41,7 +42,7 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
           eyebrow="KNOWLEDGE + LIMITED AUTHORITY"
           title="What has been witnessed cannot be unwitnessed."
           headingLevel="h1"
-          summary={`${countLabel(totalEncounters, "card encounter")} recorded. Completed files also build Clearance toward optional, one-use campaign Directives.`}
+          summary={`${countLabel(totalEncounters, "card encounter")} recorded. Completed files also build Clearance (progress to next Directive unlock) toward optional, one-use campaign Directives.`}
         >
           <div
             className="grid gap-px border border-[color:var(--paper-line)] bg-[color:var(--paper-line)] sm:grid-cols-3"
@@ -75,9 +76,16 @@ export function ArchiveView({ archive, onBack, backLabel = "Return" }: Props) {
           titleId="legacy-directives-title"
         />
         <p>
-          Equip at most one when opening a file. An unlocked Directive can be used
-          once in every campaign and is never consumed.
+          Clearance is progress to next Directive unlock. Equip at most one when
+          opening a file. An unlocked Directive can be used once in every campaign
+          and is never consumed.
         </p>
+        {archive.pendingScar === "necessary_regime_aftermath" ? (
+          <p className="text-sm leading-6 text-muted-foreground" role="status">
+            Aftermath pending: next campaign starts with Panic +{NECESSARY_REGIME_AFTERMATH_PANIC}
+            from your last Necessary Regime.
+          </p>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {LEGACY_DIRECTIVE_IDS.map((id) => {
             const directive = LEGACY_DIRECTIVES[id];

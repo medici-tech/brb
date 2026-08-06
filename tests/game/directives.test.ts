@@ -17,6 +17,20 @@ function completeVictory(runId: string, seed = 71): GameState {
   state.tracks = {
     engineering: 50,
     access: 50,
+    legitimacy: 75,
+    stability: 75,
+  };
+  state.corporation.progress = 20;
+  state.endingContributors = ["public_testimony"];
+  return commitAction(state, { type: "activate_brb" }).state;
+}
+
+function completeCompromised(runId: string, seed = 72): GameState {
+  const state = createGame({ seed, runId });
+  state.activeCardId = null;
+  state.tracks = {
+    engineering: 50,
+    access: 50,
     legitimacy: 50,
     stability: 50,
   };
@@ -143,9 +157,11 @@ describe("Legacy Directive rewards", () => {
 
   it("grants a victory draft, claims one permanent unlock, and merges idempotently", () => {
     const completed = completeVictory("directive-victory");
+    expect(completed.ending?.id).toBe("civic_legacy");
     const rewarded = mergeRunIntoArchive(createEmptyArchive(), completed);
     expect(rewarded.clearance).toBe(0);
     expect(rewarded.pendingDirectiveDraft?.candidateIds).toHaveLength(3);
+    expect(rewarded.pendingScar).toBeNull();
 
     const duplicate = mergeRunIntoArchive(rewarded, completed);
     expect(duplicate).toEqual(rewarded);
@@ -155,6 +171,15 @@ describe("Legacy Directive rewards", () => {
     const claimed = claimLegacyDirective(rewarded, choice);
     expect(claimed.unlockedDirectiveIds).toEqual([choice]);
     expect(claimed.pendingDirectiveDraft).toBeNull();
+  });
+
+  it("grants Clearance 2 and a Panic aftermath scar for Necessary Regime", () => {
+    const completed = completeCompromised("directive-compromised");
+    expect(completed.ending?.id).toBe("compromised_activation");
+    const archive = mergeRunIntoArchive(createEmptyArchive(), completed);
+    expect(archive.clearance).toBe(2);
+    expect(archive.pendingScar).toBe("necessary_regime_aftermath");
+    expect(archive.pendingDirectiveDraft).toBeNull();
   });
 
   it("turns three completed losses into a draft while preserving leftover Clearance", () => {

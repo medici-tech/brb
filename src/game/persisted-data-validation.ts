@@ -1,6 +1,7 @@
 import { ARCHETYPES, SITUATION_CARDS } from "./content";
 import {
   ADVISOR_IDS,
+  ARCHIVE_SCAR_IDS,
   ENDING_IDS,
   LEGACY_DIRECTIVE_IDS,
   ROUTE_IDS,
@@ -183,6 +184,10 @@ export function isArchiveV1(value: unknown): value is ArchiveV1 {
         && new Set(value.pendingDirectiveDraft.candidateIds).size
           === value.pendingDirectiveDraft.candidateIds.length
       )
+    )
+    || !(
+      value.pendingScar === null
+      || isOneOf(value.pendingScar, ARCHIVE_SCAR_IDS)
     )
   ) {
     return false;
