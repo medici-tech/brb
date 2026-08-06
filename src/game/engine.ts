@@ -17,7 +17,7 @@ import {
 import { applyAdvisorReactions, getActionCategory } from "./advisor-rules";
 import { applyCorporationMove, chooseCorporationStrategy } from "./corporation-rules";
 import { activate, evaluateCivicLegacy, evaluateTerminalState } from "./endings";
-import { applyLegacyDirective } from "./directives";
+import { applyLegacyDirective, getLegacyDirectiveEquipError } from "./directives";
 import {
   applyIgnoredCard,
   drawSituationCard,
@@ -156,6 +156,12 @@ export function createGame(
 ): GameState {
   const options = normalizeCreateOptions(seedOrOptions, archetypeId);
   const firstRandom = randomInt(options.seed, CORPORATION_STRATEGIES.length);
+  const equippedDirectiveId = getLegacyDirectiveEquipError(
+    options.archetypeId,
+    options.legacyDirectiveId,
+  )
+    ? null
+    : options.legacyDirectiveId;
   const state: GameState = {
     version: 5,
     runId: options.runId,
@@ -165,7 +171,7 @@ export function createGame(
     phase: "briefing",
     archetypeId: options.archetypeId,
     legacyDirective: {
-      equippedId: options.legacyDirectiveId,
+      equippedId: equippedDirectiveId,
       used: false,
       usedOnDecisionId: null,
     },
