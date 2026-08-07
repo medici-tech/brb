@@ -260,8 +260,10 @@ debris/damage, Corporation presence, and BRB machinery stages. Visible in-room c
 operations tables built in CSS, oversized silhouettes, and monitor text plates are out of
 scope.
 
-`/dev/control-room` previews the facility across presentation states. The route remains
-excluded from production builds.
+`/dev/control-room` previews the facility through **named reachable fixtures**
+(`presentationFixtures.ts` → `resolvePresentationModel`). There is no free-form
+slider matrix — each look is legal campaign-shaped `PresentationInputs`. The
+route remains excluded from production builds.
 
 ## Narrative scene architecture
 
@@ -339,9 +341,24 @@ npm run art:verify
 npm run dev
 ```
 
-Use `/dev/control-room` in development to review every presentation state, tempo,
-BRB stage, structural condition, Corporation-presence tier, occupancy mode, departed
-advisor combination, ending, active-Situation framing, and reduced-motion mode.
+Use `/dev/control-room` in development to step the fixture catalog (not a slider
+matrix). Reduced motion defaults **on** for stable screenshots; turn it off only
+when reviewing motion. Current fixtures:
+
+| id | What it proves |
+| --- | --- |
+| `calm-early` | Baseline calm operations |
+| `strained-mid` | Strained grade + working paper |
+| `crisis-situation` | Crisis Situation framing |
+| `corporate-embedded` | Encroachment + embedded Corporation |
+| `institutions-breached` | Failure + structural damage |
+| `brb-infrastructure` / `brb-construction` / `brb-unstable` / `brb-activation` | BRB stage ladder |
+| `consult-analyst` | Consultation shot + analysis station |
+| `ending-civic` | Civic Legacy ending tableau |
+| `worst-case-audit` | Saturated / breached / embedded / unstable recomposition |
+
+The contract readout lists resolved `state`, `lighting`, `shot`, `tempo`, staff,
+paper, BRB stage, and `data-*` expectations for the selected fixture.
 
 Final verification:
 

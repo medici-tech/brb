@@ -13,6 +13,9 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 
 ### Added
 
+- Development control-room preview (`/dev/control-room`) now steps named reachable
+  presentation fixtures through `resolvePresentationModel`, with a contract readout
+  and reduced motion on by default — replacing the free-form slider mixer.
 - Graded victory reporting: `VICTORY · CIVIC LEGACY` and `VICTORY · COMPROMISED`
   now distinguish the two successful outcomes.
 - A Clearance ladder that pays by ending grade: losses earn 1, the Necessary Regime
@@ -75,14 +78,6 @@ BRB is still a prototype, so changes remain under **Unreleased** until a release
 
 ### Fixed
 
-- The facility's records annex no longer piles three objects into one footprint. A baked
-  copier sat under both the Corporation terminal and the institutional-damage mark, so with
-  the Corporation embedded and institutions breached a server rack and a safe were drawn on
-  top of it and none of the three read.
-- The infrastructure workroom's worksite sign no longer has its post painted over by the
-  timber stack beside it.
-- The records office's second evidence drop no longer lands on the desk it was meant to
-  stand beside.
 - Situation choices cannot resolve when their mandatory resource costs are unaffordable.
 - Corporation strategy tie-breaking consumes independent seeded random values.
 - Invalid nested persisted data fails closed instead of being trusted after a shallow cast.
