@@ -210,7 +210,12 @@ export function StartScreen({
             const archetype = ARCHETYPES[id];
             const loadoutDirectiveId = replayIntent?.legacyDirectiveId ?? selectedDirectiveId;
             const equipError = getLegacyDirectiveEquipError(id, loadoutDirectiveId);
-            const doctrineBlocked = Boolean(equipError);
+            const replayDoctrineError = replayIntent && replayIntent.archetypeId !== id
+              ? `Replay preserves the ${ARCHETYPES[replayIntent.archetypeId].name} doctrine.`
+              : null;
+            const actionError = replayDoctrineError ?? equipError;
+            const doctrineBlocked = Boolean(actionError);
+            const actionReasonId = actionError ? `doctrine-action-reason-${id}` : undefined;
             const startingChanges = [
               ...RESOURCE_KEYS.flatMap((resource) => {
                 const amount = archetype.resourceChanges[resource];
@@ -230,17 +235,35 @@ export function StartScreen({
                   { label: "Starting position", value: startingChanges.join(" · ") },
                   { label: "Situations seen more often", value: `${archetype.favoredCardType} files` },
                   { label: "Liability", value: archetype.liability },
-                  ...(equipError ? [{ label: "Directive lock", value: equipError }] : []),
+                  ...(actionError ? [{
+                    label: replayDoctrineError ? "Replay lock" : "Directive lock",
+                    value: actionError,
+                  }] : []),
                 ]}
                 action={(
-                  <Button
-                    variant="critical"
-                    disabled={newRunBlocked || doctrineBlocked}
-                    title={equipError ?? undefined}
-                    onClick={() => onStart(id, loadoutDirectiveId)}
-                  >
-                    Open {archetype.name} File
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      variant="critical"
+                      disabled={newRunBlocked}
+                      aria-disabled={newRunBlocked || doctrineBlocked}
+                      aria-describedby={actionReasonId}
+                      onClick={() => {
+                        if (newRunBlocked || doctrineBlocked) return;
+                        onStart(id, loadoutDirectiveId);
+                      }}
+                    >
+                      {replayIntent && replayIntent.archetypeId === id ? "Replay" : "Open"} {archetype.name} File
+                    </Button>
+                    {actionError ? (
+                      <span
+                        className="mt-2 block text-xs leading-5 text-muted-foreground"
+                        id={actionReasonId}
+                      >
+                        {actionError}
+                      </span>
+                    ) : null}
+                  </>
                 )}
                 key={id}
               />
