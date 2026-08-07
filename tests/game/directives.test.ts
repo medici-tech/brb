@@ -105,6 +105,26 @@ describe("Legacy Directives", () => {
     expect(equipped.legacyDirective.equippedId).toBe("containment_brief");
   });
 
+  it("rejects Containment Brief if an invalid in-memory state changes doctrine", () => {
+    const state = createGame({
+      seed: 36,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    state.archetypeId = "technocrat";
+    state.activeCardId = null;
+
+    const result = commitAction(
+      state,
+      { type: "recover_resource", resource: "intelligence" },
+      { useLegacyDirective: true },
+    );
+
+    expect(result.accepted).toBe(false);
+    expect(result.error).toMatch(/requires the Operator doctrine/i);
+    expect(result.state.legacyDirective.used).toBe(false);
+  });
+
   it("prevents a scheduled Corporation response with the rare Freeze Order", () => {
     const state = createGame({
       seed: 32,

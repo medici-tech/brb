@@ -154,6 +154,21 @@ describe("free-play journal validation", () => {
     expect(() => deserializePlaytestJournal(JSON.stringify(broken))).toThrow(/non-canonical commit option/);
   });
 
+  it("rejects a doctrine-incompatible Directive loadout", () => {
+    const state = createGame({
+      seed: 4243,
+      archetypeId: "operator",
+      runId: "run-doctrine-lock",
+      legacyDirectiveId: "containment_brief",
+    });
+    const journal = startPlaytestRun(createEmptyPlaytestJournal(), state);
+    const broken = structuredClone(journal);
+    broken.runs[0]!.archetypeId = "technocrat";
+
+    expect(() => deserializePlaytestJournal(JSON.stringify(broken)))
+      .toThrow(/Containment Brief requires the Operator doctrine/);
+  });
+
   it("rejects a marker pointing at a run the journal does not hold", () => {
     const journal = journalWithOneStep();
     const broken = structuredClone(journal);

@@ -90,13 +90,22 @@ export const LEGACY_DIRECTIVES: Record<LegacyDirectiveId, LegacyDirective> = {
 };
 
 /** Returns a player-facing reason when a Directive cannot equip for this doctrine. */
+export function isLegacyDirectiveCompatible(
+  archetypeId: ArchetypeId,
+  directiveId: LegacyDirectiveId | null | undefined,
+): boolean {
+  if (!directiveId) return true;
+  const required = LEGACY_DIRECTIVES[directiveId].requiredArchetypeId;
+  return !required || required === archetypeId;
+}
+
 export function getLegacyDirectiveEquipError(
   archetypeId: ArchetypeId,
   directiveId: LegacyDirectiveId | null | undefined,
 ): string | null {
-  if (!directiveId) return null;
+  if (!directiveId || isLegacyDirectiveCompatible(archetypeId, directiveId)) return null;
   const required = LEGACY_DIRECTIVES[directiveId].requiredArchetypeId;
-  if (!required || required === archetypeId) return null;
+  if (!required) return null;
   return `${LEGACY_DIRECTIVES[directiveId].title} requires the ${ARCHETYPE_LABELS[required]} doctrine.`;
 }
 
@@ -114,6 +123,11 @@ export function getLegacyDirectiveUseError(
   if (!state.legacyDirective.equippedId) {
     return "No Legacy Directive is equipped for this campaign.";
   }
+  const equipError = getLegacyDirectiveEquipError(
+    state.archetypeId,
+    state.legacyDirective.equippedId,
+  );
+  if (equipError) return equipError;
   if (state.legacyDirective.used) {
     return "The equipped Legacy Directive has already been used this campaign.";
   }

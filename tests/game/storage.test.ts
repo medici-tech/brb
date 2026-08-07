@@ -173,6 +173,47 @@ describe("versioned browser persistence", () => {
     expect(loadActiveRun(storage)).toBeNull();
   });
 
+  it("rejects doctrine-incompatible saves, reports, and replay intents", () => {
+    const storage = memoryStorage();
+    const invalidRun = createGame({
+      seed: 84,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    invalidRun.archetypeId = "technocrat";
+    storage.setItem(STORAGE_KEYS.activeRun, JSON.stringify(invalidRun));
+    expect(loadActiveRun(storage)).toBeNull();
+
+    const reportState = createGame({
+      seed: 85,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    reportState.activeCardId = null;
+    reportState.tracks = {
+      engineering: 50,
+      access: 50,
+      legitimacy: 50,
+      stability: 50,
+    };
+    reportState.corporation.progress = 20;
+    const report = commitAction(reportState, { type: "activate_brb" }).state.report;
+    if (!report) throw new Error("Expected report");
+    const invalidReport = structuredClone(report);
+    invalidReport.archetypeId = "technocrat";
+    storage.setItem(STORAGE_KEYS.latestReport, JSON.stringify(invalidReport));
+    expect(loadLatestReport(storage)).toBeNull();
+
+    storage.setItem(STORAGE_KEYS.replayIntent, JSON.stringify({
+      mode: "same_seed",
+      seed: 85,
+      archetypeId: "technocrat",
+      experiment: "Repeat the incompatible loadout",
+      legacyDirectiveId: "containment_brief",
+    }));
+    expect(loadReplayIntent(storage)).toBeNull();
+  });
+
   it("restores a save written before DecisionRecord.subject existed", () => {
     // `subject` is additive: saves written before it carried only the prose
     // `summary`. Deserialization must normalize the missing field to null
