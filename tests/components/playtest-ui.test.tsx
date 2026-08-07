@@ -239,6 +239,7 @@ describe("free-play playtest UI", () => {
     expect(populist).toHaveAttribute("aria-disabled", "true");
     expect(operator).toHaveAttribute("aria-disabled", "false");
     expect(technocrat).not.toBeDisabled();
+    expect(technocrat).toHaveClass("cursor-not-allowed", "opacity-45");
     expect(technocrat).toHaveAttribute("aria-describedby", "doctrine-action-reason-technocrat");
     expect(document.getElementById("doctrine-action-reason-technocrat")).toHaveTextContent(
       /Containment Brief requires the Operator doctrine/i,

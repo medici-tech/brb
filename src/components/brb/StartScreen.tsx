@@ -245,6 +245,9 @@ export function StartScreen({
                     <Button
                       type="button"
                       variant="critical"
+                      className={doctrineBlocked
+                        ? "cursor-not-allowed opacity-45 hover:bg-destructive active:translate-x-0 active:translate-y-0 active:shadow-[var(--shadow-hard-sm)]"
+                        : undefined}
                       disabled={newRunBlocked}
                       aria-disabled={newRunBlocked || doctrineBlocked}
                       aria-describedby={actionReasonId}
