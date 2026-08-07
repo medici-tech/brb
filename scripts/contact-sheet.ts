@@ -49,6 +49,13 @@ type ContactSheetGroup = {
   readonly upscale: number;
   /** Recurse into subfolders when collecting PNGs. */
   readonly recursive?: boolean;
+  /**
+   * Optional basename filter, applied before slicing. Needed where a folder holds
+   * the same sheet at several source scales (Modern Office ships 16/32/48px
+   * variants side by side) and slicing all of them would fill the sheet with
+   * quarter-tiles of the 32px and 48px copies.
+   */
+  readonly include?: RegExp;
 };
 
 /**
@@ -107,6 +114,29 @@ const GROUPS: readonly ContactSheetGroup[] = [
     source: "moderninteriors-win/Palettes",
     upscale: 4,
     recursive: true,
+  },
+  // Modern Office. Two views of one pack, and the split is deliberate.
+  //
+  // The singles folder is the READABLE index: 339 props, each rendered whole, so
+  // a human can find "the tall paper stack" in a minute. It is not the curation
+  // source — every single is padded to a uniform 32×48 canvas with its art at an
+  // arbitrary sub-tile offset, and the folder is shadowless.
+  //
+  // The black-shadow sheet is the CURATION source: same 16×53 tile grid as the
+  // shadowless sheet, but it carries the drop shadows every other BRB prop has.
+  // Sliced here so the montage's cell labels give the tile coordinates a
+  // `FurniturePlacement.crop` needs.
+  {
+    name: "modern-office-singles",
+    source: "Modern_Office_Revamped_v1.2/4_Modern_Office_singles/16x16",
+    upscale: 3,
+  },
+  {
+    name: "modern-office-sheet",
+    source: "Modern_Office_Revamped_v1.2/2_Modern_Office_Black_Shadow",
+    include: /^Modern_Office_Black_Shadow\.png$/,
+    slice: 16,
+    upscale: 4,
   },
 ];
 
@@ -206,6 +236,9 @@ function buildGroup(group: ContactSheetGroup): void {
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
   let tiles = collectPngs(sourceDir, group.recursive ?? false);
+  if (group.include) {
+    tiles = tiles.filter((file) => group.include!.test(path.basename(file)));
+  }
   if (tiles.length === 0) {
     console.warn(`No PNGs found for group '${group.name}' in ${sourceDir}; skipping.`);
     return;
