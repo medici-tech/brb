@@ -36,6 +36,26 @@ describe("free-play playtest UI", () => {
     expect(screen.queryByText(/active playtest directive/i)).not.toBeInTheDocument();
   });
 
+  it("shows doctrine-locked Directive metadata with player-facing labels", () => {
+    const state = createGame({
+      seed: 23,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    render(
+      <CampaignScreen
+        state={state}
+        error={null}
+        onCommit={vi.fn()}
+        onConsult={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/legacy directive · rare · Operator doctrine/i)).toBeInTheDocument();
+    expect(screen.queryByText(/legacy directive · rare · operator$/i)).not.toBeInTheDocument();
+  });
+
   it("shows exact advisor and activation thresholds plus visible consultation blockers", () => {
     const state = createGame(220);
     state.resources.intelligence = 0;

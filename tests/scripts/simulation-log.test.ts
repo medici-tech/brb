@@ -80,6 +80,11 @@ function reportFixture() {
         },
       },
     },
+    byArchetype: {
+      technocrat: { runs: 300, victories: 24 },
+      populist: { runs: 350, victories: 42 },
+      operator: { runs: 350, victories: 24 },
+    },
   };
 }
 
@@ -107,6 +112,10 @@ describe("simulation run log", () => {
     expect(entry).toContain("| Activation attempts | 100 |");
     expect(entry).toContain("| tracks_never_ready | 700 |");
     expect(entry).toContain("| balanced | 100 | 10 |");
+    expect(entry).toContain("### Activations by archetype");
+    expect(entry).toContain("| technocrat | 300 | 24 | 8% |");
+    expect(entry).toContain("| populist | 350 | 42 | 12% |");
+    expect(entry).toContain("| operator | 350 | 24 | 6.86% |");
     expect(entry).toContain("> Changed only the response interval.");
     expect(entry).toContain("> Activation improved without longer campaigns.");
   });

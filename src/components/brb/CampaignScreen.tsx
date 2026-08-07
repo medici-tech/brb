@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ARCHETYPES } from "../../game/content";
 import {
   getAdvisorRecommendation,
   getTurnEchoTypes,
@@ -230,7 +231,7 @@ export function CampaignScreen({
             <p className="file-label">
               LEGACY DIRECTIVE · {equippedDirective.rarity}
               {equippedDirective.requiredArchetypeId
-                ? ` · ${equippedDirective.requiredArchetypeId}`
+                ? ` · ${ARCHETYPES[equippedDirective.requiredArchetypeId].name} doctrine`
                 : ""}
             </p>
               <h2 className="brb-display m-0 text-xl leading-none font-semibold">{equippedDirective.title}</h2>
