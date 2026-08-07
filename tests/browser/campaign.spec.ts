@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { deserializeGame, STORAGE_KEYS } from "../../src/game";
+import { createEmptyArchive, deserializeGame, STORAGE_KEYS } from "../../src/game";
 import {
   createActiveRunFixture,
   createDirectiveRunFixture,
@@ -16,6 +16,84 @@ test("starts a new campaign from the opening file", async ({ page }) => {
   await page.getByRole("button", { name: "Open Technocrat File" }).click();
 
   await expect(page.getByText("Consult one advisor before committing", { exact: true })).toBeVisible();
+});
+
+test("keeps an Operator-only Directive lock keyboard-readable", async ({ page }) => {
+  const archive = createEmptyArchive();
+  archive.unlockedDirectiveIds = ["containment_brief"];
+  await page.addInitScript(
+    ({ key, value }) => {
+      if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, value);
+    },
+    { key: STORAGE_KEYS.archive, value: JSON.stringify(archive) },
+  );
+  await page.goto("/");
+
+  await page.getByRole("button", { name: /Containment Brief/i }).click();
+  const technocrat = page.getByRole("button", { name: "Open Technocrat File" });
+  await expect(technocrat).toHaveAttribute("aria-disabled", "true");
+  await expect(page.locator("#doctrine-action-reason-technocrat")).toContainText(
+    "Containment Brief requires the Operator doctrine",
+  );
+
+  await technocrat.focus();
+  await expect(technocrat).toBeFocused();
+  await technocrat.press("Enter");
+  await expect(page.getByText("Consult one advisor before committing", { exact: true })).toBeHidden();
+
+  await page.getByRole("button", { name: "Open Operator File" }).click();
+  const saved = await page.evaluate((key) => window.localStorage.getItem(key), STORAGE_KEYS.activeRun);
+  expect(deserializeGame(saved ?? "")).toMatchObject({
+    archetypeId: "operator",
+    legacyDirective: { equippedId: "containment_brief" },
+  });
+});
+
+test("keeps a persisted replay doctrine fixed and rejects incompatible replay data", async ({ page }) => {
+  await page.addInitScript(
+    ({ key, value }) => {
+      if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, value);
+    },
+    {
+      key: STORAGE_KEYS.replayIntent,
+      value: JSON.stringify({
+        mode: "same_seed",
+        seed: 42,
+        archetypeId: "technocrat",
+        experiment: "Repeat the file",
+        legacyDirectiveId: "emergency_appropriation",
+      }),
+    },
+  );
+  await page.goto("/");
+
+  const operator = page.getByRole("button", { name: "Open Operator File" });
+  await expect(operator).toHaveAttribute("aria-disabled", "true");
+  await operator.focus();
+  await operator.press("Enter");
+  await expect(page.getByText("Consult one advisor before committing", { exact: true })).toBeHidden();
+
+  await page.getByRole("button", { name: "Replay Technocrat File" }).click();
+  const replayRaw = await page.evaluate((key) => window.localStorage.getItem(key), STORAGE_KEYS.activeRun);
+  expect(deserializeGame(replayRaw ?? "")).toMatchObject({
+    seed: 42,
+    archetypeId: "technocrat",
+    legacyDirective: { equippedId: "emergency_appropriation" },
+  });
+
+  await page.evaluate((key) => {
+    window.localStorage.clear();
+    window.localStorage.setItem(key, JSON.stringify({
+      mode: "same_seed",
+      seed: 43,
+      archetypeId: "technocrat",
+      experiment: "Invalid doctrine pairing",
+      legacyDirectiveId: "containment_brief",
+    }));
+  }, STORAGE_KEYS.replayIntent);
+  await page.reload();
+  await expect(page.getByText("COUNTERFACTUAL OBJECTIVE", { exact: true })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Open Technocrat File" })).toBeEnabled();
 });
 
 test("consults, commits, explains the consequence, and resumes the save", async ({ page }) => {
