@@ -78,7 +78,37 @@ describe("versioned browser persistence", () => {
       clearance: 0,
       unlockedDirectiveIds: [],
       pendingDirectiveDraft: null,
+      pendingScar: null,
     });
+  });
+
+  it("normalizes older Archive v1 blobs missing pendingScar and rejects invalid scar IDs", () => {
+    const storage = memoryStorage();
+    const legacyV1 = {
+      version: 1,
+      processedRunIds: [],
+      cards: {},
+      endings: {},
+      routes: {
+        labor_coalition: { highestStep: 0, completed: false },
+        corporate_exposure: { highestStep: 0, completed: false },
+      },
+      clearance: 1,
+      rewardRngState: 1,
+      unlockedDirectiveIds: [],
+      pendingDirectiveDraft: null,
+    };
+    storage.setItem(STORAGE_KEYS.archive, JSON.stringify(legacyV1));
+    expect(loadArchive(storage)).toMatchObject({
+      clearance: 1,
+      pendingScar: null,
+    });
+
+    storage.setItem(
+      STORAGE_KEYS.archive,
+      JSON.stringify({ ...legacyV1, pendingScar: "not-a-scar" }),
+    );
+    expect(loadArchive(storage)).toBeNull();
   });
 
   it("fails safely for invalid or obsolete local data", () => {

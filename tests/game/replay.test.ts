@@ -3,11 +3,14 @@ import {
   SITUATION_CARDS,
   buildDeclassifiedReport,
   canUseArchetypeConsultation,
+  claimLegacyDirective,
   commitAction,
   consultAdvisor,
   createEmptyArchive,
   createGame,
+  getClearanceGainForEnding,
   getEligibleSituationCards,
+  getEndingResultLabel,
   getRouteCompletionKind,
   mergeRunIntoArchive,
   validateRouteIntegrity,
@@ -264,5 +267,81 @@ describe("archetype replay differences", () => {
     const contained = consultAdvisor(operator, "fixer", true).state;
     expect(contained.suppressNextIgnoredCard).toBe(true);
     expect(contained.advisors.fixer.leverage).toBe(leverageBefore + 12);
+  });
+});
+
+describe("Clearance ladder and Necessary Regime aftermath", () => {
+  function activateWithTracks(
+    runId: string,
+    tracks: GameState["tracks"],
+    extras: Partial<Pick<GameState, "endingContributors">> = {},
+  ): GameState {
+    const state = createGame({ seed: 201, runId });
+    state.activeCardId = null;
+    state.tracks = tracks;
+    state.corporation.progress = 20;
+    if (extras.endingContributors) {
+      state.endingContributors = extras.endingContributors;
+    }
+    return commitAction(state, { type: "activate_brb" }).state;
+  }
+
+  it("awards Clearance by ending grade and sets, preserves, then clears the aftermath scar", () => {
+    const lossState = createGame({ seed: 202, runId: "clearance-loss" });
+    lossState.activeCardId = null;
+    lossState.turn = 5;
+    lossState.corporation.progress = 99;
+    lossState.corporation.lastResponseMonth = 0;
+    const loss = commitAction(lossState, { type: "recover_resource", resource: "money" }).state;
+    expect(loss.ending?.victory).toBe(false);
+
+    let archive = mergeRunIntoArchive(createEmptyArchive(), loss);
+    expect(archive.clearance).toBe(1);
+    expect(archive.pendingScar).toBeNull();
+
+    const compromised = activateWithTracks("clearance-compromised", {
+      engineering: 50,
+      access: 50,
+      legitimacy: 50,
+      stability: 50,
+    });
+    expect(compromised.ending?.id).toBe("compromised_activation");
+    archive = mergeRunIntoArchive(archive, compromised);
+    expect(archive.clearance).toBe(0);
+    expect(archive.pendingScar).toBe("necessary_regime_aftermath");
+    expect(archive.pendingDirectiveDraft?.candidateIds).toHaveLength(3);
+
+    const draftId = archive.pendingDirectiveDraft?.candidateIds[0];
+    if (!draftId) throw new Error("Expected a Directive draft after Clearance reached 3");
+    archive = claimLegacyDirective(archive, draftId);
+
+    const afterLoss = createGame({ seed: 203, runId: "clearance-loss-keeps-scar" });
+    afterLoss.activeCardId = null;
+    afterLoss.turn = 5;
+    afterLoss.corporation.progress = 99;
+    afterLoss.corporation.lastResponseMonth = 0;
+    const secondLoss = commitAction(afterLoss, { type: "recover_resource", resource: "money" }).state;
+    archive = mergeRunIntoArchive(archive, secondLoss);
+    expect(archive.pendingScar).toBe("necessary_regime_aftermath");
+    expect(archive.clearance).toBe(1);
+
+    const civic = activateWithTracks(
+      "clearance-civic",
+      { engineering: 50, access: 50, legitimacy: 75, stability: 75 },
+      { endingContributors: ["public_testimony"] },
+    );
+    expect(civic.ending?.id).toBe("civic_legacy");
+    archive = mergeRunIntoArchive(archive, civic);
+    expect(archive.pendingScar).toBeNull();
+    expect(archive.clearance).toBe(1);
+  });
+
+  it("exposes ending result labels for report grades", () => {
+    expect(getEndingResultLabel("civic_legacy")).toBe("VICTORY · CIVIC LEGACY");
+    expect(getEndingResultLabel("compromised_activation")).toBe("VICTORY · COMPROMISED");
+    expect(getEndingResultLabel("state_collapse")).toBe("LOSS");
+    expect(getClearanceGainForEnding("civic_legacy")).toBe(3);
+    expect(getClearanceGainForEnding("compromised_activation")).toBe(2);
+    expect(getClearanceGainForEnding("corporate_capture")).toBe(1);
   });
 });

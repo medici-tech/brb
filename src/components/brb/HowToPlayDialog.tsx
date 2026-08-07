@@ -43,11 +43,20 @@ export function HowToPlayDialog() {
           </section>
           <section>
             <strong>5 · Activate</strong>
-            <p>Every track must reach 50. Activation ends the run; Corporation control and political safeguards determine the outcome.</p>
+            <p>
+              Every track must reach 50. Safe activation (you still control Access
+              and Corporation Progress stays below 80) wins. Civic Legacy is a clean
+              win; Necessary Regime is a compromised win that still counts.
+            </p>
           </section>
           <section>
             <strong>6 · Build Clearance</strong>
-            <p>Completed runs earn 1 Clearance; victories earn 3. At 3, choose one permanent Legacy Directive unlock from a seeded draft.</p>
+            <p>
+              Clearance is progress to next Directive unlock. Losses earn 1,
+              Necessary Regime earns 2, Civic Legacy earns 3. At 3, choose one
+              permanent Legacy Directive unlock from a seeded draft. A Necessary
+              Regime also leaves a next-run Panic aftermath.
+            </p>
           </section>
         </div>
         <div className="glossary-grid" aria-label="BRB field glossary">
@@ -70,6 +79,13 @@ export function HowToPlayDialog() {
           <section>
             <strong>Legacy Directive</strong>
             <p>An optional reward card equipped before a run. It modifies one accepted commitment, applies its listed drawback, and remains permanently unlocked. Some rare Directives require a matching operating doctrine (for example, Containment Brief is Operator only).</p>
+          </section>
+          <section>
+            <strong>Necessary Regime aftermath</strong>
+            <p>
+              After a compromised activation, the next campaign starts with Panic +6.
+              Civic Legacy clears any pending aftermath. Losses do not create this scar.
+            </p>
           </section>
           <section>
             <strong>Standard Deposit</strong>

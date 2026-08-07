@@ -53,7 +53,7 @@ Choose an archetype, pursue a strategy, build or fail to build the BRB, reach an
 
 ### Meta-progression
 
-Archive v1 unlocks limited power through seven Legacy Directives. A completed run earns 1 Clearance and a victory earns 3; every 3 Clearance produces a deterministic draft of up to three locked Directives. The chosen Directive remains permanently unlocked, but the player may equip only one and use it once in a campaign. Each benefit carries a visible political cost. One rare card, Containment Brief, also requires the Operator doctrine at equip time; mismatched doctrines fail closed and leave the run unequipped. This is a bounded exception to the knowledge-only rule, not an open-ended stat ladder.
+Archive v1 unlocks limited power through seven Legacy Directives. Clearance is progress to the next Directive unlock: a loss earns 1, Necessary Regime earns 2, and Civic Legacy earns 3. Every 3 Clearance produces a deterministic draft of up to three locked Directives. The chosen Directive remains permanently unlocked, but the player may equip only one and use it once in a campaign. Each benefit carries a visible political cost. One rare card, Containment Brief, also requires the Operator doctrine at equip time; mismatched doctrines fail closed and leave the run unequipped. A Necessary Regime also records a one-campaign aftermath scar (Panic +6 on the next start); Civic Legacy clears any pending scar. These are bounded exceptions to the knowledge-only rule, not an open-ended stat ladder.
 
 Future progression should still favor horizontal options—archetypes, scenarios, modifiers, advisors, and endings—over cumulative numerical power. Directive levels, consumable copies, multiple equipped cards, and starting-stat upgrades remain excluded until the one-card system is validated.
 
@@ -135,7 +135,7 @@ BRB uses a run structure, not traditional roguelike conventions. It does not nee
 
 Each major commitment advances the campaign by one month. Runs have no fixed duration: an exceptional campaign might finish inside a year, while a cautious campaign can span many in-game years. Seeded randomness, a changing Situation Deck, and three archetypes—Technocrat, Populist, and Operator—shape each attempt. Each archetype changes card weights, a consultation interaction, a liability, and a possible ending variation—not only starting numbers.
 
-At the ending, a versioned Declassified Report identifies the ending trigger, final meters and advisor positions, pivotal choices, one unseen-route hint, one concrete experiment, and the equipped Legacy Directive. Archive v1 keeps discovered knowledge plus Clearance, unlocked Directives, and one pending deterministic reward draft.
+At the ending, a versioned Declassified Report identifies the ending trigger, final meters and advisor positions, pivotal choices, one unseen-route hint, one concrete experiment, and the equipped Legacy Directive. Archive v1 keeps discovered knowledge plus Clearance, unlocked Directives, one pending deterministic reward draft, and at most one pending aftermath scar.
 
 For the full game, optional mutators can include unreliable intelligence, double advisor leverage, a shorter campaign, public-only deposits, or a permanently constrained resource. Persistent progression should primarily reveal knowledge and options; Legacy Directives are the deliberately narrow power exception.
 
@@ -143,8 +143,8 @@ For the full game, optional mutators can include unreliable intelligence, double
 
 The prototype has six endings. Endings emerge from BRB activation, track quality, panic, institutional stability, advisor relationships, Corporation status, and major choices.
 
-- **Civic Legacy** (win): activation under durable public control — all nine civic conditions hold.
-- **Compromised Activation** (win): activation with access safe but at least one civic condition failed.
+- **Civic Legacy** (win): activation under durable public control — all nine civic conditions hold. Earns 3 Clearance and clears any pending aftermath scar.
+- **Compromised Activation** (win): activation with access safe but at least one civic condition failed. Earns 2 Clearance and records Necessary Regime aftermath (next campaign starts with Panic +6).
 - **Corporate Capture** (loss): Corporation Progress reaches 100, or activation occurs while the Corporation holds the decisive access point.
 - **State Collapse** (loss): Panic reaches 100, Institutions reach 0, or every advisor leaves.
 - **Advisor Coup** (loss): one advisor reaches Leverage 85 and seizes control. High Leverage alone is decisive — there is no dependence gate, and there is no graceful high-Leverage departure; leaning too hard on one advisor hands them the state.
@@ -154,7 +154,7 @@ The prototype has six endings. Endings emerge from BRB activation, track quality
 
 The two advisor losses make over-reliance on consultation and advisor shortcuts a distinct failure mode rather than a slow slide into State Collapse: leaning on advisors builds the Leverage that eventually lets them win. They reinforce the Civic Legacy requirement that no advisor holds decisive Leverage.
 
-Victory is not binary. Possible outcomes include preserving democracy, authoritarian control, illegitimate activation, advisor capture, finishing too late, stopping the Corporation while abandoning BRB, or mutual catastrophe.
+Victory is not binary. Safe activation wins; Civic Legacy is the clean grade and Necessary Regime is the compromised grade. Losses end the campaign before a proud finish. Meta progress (Clearance) and the optional aftermath scar keep dirty wins better than losses but worse than clean wins.
 
 ## Prototype scope
 

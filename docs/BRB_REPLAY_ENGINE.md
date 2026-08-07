@@ -168,7 +168,9 @@ Archive v1 preserves discovered knowledge:
 - Partial or completed progress for the two routes
 - Processed run IDs for idempotent merging
 
-It also stores Clearance, the deterministic Directive reward RNG state, unlocked Directive IDs, and at most one pending draft. Completed losses earn 1 Clearance and victories earn 3. At 3 points the Archive spends 3 and draws up to three still-locked Directives without replacement; Common entries receive four weight units and Rare entries one. Claiming one candidate permanently unlocks it.
+It also stores Clearance (progress to next Directive unlock), the deterministic Directive reward RNG state, unlocked Directive IDs, at most one pending draft, and at most one pending aftermath scar (`pendingScar`). Clearance tiers are: loss +1, Necessary Regime (`compromised_activation`) +2, Civic Legacy +3. At 3 points the Archive spends 3 and draws up to three still-locked Directives without replacement; Common entries receive four weight units and Rare entries one. Claiming one candidate permanently unlocks it.
+
+Necessary Regime sets `pendingScar` to `necessary_regime_aftermath`. The next campaign start applies Panic +6 once, then consumes the scar. Civic Legacy clears any pending scar on merge. Losses neither set nor clear the scar, so a later loss does not erase a waiting aftermath. Older Archive v1 blobs that omit `pendingScar` normalize to `null` on load; malformed non-null scar IDs fail closed.
 
 The player may equip one unlocked Directive or choose no Directive when creating a run. Directives with `requiredArchetypeId` (currently Containment Brief → Operator) equip only when the campaign doctrine matches; `createGame` strips a mismatched loadout. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. Simulation bots validate candidate affordability with the Directive they intend to attach, rather than selecting from a no-Directive action list and adding the card afterward. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
 
@@ -180,14 +182,14 @@ The browser adapter uses versioned local-storage keys:
 | --- | --- |
 | `brb.active-run.v5` | Current deterministic `GameState`, including equipped Directive and use provenance |
 | `brb.active-run.v4` / `v3` | Legacy active runs accepted for migration and removed after the next save |
-| `brb.archive.v1` | Knowledge, Clearance, unlocks, and pending Directive draft |
+| `brb.archive.v1` | Knowledge, Clearance, unlocks, pending Directive draft, and optional pending aftermath scar |
 | `brb.archive.v0` | Legacy knowledge archive accepted for migration |
 | `brb.latest-report.v4` | Latest report with rules version, final-state snapshot, and Directive record |
 | `brb.latest-report.v3` / `v2` | Older report fallbacks, retained in place and marked as older rules when applicable |
 | `brb.replay-intent.v2` | Seed, archetype, suggested experiment, and Directive loadout |
 | `brb.replay-intent.v1` | Legacy replay intent accepted with no Directive |
 
-Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, Directive IDs, reward drafts, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 and version-4 active runs receive documented no-Directive migration defaults; malformed version-5 runs are not repaired. Archive v0 migrates its knowledge with zero Clearance and no unlock. Valid older reports load with a no-Directive record and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
+Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, Directive IDs, reward drafts, optional aftermath scar IDs, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 and version-4 active runs receive documented no-Directive migration defaults; malformed version-5 runs are not repaired. Archive v0 migrates its knowledge with zero Clearance, no unlock, and no scar. Older Archive v1 blobs missing `pendingScar` normalize that field to `null`. Valid older reports load with a no-Directive record and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
 
 ## Architecture boundary
 

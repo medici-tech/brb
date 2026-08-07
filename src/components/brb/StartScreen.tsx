@@ -8,11 +8,13 @@ import { formatCampaignTime } from "../../game/progression";
 import {
   RESOURCE_KEYS,
   TRACK_KEYS,
+  type ArchiveScarId,
   type ArchetypeId,
   type GameState,
   type LegacyDirectiveId,
   type ReplayIntent,
 } from "../../game/types";
+import { NECESSARY_REGIME_AFTERMATH_PANIC } from "../../game/replay";
 import { Button } from "../ui/button";
 import { ConfirmActionDialog } from "./ui/decisions";
 import { CreditsDialog } from "./CreditsDialog";
@@ -30,6 +32,7 @@ type Props = {
   savedRun: GameState | null;
   replayIntent: ReplayIntent | null;
   unlockedDirectiveIds?: LegacyDirectiveId[];
+  pendingScar?: ArchiveScarId | null;
   onStart: (archetypeId: ArchetypeId, directiveId: LegacyDirectiveId | null) => void;
   onResume: () => void;
   onOpenArchive: () => void;
@@ -46,6 +49,7 @@ export function StartScreen({
   savedRun,
   replayIntent,
   unlockedDirectiveIds = [],
+  pendingScar = null,
   onStart,
   onResume,
   onOpenArchive,
@@ -87,6 +91,19 @@ export function StartScreen({
             ends the run.
           </small>
         </aside>
+        {pendingScar === "necessary_regime_aftermath" ? (
+          <aside
+            className="mt-4 grid max-w-3xl gap-1 border-l-4 border-signal bg-[rgba(89,73,49,.07)] px-4 py-3.5"
+            aria-label="Necessary Regime aftermath"
+            role="status"
+          >
+            <strong>Aftermath active</strong>
+            <p className="m-0 leading-6 text-dossier-ink/80">
+              Your last Necessary Regime left a scar: this campaign starts with
+              Panic +{NECESSARY_REGIME_AFTERMATH_PANIC}. It lasts for this campaign only.
+            </p>
+          </aside>
+        ) : null}
         {!savedRun ? (
           <Button
             className="mt-5"
