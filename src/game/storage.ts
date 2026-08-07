@@ -78,6 +78,8 @@ export function loadLatestReport(storage: Storage): DeclassifiedReport | null {
             used: false,
             usedOnDecisionId: null,
           },
+          openingAftermath:
+            (parsed as Partial<DeclassifiedReport>).openingAftermath ?? null,
         };
         assertDeclassifiedReport(value);
         return value;

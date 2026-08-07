@@ -87,7 +87,10 @@ During Phase 2:
 - Ignoring an active card requires confirmation and resolves its ignored consequence before the selected commitment. Activation expires it instead.
 - Every important choice must preserve decision-to-consequence provenance.
 - Route transitions must remain legal and explicit; a closed route cannot silently complete.
-- The Archive carries knowledge only. It must never improve starting power or alter odds.
+- The Archive carries knowledge plus two bounded exceptions, and nothing else: one equipped
+  Legacy Directive, and at most one pending one-campaign aftermath scar. It must never improve
+  starting power — the Directive is optional, single-use, and carries a visible political cost,
+  and the scar only worsens an opening. No cumulative stat ladder, no compounding scars.
 - Invalid or unsupported persisted data fails closed.
 
 Whenever a rule changes, inspect its effects on the browser flow, bots, simulator, reports, replay determinism, saved state, documentation, and tests.

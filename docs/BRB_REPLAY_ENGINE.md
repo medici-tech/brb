@@ -170,7 +170,13 @@ Archive v1 preserves discovered knowledge:
 
 It also stores Clearance (progress to next Directive unlock), the deterministic Directive reward RNG state, unlocked Directive IDs, at most one pending draft, and at most one pending aftermath scar (`pendingScar`). Clearance tiers are: loss +1, Necessary Regime (`compromised_activation`) +2, Civic Legacy +3. At 3 points the Archive spends 3 and draws up to three still-locked Directives without replacement; Common entries receive four weight units and Rare entries one. Claiming one candidate permanently unlocks it.
 
-Necessary Regime sets `pendingScar` to `necessary_regime_aftermath`. The next campaign start applies Panic +6 once, then consumes the scar. Civic Legacy clears any pending scar on merge. Losses neither set nor clear the scar, so a later loss does not erase a waiting aftermath. Older Archive v1 blobs that omit `pendingScar` normalize to `null` on load; malformed non-null scar IDs fail closed.
+Necessary Regime sets `pendingScar` to `necessary_regime_aftermath`. Civic Legacy clears any pending scar on merge. Losses neither set nor clear the scar, so a later loss does not erase a waiting aftermath. Older Archive v1 blobs that omit `pendingScar` normalize to `null` on load; malformed non-null scar IDs fail closed.
+
+`getOpeningAftermathForRun(archive, replay)` decides which run carries the scar, and the run records the answer in `GameState.openingAftermath`, which `buildDeclassifiedReport` copies onto the report. `createGame` applies Panic +6 once at construction when that field is set.
+
+A **same-seed replay carries no scar**. It exists to be compared against the run it repeats, and an unrecorded Panic +6 would surface in the replayer's divergence as a difference the player never chose. A scar held back this way is **postponed, not spent** — it stays pending for the next ordinary campaign. A fresh-seed replay ("Open a New File") is an ordinary campaign and does carry it.
+
+The Archive's `pendingScar` clears on the scarred run's **first accepted commitment**, not at run creation. Clearing at creation let a player open and abandon a run to dodge the aftermath. Only a run whose `openingAftermath` is set can clear it, and only one run is ever active, so the scar cannot be double-spent.
 
 The player may equip one unlocked Directive or choose no Directive when creating a run. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. Simulation bots validate candidate affordability with the Directive they intend to attach, rather than selecting from a no-Directive action list and adding the card afterward. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
 
@@ -180,16 +186,16 @@ The browser adapter uses versioned local-storage keys:
 
 | Key | Content |
 | --- | --- |
-| `brb.active-run.v5` | Current deterministic `GameState`, including equipped Directive and use provenance |
+| `brb.active-run.v5` | Current deterministic `GameState`, including equipped Directive, use provenance, and the aftermath the run opened under |
 | `brb.active-run.v4` / `v3` | Legacy active runs accepted for migration and removed after the next save |
 | `brb.archive.v1` | Knowledge, Clearance, unlocks, pending Directive draft, and optional pending aftermath scar |
 | `brb.archive.v0` | Legacy knowledge archive accepted for migration |
-| `brb.latest-report.v4` | Latest report with rules version, final-state snapshot, and Directive record |
+| `brb.latest-report.v4` | Latest report with rules version, final-state snapshot, Directive record, and opening aftermath |
 | `brb.latest-report.v3` / `v2` | Older report fallbacks, retained in place and marked as older rules when applicable |
 | `brb.replay-intent.v2` | Seed, archetype, suggested experiment, and Directive loadout |
 | `brb.replay-intent.v1` | Legacy replay intent accepted with no Directive |
 
-Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, Directive IDs, reward drafts, optional aftermath scar IDs, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 and version-4 active runs receive documented no-Directive migration defaults; malformed version-5 runs are not repaired. Archive v0 migrates its knowledge with zero Clearance, no unlock, and no scar. Older Archive v1 blobs missing `pendingScar` normalize that field to `null`. Valid older reports load with a no-Directive record and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
+Invalid values fail closed and return `null`; they do not get merged into a new run and cannot alter base stats. Runtime validation checks required nested records, meter ranges, canonical IDs, Directive IDs, reward drafts, optional aftermath scar IDs, route/decision references, and phase/ending/report consistency rather than trusting a version number and TypeScript cast. Version-3 and version-4 active runs receive documented no-Directive migration defaults; malformed version-5 runs are not repaired. Archive v0 migrates its knowledge with zero Clearance, no unlock, and no scar. Older Archive v1 blobs missing `pendingScar` normalize that field to `null`. Active runs and reports written before `openingAftermath` existed normalize it to `null` in place, following the additive-field precedent set by `DecisionRecord.subject`; this is deliberately not a key bump, because an absent field is unambiguous and no older build reads these keys. An unrecognized aftermath ID on either the run or the report still fails closed. Valid older reports load with a no-Directive record and replay their seed under current rules. There are no accounts, cloud saves, analytics, or backend APIs.
 
 ## Architecture boundary
 

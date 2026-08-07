@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ArchiveView } from "../../src/components/brb/ArchiveView.js";
 import { CampaignScreen } from "../../src/components/brb/CampaignScreen.js";
 import { DeclassifiedReportView } from "../../src/components/brb/DeclassifiedReportView.js";
-import { commitAction, createEmptyArchive, createGame } from "../../src/game/index.js";
+import { LEGACY_DIRECTIVE_IDS, commitAction, createEmptyArchive, createGame } from "../../src/game/index.js";
 import type { DeclassifiedReport } from "../../src/game/types.js";
 
 function reportFixture(): DeclassifiedReport {
@@ -26,6 +26,7 @@ function reportFixture(): DeclassifiedReport {
       used: false,
       usedOnDecisionId: null,
     },
+    openingAftermath: null,
     ending: {
       id: "compromised_activation",
       title: "The Necessary Regime",
@@ -340,6 +341,79 @@ describe("campaign replay UI", () => {
     expect(screen.getByText(/this seeded draft is fixed/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /preserve continuity freeze order/i }));
     expect(claim).toHaveBeenCalledWith("continuity_freeze_order");
+  });
+
+  it("grades the two wins apart and keeps losses on the danger badge", () => {
+    const compromised = reportFixture();
+    const { unmount } = render(
+      <DeclassifiedReportView report={compromised} onTestTheory={vi.fn()} onOpenNewFile={vi.fn()} onArchive={vi.fn()} />,
+    );
+    let region = screen.getByLabelText(/campaign result explained/i);
+    expect(region).toHaveTextContent(/result · victory · compromised/i);
+    expect(region.querySelector(".bg-signal")).not.toBeNull();
+    expect(region.querySelector(".bg-phosphor")).toBeNull();
+    unmount();
+
+    const civic = reportFixture();
+    civic.ending.id = "civic_legacy";
+    const civicRender = render(
+      <DeclassifiedReportView report={civic} onTestTheory={vi.fn()} onOpenNewFile={vi.fn()} onArchive={vi.fn()} />,
+    );
+    region = screen.getByLabelText(/campaign result explained/i);
+    expect(region).toHaveTextContent(/result · victory · civic legacy/i);
+    expect(region.querySelector(".bg-phosphor")).not.toBeNull();
+    expect(region.querySelector(".bg-signal")).toBeNull();
+    civicRender.unmount();
+
+    const loss = reportFixture();
+    loss.ending.id = "state_collapse";
+    loss.ending.victory = false;
+    render(<DeclassifiedReportView report={loss} onTestTheory={vi.fn()} onOpenNewFile={vi.fn()} onArchive={vi.fn()} />);
+    region = screen.getByLabelText(/campaign result explained/i);
+    expect(region).toHaveTextContent(/result · loss/i);
+    expect(region.querySelector(".bg-destructive")).not.toBeNull();
+  });
+
+  it("attributes a campaign that opened under the Necessary Regime aftermath", () => {
+    const scarred = reportFixture();
+    scarred.openingAftermath = "necessary_regime_aftermath";
+    const { unmount } = render(
+      <DeclassifiedReportView report={scarred} onTestTheory={vi.fn()} onOpenNewFile={vi.fn()} onArchive={vi.fn()} />,
+    );
+    expect(screen.getByText(/opened under the necessary regime aftermath/i)).toBeInTheDocument();
+    unmount();
+
+    render(<DeclassifiedReportView report={reportFixture()} onTestTheory={vi.fn()} onOpenNewFile={vi.fn()} onArchive={vi.fn()} />);
+    expect(screen.queryByText(/opened under the necessary regime aftermath/i)).not.toBeInTheDocument();
+  });
+
+  it("stops claiming Clearance once every Legacy Directive is unlocked", () => {
+    const earning = createEmptyArchive();
+    const { unmount } = render(
+      <DeclassifiedReportView
+        report={reportFixture()}
+        archive={earning}
+        onTestTheory={vi.fn()}
+        onOpenNewFile={vi.fn()}
+        onArchive={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/clearance \+2 — progress to next directive unlock/i)).toBeInTheDocument();
+    unmount();
+
+    const complete = createEmptyArchive();
+    complete.unlockedDirectiveIds = [...LEGACY_DIRECTIVE_IDS];
+    render(
+      <DeclassifiedReportView
+        report={reportFixture()}
+        archive={complete}
+        onTestTheory={vi.fn()}
+        onOpenNewFile={vi.fn()}
+        onArchive={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/clearance no longer accumulates/i)).toBeInTheDocument();
+    expect(screen.queryByText(/clearance \+2/i)).not.toBeInTheDocument();
   });
 
   it("marks reports from older rules without rewriting their recorded ending", () => {

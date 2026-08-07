@@ -97,6 +97,8 @@ export function isDeclassifiedReport(
     || !isInteger(value.seed, 0)
     || !isOneOf(value.archetypeId, ARCHETYPE_IDS)
     || !isLegacyDirectiveRunState(value.legacyDirective)
+    || !(value.openingAftermath === null
+      || isOneOf(value.openingAftermath, ARCHIVE_SCAR_IDS))
     || !isEnding(value.ending)
     || !isPivot(value.pivotalDecision)
     || !isPivot(value.narrativePivot)

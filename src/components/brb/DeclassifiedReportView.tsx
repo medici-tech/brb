@@ -44,6 +44,20 @@ const OUTCOME_RULES: Record<DeclassifiedReport["ending"]["id"], string> = {
     "Two or more active advisors each held cabal-level Leverage and jointly governed without you.",
 };
 
+/**
+ * The two wins are graded, so they must not share one badge. Amber signal
+ * #D69A3A on dossier ink #201F19 measures 6.72:1; phosphor #A6B485 on the same
+ * ink measures 7.46:1. Both clear WCAG AA for body text.
+ */
+const RESULT_BADGE_CLASS: Record<DeclassifiedReport["ending"]["id"], string> = {
+  civic_legacy: "bg-phosphor text-dossier-ink",
+  compromised_activation: "bg-signal text-dossier-ink",
+  corporate_capture: "bg-destructive text-white",
+  state_collapse: "bg-destructive text-white",
+  advisor_coup: "bg-destructive text-white",
+  advisor_cabal: "bg-destructive text-white",
+};
+
 type Props = {
   report: DeclassifiedReport;
   archive?: ArchiveV1;
@@ -68,6 +82,11 @@ export function DeclassifiedReportView({
   const resultLabel = getEndingResultLabel(report.ending.id);
   const clearanceGain = getClearanceGainForEnding(report.ending.id);
   const legacyReport = report.rulesVersion < REPORT_RULES_VERSION;
+  // mergeRunIntoArchive stops granting Clearance once every Directive is
+  // unlocked, so the report must not claim points it did not award.
+  const clearanceGranted = archive
+    ? archive.unlockedDirectiveIds.length < Object.keys(LEGACY_DIRECTIVES).length
+    : false;
   return (
     <main className="shell report-shell">
       <header className="masthead">
@@ -105,7 +124,7 @@ export function DeclassifiedReportView({
 
         <ReportOutcomeSummary
           result={(
-            <p className={`brb-telemetry m-0 inline-block px-2.5 py-1.5 text-[11px] font-bold tracking-[0.12em] ${report.ending.victory ? "bg-phosphor text-dossier-ink" : "bg-destructive text-white"}`}>
+            <p className={`brb-telemetry m-0 inline-block px-2.5 py-1.5 text-[11px] font-bold tracking-[0.12em] ${RESULT_BADGE_CLASS[report.ending.id]}`}>
               RESULT · {resultLabel}
             </p>
           )}
@@ -116,15 +135,10 @@ export function DeclassifiedReportView({
           nextStep={report.suggestedExperiment}
         />
 
-        {archive && !legacyReport ? (
+        {report.openingAftermath === "necessary_regime_aftermath" ? (
           <p className="mt-4 mb-0 text-sm leading-6 text-dossier-ink/80">
-            Clearance +{clearanceGain} (progress to next Directive unlock).
-            {report.ending.id === "compromised_activation"
-              ? ` Aftermath recorded: next campaign starts with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
-              : null}
-            {report.ending.id === "civic_legacy"
-              ? " Any Necessary Regime aftermath is cleared."
-              : null}
+            This campaign opened under the Necessary Regime aftermath: Panic
+            +{NECESSARY_REGIME_AFTERMATH_PANIC} from the start.
           </p>
         ) : null}
 
@@ -139,9 +153,16 @@ export function DeclassifiedReportView({
                 : "Clearance is accumulating."}
           >
             <p className="mt-0 text-xs leading-5 text-dossier-ink/70">
-              Clearance is progress to next Directive unlock.
+              {legacyReport
+                ? "Clearance is progress to next Directive unlock."
+                : clearanceGranted
+                  ? `Clearance +${clearanceGain} — progress to next Directive unlock.`
+                  : "Every Legacy Directive is unlocked, so Clearance no longer accumulates."}
+              {!legacyReport && report.ending.id === "civic_legacy"
+                ? " Any pending Necessary Regime aftermath is cleared."
+                : null}
               {archive.pendingScar === "necessary_regime_aftermath"
-                ? ` Aftermath pending: next campaign opens with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
+                ? ` Aftermath pending: your next ordinary campaign opens with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
                 : null}
             </p>
             {archive.pendingDirectiveDraft ? (

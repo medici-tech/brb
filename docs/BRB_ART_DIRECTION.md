@@ -253,6 +253,20 @@ line `#454A3B`, soft line `#3C3E39`.
 (secondary/instrument), phosphor `#A6B485` (live readouts), red `#A63A32`
 (destructive), soft red `#E98479`.
 
+**Report RESULT badge** — the ending grade is carried by the signal colour, not
+by the label alone, so the two wins never read as the same outcome:
+
+| Grade | Fill | Ink | Measured contrast |
+| --- | --- | --- | --- |
+| `civic_legacy` — the clean win | phosphor `#A6B485` | dossier ink `#201F19` | 7.46:1 |
+| `compromised_activation` — the dirty win | amber `#D69A3A` | dossier ink `#201F19` | 6.72:1 |
+| any loss | destructive `#A63A32` | `#FFFFFF` | 6.42:1 |
+
+Amber is correct for the compromised win precisely because it is the
+authorisation colour: the machine was authorised and it ran. It is not a
+warning here, and it must not drift toward the destructive red, which is
+reserved for endings the player did not survive.
+
 Room viewport surround: background `#101719`, inset border
 `rgba(172,158,116,0.46)` over `rgba(13,18,19,0.72)`, lift `0 14px 30px
 rgba(0,0,0,0.34)`.

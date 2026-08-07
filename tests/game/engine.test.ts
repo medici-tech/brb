@@ -908,6 +908,7 @@ describe("Necessary Regime opening aftermath", () => {
   it("raises starting Panic by 6 when the Archive scar is applied", () => {
     const baseline = createGame({ seed: 610, runId: "no-scar" });
     expect(baseline.pressures.panic).toBe(8);
+    expect(baseline.openingAftermath).toBeNull();
 
     const scarred = createGame({
       seed: 610,
@@ -915,6 +916,41 @@ describe("Necessary Regime opening aftermath", () => {
       openingAftermath: "necessary_regime_aftermath",
     });
     expect(scarred.pressures.panic).toBe(14);
-    expect(scarred.history.some((entry) => /Aftermath of the Necessary Regime/i.test(entry.message))).toBe(true);
+    expect(scarred.openingAftermath).toBe("necessary_regime_aftermath");
+  });
+
+  it("keeps the aftermath on the run and its report across a save round trip", () => {
+    const scarred = createGame({
+      seed: 611,
+      runId: "scar-round-trip",
+      openingAftermath: "necessary_regime_aftermath",
+    });
+    expect(deserializeGame(serializeGame(scarred))).toEqual(scarred);
+
+    scarred.activeCardId = null;
+    scarred.tracks = { engineering: 50, access: 50, legitimacy: 50, stability: 50 };
+    scarred.corporation.progress = 20;
+    const ended = commitAction(scarred, { type: "activate_brb" }).state;
+    expect(ended.ending?.id).toBe("compromised_activation");
+    expect(ended.report?.openingAftermath).toBe("necessary_regime_aftermath");
+    expect(deserializeGame(serializeGame(ended))).toEqual(ended);
+  });
+
+  it("normalizes saves written before the aftermath field existed", () => {
+    const legacy = createGame({ seed: 612, runId: "pre-scar-save" });
+    const blob = JSON.parse(serializeGame(legacy)) as Record<string, unknown>;
+    delete blob.openingAftermath;
+
+    const restored = deserializeGame(JSON.stringify(blob));
+    expect(restored.openingAftermath).toBeNull();
+    expect(restored).toEqual(legacy);
+  });
+
+  it("fails closed on a save carrying an unknown aftermath ID", () => {
+    const legacy = createGame({ seed: 613, runId: "bad-scar-save" });
+    const blob = JSON.parse(serializeGame(legacy)) as Record<string, unknown>;
+    blob.openingAftermath = "not-a-scar";
+
+    expect(() => deserializeGame(JSON.stringify(blob))).toThrow();
   });
 });

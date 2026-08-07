@@ -28,16 +28,51 @@ export const REPORT_RULES_VERSION = 2;
 /** Panic added at the start of the next campaign after Necessary Regime. */
 export const NECESSARY_REGIME_AFTERMATH_PANIC = 6;
 
+/**
+ * Both ladders are keyed by every ending rather than falling through a default,
+ * so adding an ending is a compile error here instead of a silent "LOSS".
+ */
+const CLEARANCE_BY_ENDING: Record<EndingId, number> = {
+  civic_legacy: 3,
+  compromised_activation: 2,
+  corporate_capture: 1,
+  state_collapse: 1,
+  advisor_coup: 1,
+  advisor_cabal: 1,
+};
+
+const RESULT_LABEL_BY_ENDING: Record<EndingId, string> = {
+  civic_legacy: "VICTORY · CIVIC LEGACY",
+  compromised_activation: "VICTORY · COMPROMISED",
+  corporate_capture: "LOSS",
+  state_collapse: "LOSS",
+  advisor_coup: "LOSS",
+  advisor_cabal: "LOSS",
+};
+
 export function getClearanceGainForEnding(endingId: EndingId): number {
-  if (endingId === "civic_legacy") return 3;
-  if (endingId === "compromised_activation") return 2;
-  return 1;
+  return CLEARANCE_BY_ENDING[endingId];
 }
 
 export function getEndingResultLabel(endingId: EndingId): string {
-  if (endingId === "civic_legacy") return "VICTORY · CIVIC LEGACY";
-  if (endingId === "compromised_activation") return "VICTORY · COMPROMISED";
-  return "LOSS";
+  return RESULT_LABEL_BY_ENDING[endingId];
+}
+
+/**
+ * Which Archive aftermath a new run opens under.
+ *
+ * A same-seed replay exists to be compared against the run it repeats, so it
+ * never carries a scar: an unrecorded Panic +6 would show up in the replayer's
+ * divergence as a difference the player never chose. The scar is postponed, not
+ * spent — it stays pending for the next ordinary campaign. A fresh-seed replay
+ * ("Open a New File") is an ordinary campaign and does carry it.
+ */
+export function getOpeningAftermathForRun(
+  archive: ArchiveV1,
+  replay: ReplayIntent | null,
+): ArchiveScarId | null {
+  if (replay?.mode === "same_seed") return null;
+  return archive.pendingScar;
 }
 
 export function consumePendingScar(archive: ArchiveV1): ArchiveV1 {
@@ -264,6 +299,7 @@ export function buildDeclassifiedReport(state: GameState): DeclassifiedReport {
     seed: state.seed,
     archetypeId: state.archetypeId,
     legacyDirective: structuredClone(state.legacyDirective),
+    openingAftermath: state.openingAftermath,
     ending: structuredClone(state.ending),
     pivotalDecision: narrativePivot,
     narrativePivot,

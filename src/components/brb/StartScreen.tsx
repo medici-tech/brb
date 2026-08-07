@@ -61,6 +61,9 @@ export function StartScreen({
   const replayDirective = replayIntent?.legacyDirectiveId
     ? LEGACY_DIRECTIVES[replayIntent.legacyDirectiveId]
     : null;
+  // A queued same-seed replay opens clean, so the banner must not claim the
+  // scar applies to it. Mirrors getOpeningAftermathForRun in the engine.
+  const aftermathHeld = replayIntent?.mode === "same_seed";
   return (
     <main className="shell start-shell">
       <header className="masthead">
@@ -97,10 +100,11 @@ export function StartScreen({
             aria-label="Necessary Regime aftermath"
             role="status"
           >
-            <strong>Aftermath active</strong>
+            <strong>Aftermath {aftermathHeld ? "held" : "active"}</strong>
             <p className="m-0 leading-6 text-dossier-ink/80">
-              Your last Necessary Regime left a scar: this campaign starts with
-              Panic +{NECESSARY_REGIME_AFTERMATH_PANIC}. It lasts for this campaign only.
+              {aftermathHeld
+                ? `Your last Necessary Regime left a scar. The queued same-seed replay is a controlled sample, so it opens clean and the scar is not spent; your next ordinary campaign starts with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
+                : `Your last Necessary Regime left a scar: the next campaign you open starts with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}. It is spent on your first commitment and lasts for that campaign only.`}
             </p>
           </aside>
         ) : null}

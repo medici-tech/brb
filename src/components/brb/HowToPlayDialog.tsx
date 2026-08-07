@@ -52,10 +52,9 @@ export function HowToPlayDialog() {
           <section>
             <strong>6 · Build Clearance</strong>
             <p>
-              Clearance is progress to next Directive unlock. Losses earn 1,
+              Clearance is progress to the next Directive unlock. Losses earn 1,
               Necessary Regime earns 2, Civic Legacy earns 3. At 3, choose one
-              permanent Legacy Directive unlock from a seeded draft. A Necessary
-              Regime also leaves a next-run Panic aftermath.
+              permanent Legacy Directive unlock from a seeded draft.
             </p>
           </section>
         </div>
@@ -83,8 +82,10 @@ export function HowToPlayDialog() {
           <section>
             <strong>Necessary Regime aftermath</strong>
             <p>
-              After a compromised activation, the next campaign starts with Panic +6.
-              Civic Legacy clears any pending aftermath. Losses do not create this scar.
+              After a compromised activation, your next ordinary campaign starts with
+              Panic +6, spent on its first commitment. Civic Legacy clears a pending
+              aftermath; losses neither create nor clear it. A same-seed replay is a
+              controlled sample, so it opens clean and holds the aftermath back.
             </p>
           </section>
           <section>
