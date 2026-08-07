@@ -12,6 +12,8 @@ import { crc32, deflateSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   CURATION,
+  MIN_SHELL_CONTRAST,
+  SHELL_TILE_LUMINANCE,
   buildCurationConvertArgs,
   buildRoomCompositeConvertArgs,
   validateRoomRecipe,
@@ -161,6 +163,74 @@ describe("BRB art pipeline", () => {
 
     expect(() => validateRoomRecipe(invalid)).toThrow(
       /furniture.+falls outside the room/i,
+    );
+  });
+
+  it("rejects two baked props claiming the same tile", () => {
+    const recipe = ROOM_RECIPES.roomFacility;
+    const first = recipe.furniture[0]!;
+    const invalid = {
+      ...recipe,
+      furniture: [first, { ...first, source: "other/prop.png" }],
+    };
+
+    expect(() => validateRoomRecipe(invalid)).toThrow(
+      /baked furniture overlaps at tile/i,
+    );
+  });
+
+  it("rejects an overlay anchor baked over by a prop", () => {
+    const recipe = ROOM_RECIPES.roomFacility;
+    const first = recipe.furniture[0]!;
+    const invalid = {
+      ...recipe,
+      dynamicOverlayAnchors: { reserved: { x: first.x, y: first.y } },
+      anchorsAllowedOverFurniture: [],
+    };
+
+    expect(() => validateRoomRecipe(invalid)).toThrow(
+      /overlay anchor 'reserved'.+sits on baked/i,
+    );
+  });
+
+  it("allows an anchor explicitly listed as meant to sit on furniture", () => {
+    const recipe = ROOM_RECIPES.roomFacility;
+    const first = recipe.furniture[0]!;
+    const seated = {
+      ...recipe,
+      dynamicOverlayAnchors: { seated: { x: first.x, y: first.y } },
+      anchorsAllowedOverFurniture: ["seated"],
+    };
+
+    expect(() => validateRoomRecipe(seated)).not.toThrow();
+  });
+
+  it("enforces the §6 contrast law on every shipped floor/wall pairing", () => {
+    // The documented pairings, measured off the curated PNGs. §6 sets the floor
+    // at 40 and the target at 60; all four clear the target.
+    for (const key of ROOM_COMPOSITE_KEYS) {
+      const recipe = ROOM_RECIPES[key];
+      const floor = SHELL_TILE_LUMINANCE[recipe.floorArtKey];
+      const wall = SHELL_TILE_LUMINANCE[recipe.wallFaceArtKey];
+      expect(floor, `${key} floor luminance is committed`).toBeDefined();
+      expect(wall, `${key} wall luminance is committed`).toBeDefined();
+      expect(
+        Math.abs(floor! - wall!),
+        `${key} floor/wall contrast`,
+      ).toBeGreaterThanOrEqual(60);
+    }
+  });
+
+  it("rejects a floor and wall that disappear into each other", () => {
+    // The regression §6 records twice: a pale wall (204) over a pale floor is
+    // Δ 6 — structurally correct, visually identical to having no shell at all.
+    const invalid = {
+      ...ROOM_RECIPES.roomIntake,
+      floorArtKey: "envWallPale",
+    } as typeof ROOM_RECIPES.roomIntake;
+
+    expect(() => validateRoomRecipe(invalid)).toThrow(
+      new RegExp(`differ by only.+§6 requires Δ≥${MIN_SHELL_CONTRAST}`, "i"),
     );
   });
 

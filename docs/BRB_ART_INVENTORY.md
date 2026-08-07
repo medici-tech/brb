@@ -66,13 +66,13 @@ hand-maintained size table in `room-recipes.ts` cannot silently drift from the p
 
 | Semantic key | Recipe note | Runtime destination | Source size | SHA-256 | React use |
 | --- | --- | --- | --- | --- | --- |
-| `roomFacility` | 22×14 continuity facility: console far wall, walled command floor, empty state-built BRB chamber, records annex, corridor | `control-room/rooms/continuity-facility.png` | 352×224 | `e35ab484bc7671621d4274b3518ba1197f08ad627322ad0a137f23b3d41c5f58` | Campaign + Ending `PixelRoom` |
+| `roomFacility` | 22×14 continuity facility: console far wall, walled command floor, empty state-built BRB chamber, records annex, corridor. Annex columns 19–20 deliberately bare — reserved for the Corporation terminal and damage anchors | `control-room/rooms/continuity-facility.png` | 352×224 | ⚠️ **stale** — was `e35ab484bc7671621d4274b3518ba1197f08ad627322ad0a137f23b3d41c5f58` before the copier at (19,7) was removed; re-run `npm run art:curate` and refresh | Campaign + Ending `PixelRoom` |
 | `roomIntake` | Compact federal intake office; pale walls over the admin floor | `control-room/rooms/intake-office.png` | 224×160 | `fb0960a423f14bce88389c3a6c30a04e5de28e59c956a0b2e1b2b0fab506987d` | Start operational brief |
 | `roomRecords` | Evidence records office; rows 2–4 reserved for shelf state layers | `control-room/rooms/records-office.png` | 224×160 | `53a065f6e733a96c1f974982364c1b0137d88ed40011cc23ae3aecfe2164bbfb` | Report + Archive evidence scene |
 | `roomContinuity` | Continuity floor: six-console far wall over the command table | `control-room/rooms/aftermath-continuity.png` | 224×160 | `9040953ca994a1f21d61b21bc42ad244da7d9e25fefac95af8215cdc48219430` | Aftermath location base |
 | `roomOversight` | Oversight hearing room: bench, broadcast rig, public seating | `control-room/rooms/aftermath-oversight.png` | 224×160 | `383364e64ea5e0ebb10aeaae7cf9b1e51619ed633d5def10c6a40597605d2d5a` | Aftermath location base |
 | `roomSecureBriefing` | Compartmented briefing room: one screen, sealed storage, no public seating | `control-room/rooms/aftermath-secure-briefing.png` | 224×160 | `b946a7f505113b27c1da0f7651f13d95aa701f72887675bbc2f10f6b209b1521` | Aftermath location base |
-| `roomInfrastructure` | BRB infrastructure workroom: Modern Exteriors worksite stock on concrete | `control-room/rooms/aftermath-infrastructure.png` | 224×160 | `b65f5170e68f9c23b4cab3b68f5a9110711b1874f14b79ce98ced1d7c46ce965` | Aftermath location base |
+| `roomInfrastructure` | BRB infrastructure workroom: Modern Exteriors worksite stock on concrete | `control-room/rooms/aftermath-infrastructure.png` | 224×160 | ⚠️ **stale** — was `b65f5170e68f9c23b4cab3b68f5a9110711b1874f14b79ce98ced1d7c46ce965` before the sign moved from (2,1) to (3,1); re-run `npm run art:curate` and refresh | Aftermath location base |
 | `roomCorporate` | Corporation executive suite: wood floor, warm panelling, no public kit | `control-room/rooms/aftermath-corporate.png` | 224×160 | `f58f2ea17525fe0330e75ee6d329f5e4dc2a83ae6a1e8acedd1d25d634cd1db2` | Aftermath location base |
 | `roomCivicGate` | Civic perimeter gate: fence line across the room, open near edge | `control-room/rooms/aftermath-civic-gate.png` | 224×160 | `0884b5bbe0e78bc7f8ce4659de043f8190ddabdd5e719042ba51fcaeb751d029` | Aftermath location base |
 
@@ -90,7 +90,7 @@ playback can freeze for reduced motion, while GIF playback cannot.
 | Aftermath dialog | Six fixed 14×10 orthographic rooms via shared recipes/`PixelRoom`. Actor and prop positions use integer tile coordinates. Setup → Action → Consequence text and controls stay below the scene; no in-room actor labels. |
 | Report and Archive | Shared records-office base (`roomRecords`). Report shows completed-run evidence load; Archive fills shelves/boxes from recovered knowledge without changing Archive mechanics or odds. |
 | Playtest Journal / design-system placeholders | No player-facing art requirement; leave internal tools outside the artwork scope. |
-| `/dev/control-room` | Development preview of the facility and state matrix; excluded from production. |
+| `/dev/control-room` | Development preview via named reachable fixtures (`presentationFixtures.ts`); excluded from production. |
 
 Known missing or in-progress states:
 

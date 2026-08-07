@@ -63,6 +63,14 @@ export type RoomCompositeRecipe = {
   readonly spriteAnchors: Readonly<Record<string, GridPoint>>;
   /** State-driven prop attachment points; aliases the canonical room anchors. */
   readonly dynamicOverlayAnchors: Readonly<Record<string, GridPoint>>;
+  /**
+   * Anchor names deliberately placed on top of baked furniture, with the reason
+   * in a comment. The default is that an anchor over a prop is a §11.4 bug — a
+   * runtime layer overpainting a baked object at the moment it matters. The
+   * legitimate exception is furniture meant to be occupied: an actor anchored on
+   * a chair is the chair working as intended.
+   */
+  readonly anchorsAllowedOverFurniture?: readonly string[];
   readonly lightingZones: readonly TileRect[];
   readonly note: string;
 };
@@ -274,7 +282,12 @@ export const ROOM_RECIPES: Record<RoomCompositeKey, RoomCompositeRecipe> = {
       place(librarySingle(40), 13, 7),
       place(librarySingle(57), 14, 7),
       place(librarySingle(60), 16, 7),
-      place(librarySingle(54), 19, 7),
+      // Columns 19..20 of the annex stay bare on purpose. The Corporation
+      // terminal anchors at (20,7) and the institutional-damage mark at (19,8),
+      // so anything baked here is overpainted at exactly the moment those states
+      // matter. A copier used to sit at (19,7): with the Corporation embedded
+      // and institutions breached, a server rack and a safe stacked on top of it
+      // and all three silhouettes stopped reading (§11.4).
     ],
     spriteAnchors: ROOM_DEFINITIONS.facility.anchors,
     dynamicOverlayAnchors: ROOM_DEFINITIONS.facility.anchors,
@@ -304,6 +317,10 @@ export const ROOM_RECIPES: Record<RoomCompositeKey, RoomCompositeRecipe> = {
     ],
     spriteAnchors: ROOM_DEFINITIONS.intake.anchors,
     dynamicOverlayAnchors: ROOM_DEFINITIONS.intake.anchors,
+    // The intake actors are seated: 'officer' and 'director' anchor onto the two
+    // chairs either side of the desk, and 'desk' names the desk itself. Furniture
+    // being occupied is the furniture working, not a §11.4 overpaint.
+    anchorsAllowedOverFurniture: ["officer", "director", "desk"],
     lightingZones: roomLightingZones("intake"),
     note: "Compact federal intake office for the operational brief.",
   },
@@ -327,6 +344,10 @@ export const ROOM_RECIPES: Record<RoomCompositeKey, RoomCompositeRecipe> = {
     ],
     spriteAnchors: ROOM_DEFINITIONS.records.anchors,
     dynamicOverlayAnchors: ROOM_DEFINITIONS.records.anchors,
+    // The clerk is seated at the chair baked at (6,6). The evidence anchors are
+    // NOT exempt: they carry runtime safes and equipment, and a safe drawn over
+    // a desk is the §11.4 overpaint, not a desk being used.
+    anchorsAllowedOverFurniture: ["clerk"],
     lightingZones: roomLightingZones("records"),
     note: "Evidence records office shared by Report and Archive.",
   },
@@ -415,7 +436,9 @@ export const ROOM_RECIPES: Record<RoomCompositeKey, RoomCompositeRecipe> = {
     wallBands: STANDARD_WALL_BANDS,
     walls: STANDARD_WALLS,
     furniture: [
-      place(worksiteSingle("Sign_2"), 2, 1),
+      // The sign is a 1×3 post: at column 2 its base landed inside the timber
+      // stack at (1,3)–(2,5) and the post was painted over. Column 3 clears it.
+      place(worksiteSingle("Sign_2"), 3, 1),
       place(conferenceSingle(59), 12, 1),
       place(worksiteSingle("Stacked_Material_1"), 1, 3),
       place(worksiteSingle("Stacked_Material_3"), 4, 2),
