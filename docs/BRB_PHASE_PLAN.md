@@ -42,7 +42,7 @@ Add the replay engine before changing balance values. Replace Events with the 15
 - Four echo types with decision provenance: card, relationship, system, and ending
 - Labor Coalition and Corporate Exposure routes
 - Archetype-specific card weights, consultation abilities, liabilities, and ending variations
-- Deterministic Declassified Report, two replay actions, and Archive v1 with Clearance and six one-use Legacy Directives
+- Deterministic Declassified Report, two replay actions, and Archive v1 with Clearance and seven one-use Legacy Directives
 - Versioned local storage with safe fallback for active run, Archive, latest report, and replay intent
 - Static Next.js App Router browser application with Start, Campaign, Report, and Archive views
 - Replay-aware simulator fields and a separate post-replay baseline

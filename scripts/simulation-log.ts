@@ -16,6 +16,7 @@ type SimulationLogReport = Pick<
   | "outcomeSummary"
   | "cardTempo"
   | "campaignLength"
+  | "byArchetype"
 > & {
   activationFailureReasons: Record<ActivationFailureReason, number>;
   outcomeByStrategy: Partial<Record<BotId, {
@@ -74,6 +75,13 @@ export function formatSimulationLogEntry(
       return `| ${strategy} | ${result.runs.toLocaleString("en-US")} | ${activations.toLocaleString("en-US")} |`;
     })
     .join("\n");
+  const archetypeActivations = Object.entries(report.byArchetype)
+    .filter(([, result]) => result.runs > 0)
+    .map(([archetype, result]) => {
+      const rate = Number(((result.victories / result.runs) * 100).toFixed(2));
+      return `| ${archetype} | ${result.runs.toLocaleString("en-US")} | ${result.victories.toLocaleString("en-US")} | ${rate}% |`;
+    })
+    .join("\n");
 
   return `## ${timestamp} — ${label}
 
@@ -109,6 +117,12 @@ ${failureReasons}
 | Strategy | Runs | Activations |
 | --- | ---: | ---: |
 ${strategyActivations}
+
+### Activations by archetype
+
+| Archetype | Runs | Activations | Rate |
+| --- | ---: | ---: | ---: |
+${archetypeActivations}
 
 ### Notes
 

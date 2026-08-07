@@ -26,6 +26,7 @@ export const LEGACY_DIRECTIVE_IDS = [
   "public_confidence_reserve",
   "industrial_surge",
   "continuity_freeze_order",
+  "containment_brief",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -172,6 +173,8 @@ export type LegacyDirective = {
   warning: string;
   effects: Effects;
   preventCorporationResponse?: boolean;
+  /** When set, createGame strips the equip unless the campaign archetype matches. */
+  requiredArchetypeId?: ArchetypeId;
 };
 
 export type LegacyDirectiveRunState = {

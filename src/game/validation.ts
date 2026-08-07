@@ -1,4 +1,5 @@
 import { ARCHETYPES, CORPORATION_MOVES, SITUATION_CARDS } from "./content";
+import { isLegacyDirectiveCompatible } from "./directives";
 import { validateRouteIntegrity } from "./routes";
 import { isDeclassifiedReport, isEnding } from "./persisted-data-validation";
 import {
@@ -8,6 +9,7 @@ import {
   RESOURCE_KEYS,
   ROUTE_IDS,
   TRACK_KEYS,
+  type ArchetypeId,
   type GameState,
 } from "./types";
 import {
@@ -52,7 +54,7 @@ const PHASES = ["briefing", "consulted", "ended"] as const;
 const ROUTE_EFFECTS = ["touch", "open", "advance", "complete", "close", "reopen"] as const;
 const ROUTE_STATUSES = ["unseen", "touched", "open", "closed", "reopened", "completed"] as const;
 const CORPORATION_STRATEGIES = Object.keys(CORPORATION_MOVES);
-const ARCHETYPE_IDS = Object.keys(ARCHETYPES);
+const ARCHETYPE_IDS = Object.keys(ARCHETYPES) as ArchetypeId[];
 const CARD_IDS = SITUATION_CARDS.map((card) => card.id);
 const CARD_ID_SET = new Set(CARD_IDS);
 const CARD_CHOICES = new Map(
@@ -365,6 +367,10 @@ export function isGameState(value: unknown): value is GameState {
   if ((value.phase === "ended") !== (value.ending !== null && value.report !== null)) return false;
   if (value.phase !== "consulted" && value.consultation !== null) return false;
   if (value.report && value.report.runId !== value.runId) return false;
+  if (!isLegacyDirectiveCompatible(
+    value.archetypeId,
+    value.legacyDirective.equippedId,
+  )) return false;
 
   const state = value as unknown as GameState;
   const decisionIds = new Set(state.decisionHistory.map((decision) => decision.id));

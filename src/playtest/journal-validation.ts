@@ -1,4 +1,5 @@
 import { ARCHETYPES, SITUATION_CARDS } from "../game/content";
+import { getLegacyDirectiveEquipError } from "../game/directives";
 import {
   ADVISOR_IDS,
   CORPORATION_STRATEGIES,
@@ -6,6 +7,7 @@ import {
   LEGACY_DIRECTIVE_IDS,
   RESOURCE_KEYS,
   TRACK_KEYS,
+  type ArchetypeId,
 } from "../game/types";
 import {
   isBoolean,
@@ -37,7 +39,7 @@ const RUN_KINDS = ["primary", "replay"] as const;
 const RUN_STATUSES = ["active", "completed", "abandoned"] as const;
 const MARKER_LOCATIONS = ["campaign", "report"] as const;
 const GAME_PHASES = ["briefing", "consulted", "ended"] as const;
-const ARCHETYPE_IDS = Object.keys(ARCHETYPES);
+const ARCHETYPE_IDS = Object.keys(ARCHETYPES) as ArchetypeId[];
 const CHOICE_IDS = SITUATION_CARDS.flatMap((card) => card.choices.map((choice) => choice.id));
 const CARD_IDS = SITUATION_CARDS.map((card) => card.id);
 
@@ -120,6 +122,11 @@ function assertRun(value: unknown, index: number): PlaytestRunEntry {
   if (!isInteger(run.seed)) fail(`${where} has a non-integer seed`);
   if (!isOneOf(run.archetypeId, ARCHETYPE_IDS)) fail(`${where} has an unknown archetype`);
   if (!isNullableOneOf(run.legacyDirectiveId, LEGACY_DIRECTIVE_IDS)) fail(`${where} has an unknown Directive`);
+  const equipError = getLegacyDirectiveEquipError(
+    run.archetypeId,
+    run.legacyDirectiveId as PlaytestRunEntry["legacyDirectiveId"],
+  );
+  if (equipError) fail(equipError);
   if (!isNullableOneOf(run.endingId, ENDING_IDS)) fail(`${where} has an unknown ending`);
   if (!isNonEmptyString(run.startedAt)) fail(`${where} has no start time`);
   if (!isNullableString(run.completedAt)) fail(`${where} has an invalid completion time`);

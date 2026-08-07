@@ -1,13 +1,16 @@
 import { ARCHETYPES, SITUATION_CARDS } from "./content";
+import { isLegacyDirectiveCompatible } from "./directives";
 import {
   ADVISOR_IDS,
   ARCHIVE_SCAR_IDS,
   ENDING_IDS,
   LEGACY_DIRECTIVE_IDS,
   ROUTE_IDS,
+  type ArchetypeId,
   type ArchiveV1,
   type ArchiveV0,
   type DeclassifiedReport,
+  type LegacyDirectiveRunState,
   type ReplayIntent,
 } from "./types";
 import {
@@ -26,7 +29,7 @@ import {
   isTrackPool,
 } from "./validation-primitives";
 
-const ARCHETYPE_IDS = Object.keys(ARCHETYPES);
+const ARCHETYPE_IDS = Object.keys(ARCHETYPES) as ArchetypeId[];
 const ENDING_VARIATIONS = [
   "perfect_machine_empty_state",
   "crowd_presses_button",
@@ -40,7 +43,7 @@ const CARD_CHOICES = new Map(
   ]),
 );
 
-function isLegacyDirectiveRunState(value: unknown): boolean {
+function isLegacyDirectiveRunState(value: unknown): value is LegacyDirectiveRunState {
   return isRecord(value)
     && (value.equippedId === null || isOneOf(value.equippedId, LEGACY_DIRECTIVE_IDS))
     && isBoolean(value.used)
@@ -106,6 +109,12 @@ export function isDeclassifiedReport(
     || !isNonEmptyString(value.suggestedExperiment)
     || !(value.finalSnapshot === null || isReportSnapshot(value.finalSnapshot))
   ) {
+    return false;
+  }
+  if (!isLegacyDirectiveCompatible(
+    value.archetypeId,
+    value.legacyDirective.equippedId,
+  )) {
     return false;
   }
   return isRecord(value.unseenRouteHint)
@@ -208,13 +217,19 @@ export function isArchiveV1(value: unknown): value is ArchiveV1 {
 }
 
 export function isReplayIntent(value: unknown): value is ReplayIntent {
-  return isRecord(value)
+  if (!(isRecord(value)
     && isOneOf(value.mode, ["same_seed", "fresh_seed"] as const)
     && isInteger(value.seed, 0)
     && isOneOf(value.archetypeId, ARCHETYPE_IDS)
     && isNonEmptyString(value.experiment)
     && (value.legacyDirectiveId === null
-      || isOneOf(value.legacyDirectiveId, LEGACY_DIRECTIVE_IDS));
+      || isOneOf(value.legacyDirectiveId, LEGACY_DIRECTIVE_IDS)))) {
+    return false;
+  }
+  return isLegacyDirectiveCompatible(
+    value.archetypeId,
+    value.legacyDirectiveId,
+  );
 }
 
 export function assertArchiveV0(value: unknown): asserts value is ArchiveV0 {

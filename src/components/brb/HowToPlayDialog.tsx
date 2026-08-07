@@ -78,7 +78,7 @@ export function HowToPlayDialog() {
           </section>
           <section>
             <strong>Legacy Directive</strong>
-            <p>An optional reward card equipped before a run. It modifies one accepted commitment, applies its listed drawback, and remains permanently unlocked.</p>
+            <p>An optional reward card equipped before a run. It modifies one accepted commitment, applies its listed drawback, and remains permanently unlocked. Some rare Directives require a matching operating doctrine (for example, Containment Brief is Operator only).</p>
           </section>
           <section>
             <strong>Necessary Regime aftermath</strong>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ARCHETYPES } from "../../game/content";
 import {
   getAdvisorRecommendation,
   getTurnEchoTypes,
@@ -227,7 +228,12 @@ export function CampaignScreen({
         <ConsolePanel className={`campaign-directive my-3 border-l-4 border-l-signal py-3.5 ${state.legacyDirective.used ? "opacity-60" : ""}`} label="Legacy Directive">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-            <p className="file-label">LEGACY DIRECTIVE · {equippedDirective.rarity}</p>
+            <p className="file-label">
+              LEGACY DIRECTIVE · {equippedDirective.rarity}
+              {equippedDirective.requiredArchetypeId
+                ? ` · ${ARCHETYPES[equippedDirective.requiredArchetypeId].name} doctrine`
+                : ""}
+            </p>
               <h2 className="brb-display m-0 text-xl leading-none font-semibold">{equippedDirective.title}</h2>
             </div>
             <p className="m-0 text-xs leading-5 text-muted-foreground">

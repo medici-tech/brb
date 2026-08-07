@@ -47,10 +47,11 @@ export function createActivationReadyFixture(): GameState {
   state.tracks = {
     engineering: 60,
     access: 60,
-    legitimacy: 60,
-    stability: 60,
+    legitimacy: 75,
+    stability: 75,
   };
   state.corporation.progress = 20;
+  state.endingContributors = ["public_testimony"];
   return state;
 }
 

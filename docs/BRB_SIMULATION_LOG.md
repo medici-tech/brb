@@ -2033,3 +2033,194 @@ Earlier pre-logging baselines and controlled experiments remain documented chron
 
 > Lower command bot leverageLimit 86 -> 80 so every managed profile disciplines below the coup bar (85) instead of tolerating advisors past it.
 
+## 2026-08-06T04:45:37.379Z — Legacy Directive: Containment Brief
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `containment_brief`
+- Source: `fdef7b7` (clean)
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 395 (7.9%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 343 (6.86%) |
+| State collapse | 1,744 (34.88%) |
+| Corporate capture | 2,024 (40.48%) |
+| Advisor coup | 503 (10.06%) |
+| Advisor cabal | 334 (6.68%) |
+| Average / median months | 21.03 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.54 / 8.23 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,190 |
+| Activation attempts | 395 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 395 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,810 |
+| panic_before_activation | 282 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 511 |
+| corporation_unsafe_before_activation | 1 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 32 |
+| rush | 334 | 28 |
+| defensive | 334 | 22 |
+| fixer | 334 | 8 |
+| institutionalist | 334 | 37 |
+| command | 333 | 5 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 24 |
+| delayed_deposit | 333 | 12 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 0 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Changed only the equipped Directive (Operator-gated Containment Brief). Hard equip gate strips non-Operator runs; comparing overall activation and Operator slices to the no-Directive baseline. Provisional until human playtest on Cabal risk.
+
+## 2026-08-06T04:46:37.932Z — Legacy Directive retune: Containment Brief +6 leverage
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `containment_brief`
+- Source: `fdef7b7` with uncommitted changes
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 417 (8.34%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 365 (7.3%) |
+| State collapse | 1,758 (35.16%) |
+| Corporate capture | 2,051 (41.02%) |
+| Advisor coup | 441 (8.82%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.17 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.62 / 8.28 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,216 |
+| Activation attempts | 417 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 417 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,784 |
+| panic_before_activation | 285 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 510 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 32 |
+| rush | 334 | 29 |
+| defensive | 334 | 22 |
+| fixer | 334 | 21 |
+| institutionalist | 334 | 37 |
+| command | 333 | 11 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 24 |
+| delayed_deposit | 333 | 13 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Notes
+
+> Retuned only Fixer Leverage on Containment Brief from +10 to +6 after the +10 variant fell to 7.9% activation with a coup spike. Same Operator equip gate; no other levers changed.
+
+## 2026-08-07T01:06:33.314Z — Containment Brief clean merged revalidation
+
+- Runs: **5,000**
+- Seed: `20260715`
+- Legacy Directive: `containment_brief`
+- Source: `ce27a83` (clean)
+
+| Outcome | Result |
+| --- | ---: |
+| Activations | 417 (8.34%) |
+| — Civic Legacy | 52 (1.04%) |
+| — Compromised activation | 365 (7.3%) |
+| State collapse | 1,758 (35.16%) |
+| Corporate capture | 2,051 (41.02%) |
+| Advisor coup | 441 (8.82%) |
+| Advisor cabal | 333 (6.66%) |
+| Average / median months | 21.17 / 21 |
+| Longest campaign | 57 months |
+| Cards presented / resolved per run | 11.62 / 8.28 |
+| Over 5 / 10 years | 0 / 0 |
+| All tracks ready | 1,216 |
+| Activation attempts | 417 |
+
+### Activation funnel
+
+| Result | Runs |
+| --- | ---: |
+| activated | 417 |
+| activation_corporate_capture | 0 |
+| tracks_never_ready | 3,784 |
+| panic_before_activation | 285 |
+| institutions_before_activation | 0 |
+| advisors_before_activation | 0 |
+| corporation_capture_before_activation | 510 |
+| corporation_unsafe_before_activation | 3 |
+| strategy_delayed_after_readiness | 1 |
+
+### Activations by strategy
+
+| Strategy | Runs | Activations |
+| --- | ---: | ---: |
+| balanced | 334 | 32 |
+| rush | 334 | 29 |
+| defensive | 334 | 22 |
+| fixer | 334 | 21 |
+| institutionalist | 334 | 37 |
+| command | 333 | 11 |
+| coalition | 333 | 13 |
+| engineering_first | 333 | 22 |
+| legitimacy_first | 333 | 59 |
+| stability_first | 333 | 25 |
+| access_first | 333 | 24 |
+| delayed_deposit | 333 | 13 |
+| advisor_dependent | 333 | 0 |
+| advisor_cabal | 333 | 1 |
+| civic_seeker | 333 | 108 |
+
+### Activations by archetype
+
+| Archetype | Runs | Activations | Rate |
+| --- | ---: | ---: | ---: |
+| technocrat | 1,113 | 94 | 8.45% |
+| populist | 1,777 | 234 | 13.17% |
+| operator | 2,110 | 89 | 4.22% |
+
+### Notes
+
+> Clean post-merge revalidation of the accepted Operator-only Containment Brief (+6 Influence, +6 Fixer Leverage). No gameplay lever changed; confirms aggregate outcomes, Operator slice, and takeover delta against the documented no-Directive checkpoint.
+

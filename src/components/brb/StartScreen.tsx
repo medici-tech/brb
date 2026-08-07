@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ARCHETYPES } from "../../game/content";
-import { LEGACY_DIRECTIVES } from "../../game/directives";
+import { getLegacyDirectiveEquipError, LEGACY_DIRECTIVES } from "../../game/directives";
 import { RESOURCE_LABELS, TRACK_LABELS } from "../../game/guidance";
 import { formatCampaignTime } from "../../game/progression";
 import {
@@ -154,7 +154,7 @@ export function StartScreen({
         eyebrow="LEGACY DIRECTIVE · OPTIONAL"
         title="Carry one authorization into the next file."
         titleId="directive-loadout-title"
-        summary="An equipped Directive can modify one commitment during the campaign. It remains permanently unlocked and is not consumed."
+        summary="An equipped Directive can modify one commitment during the campaign. It remains permanently unlocked and is not consumed. Doctrine-locked cards can only open with a matching operating doctrine."
       >
         {replayIntent ? (
           <div className="grid gap-2 border border-[color:var(--paper-line)] bg-white/20 p-4">
@@ -179,6 +179,9 @@ export function StartScreen({
             </Button>
             {unlockedDirectiveIds.map((id) => {
               const directive = LEGACY_DIRECTIVES[id];
+              const doctrineLock = directive.requiredArchetypeId
+                ? `${ARCHETYPES[directive.requiredArchetypeId].name} doctrine only`
+                : null;
               return (
                 <Button
                   type="button"
@@ -190,6 +193,9 @@ export function StartScreen({
                 >
                   <strong>{directive.title} · {directive.rarity}</strong>
                   <span className="text-xs leading-5 opacity-70">{directive.benefit} · {directive.warning}</span>
+                  {doctrineLock ? (
+                    <span className="text-xs leading-5 opacity-70">{doctrineLock}</span>
+                  ) : null}
                 </Button>
               );
             })}
@@ -202,6 +208,14 @@ export function StartScreen({
         <div className="grid gap-4 lg:grid-cols-3">
           {(Object.keys(ARCHETYPES) as ArchetypeId[]).map((id) => {
             const archetype = ARCHETYPES[id];
+            const loadoutDirectiveId = replayIntent?.legacyDirectiveId ?? selectedDirectiveId;
+            const equipError = getLegacyDirectiveEquipError(id, loadoutDirectiveId);
+            const replayDoctrineError = replayIntent && replayIntent.archetypeId !== id
+              ? `Replay preserves the ${ARCHETYPES[replayIntent.archetypeId].name} doctrine.`
+              : null;
+            const actionError = replayDoctrineError ?? equipError;
+            const doctrineBlocked = Boolean(actionError);
+            const actionReasonId = actionError ? `doctrine-action-reason-${id}` : undefined;
             const startingChanges = [
               ...RESOURCE_KEYS.flatMap((resource) => {
                 const amount = archetype.resourceChanges[resource];
@@ -221,15 +235,38 @@ export function StartScreen({
                   { label: "Starting position", value: startingChanges.join(" · ") },
                   { label: "Situations seen more often", value: `${archetype.favoredCardType} files` },
                   { label: "Liability", value: archetype.liability },
+                  ...(actionError ? [{
+                    label: replayDoctrineError ? "Replay lock" : "Directive lock",
+                    value: actionError,
+                  }] : []),
                 ]}
                 action={(
-                  <Button
-                    variant="critical"
-                    disabled={newRunBlocked}
-                    onClick={() => onStart(id, replayIntent?.legacyDirectiveId ?? selectedDirectiveId)}
-                  >
-                    Open {archetype.name} File
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      variant="critical"
+                      className={doctrineBlocked
+                        ? "cursor-not-allowed opacity-45 hover:bg-destructive active:translate-x-0 active:translate-y-0 active:shadow-[var(--shadow-hard-sm)]"
+                        : undefined}
+                      disabled={newRunBlocked}
+                      aria-disabled={newRunBlocked || doctrineBlocked}
+                      aria-describedby={actionReasonId}
+                      onClick={() => {
+                        if (newRunBlocked || doctrineBlocked) return;
+                        onStart(id, loadoutDirectiveId);
+                      }}
+                    >
+                      {replayIntent && replayIntent.archetypeId === id ? "Replay" : "Open"} {archetype.name} File
+                    </Button>
+                    {actionError ? (
+                      <span
+                        className="mt-2 block text-xs leading-5 text-muted-foreground"
+                        id={actionReasonId}
+                      >
+                        {actionError}
+                      </span>
+                    ) : null}
+                  </>
                 )}
                 key={id}
               />

@@ -3,6 +3,7 @@ import { applyEffects, clamp } from "./state-helpers";
 import {
   LEGACY_DIRECTIVE_IDS,
   RESOURCE_KEYS,
+  type ArchetypeId,
   type GameState,
   type LegacyDirective,
   type LegacyDirectiveDraft,
@@ -10,6 +11,12 @@ import {
   type MajorAction,
   type ResourcePool,
 } from "./types";
+
+const ARCHETYPE_LABELS: Record<ArchetypeId, string> = {
+  technocrat: "Technocrat",
+  populist: "Populist",
+  operator: "Operator",
+};
 
 export const LEGACY_DIRECTIVES: Record<LegacyDirectiveId, LegacyDirective> = {
   emergency_appropriation: {
@@ -67,7 +74,40 @@ export const LEGACY_DIRECTIVES: Record<LegacyDirectiveId, LegacyDirective> = {
     effects: { pressures: { panic: 6 }, institutions: -10 },
     preventCorporationResponse: true,
   },
+  containment_brief: {
+    id: "containment_brief",
+    title: "Containment Brief",
+    rarity: "rare",
+    description: "Authorize a quiet Fixer containment package before one commitment.",
+    benefit: "Influence +6",
+    warning: "Fixer Leverage +6",
+    effects: {
+      resources: { influence: 6 },
+      advisors: { fixer: { leverage: 6 } },
+    },
+    requiredArchetypeId: "operator",
+  },
 };
+
+/** Returns a player-facing reason when a Directive cannot equip for this doctrine. */
+export function isLegacyDirectiveCompatible(
+  archetypeId: ArchetypeId,
+  directiveId: LegacyDirectiveId | null | undefined,
+): boolean {
+  if (!directiveId) return true;
+  const required = LEGACY_DIRECTIVES[directiveId].requiredArchetypeId;
+  return !required || required === archetypeId;
+}
+
+export function getLegacyDirectiveEquipError(
+  archetypeId: ArchetypeId,
+  directiveId: LegacyDirectiveId | null | undefined,
+): string | null {
+  if (!directiveId || isLegacyDirectiveCompatible(archetypeId, directiveId)) return null;
+  const required = LEGACY_DIRECTIVES[directiveId].requiredArchetypeId;
+  if (!required) return null;
+  return `${LEGACY_DIRECTIVES[directiveId].title} requires the ${ARCHETYPE_LABELS[required]} doctrine.`;
+}
 
 export const INITIAL_DIRECTIVE_REWARD_SEED = 0x4c454741;
 
@@ -83,6 +123,11 @@ export function getLegacyDirectiveUseError(
   if (!state.legacyDirective.equippedId) {
     return "No Legacy Directive is equipped for this campaign.";
   }
+  const equipError = getLegacyDirectiveEquipError(
+    state.archetypeId,
+    state.legacyDirective.equippedId,
+  );
+  if (equipError) return equipError;
   if (state.legacyDirective.used) {
     return "The equipped Legacy Directive has already been used this campaign.";
   }

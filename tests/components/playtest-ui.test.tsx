@@ -36,6 +36,26 @@ describe("free-play playtest UI", () => {
     expect(screen.queryByText(/active playtest directive/i)).not.toBeInTheDocument();
   });
 
+  it("shows doctrine-locked Directive metadata with player-facing labels", () => {
+    const state = createGame({
+      seed: 23,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    render(
+      <CampaignScreen
+        state={state}
+        error={null}
+        onCommit={vi.fn()}
+        onConsult={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/legacy directive · rare · Operator doctrine/i)).toBeInTheDocument();
+    expect(screen.queryByText(/legacy directive · rare · operator$/i)).not.toBeInTheDocument();
+  });
+
   it("shows exact advisor and activation thresholds plus visible consultation blockers", () => {
     const state = createGame(220);
     state.resources.intelligence = 0;
@@ -195,6 +215,73 @@ describe("free-play playtest UI", () => {
     expect(screen.getByRole("button", { name: /industrial surge/i })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: /open technocrat file/i }));
     expect(onStart).toHaveBeenCalledWith("technocrat", "industrial_surge");
+  });
+
+  it("keeps doctrine-locked starts focusable with an accessible reason", () => {
+    const onStart = vi.fn();
+    render(
+      <StartScreen
+        savedRun={null}
+        replayIntent={null}
+        unlockedDirectiveIds={["containment_brief"]}
+        onStart={onStart}
+        onResume={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /containment brief/i }));
+    const technocrat = screen.getByRole("button", { name: /open technocrat file/i });
+    const populist = screen.getByRole("button", { name: /open populist file/i });
+    const operator = screen.getByRole("button", { name: /open operator file/i });
+
+    expect(technocrat).toHaveAttribute("aria-disabled", "true");
+    expect(populist).toHaveAttribute("aria-disabled", "true");
+    expect(operator).toHaveAttribute("aria-disabled", "false");
+    expect(technocrat).not.toBeDisabled();
+    expect(technocrat).toHaveClass("cursor-not-allowed", "opacity-45");
+    expect(technocrat).toHaveAttribute("aria-describedby", "doctrine-action-reason-technocrat");
+    expect(document.getElementById("doctrine-action-reason-technocrat")).toHaveTextContent(
+      /Containment Brief requires the Operator doctrine/i,
+    );
+
+    fireEvent.click(technocrat);
+    expect(onStart).not.toHaveBeenCalled();
+    fireEvent.click(operator);
+    expect(onStart).toHaveBeenCalledWith("operator", "containment_brief");
+  });
+
+  it("keeps replay doctrine fixed and labels the only available replay action accurately", () => {
+    const onStart = vi.fn();
+    render(
+      <StartScreen
+        savedRun={null}
+        replayIntent={{
+          mode: "same_seed",
+          seed: 42,
+          archetypeId: "technocrat",
+          experiment: "Repeat the file",
+          legacyDirectiveId: "emergency_appropriation",
+        }}
+        onStart={onStart}
+        onResume={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+
+    const technocrat = screen.getByRole("button", { name: /replay technocrat file/i });
+    const operator = screen.getByRole("button", { name: /open operator file/i });
+    expect(technocrat).toHaveAttribute("aria-disabled", "false");
+    expect(operator).toHaveAttribute("aria-disabled", "true");
+    expect(operator).toHaveAttribute("aria-describedby", "doctrine-action-reason-operator");
+    expect(document.getElementById("doctrine-action-reason-operator")).toHaveTextContent(
+      /Replay preserves the Technocrat doctrine/i,
+    );
+
+    fireEvent.click(operator);
+    expect(onStart).not.toHaveBeenCalled();
+    fireEvent.click(technocrat);
+    expect(onStart).toHaveBeenCalledWith("technocrat", "emergency_appropriation");
   });
 
   it("drops a one-line marker from the M shortcut", () => {

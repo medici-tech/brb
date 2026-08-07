@@ -177,11 +177,31 @@ Target behavior: variation comes from requirements, weights, prior choices, cool
 
 ## Roguelite progression
 
-Prototype runs use seeded randomness, three archetypes, and Archive v1 Legacy Directives. Completed runs earn 1 Clearance, victories earn 3, and 3 Clearance creates a deterministic draft. An unlocked Directive is permanent, but only one may be equipped and used once per campaign.
+Prototype runs use seeded randomness, three archetypes, and Archive v1 Legacy Directives. Losses earn 1 Clearance, Necessary Regime earns 2, Civic Legacy earns 3, and 3 Clearance creates a deterministic draft. An unlocked Directive is permanent, but only one may be equipped and used once per campaign. Containment Brief (`containment_brief`) is a rare Operator-only card (Influence +6, Fixer Leverage +6); other doctrines cannot equip it.
 
 The no-Directive run remains the balance baseline. Evaluate each Directive as the only changed lever in a 5,000-run fixed-seed comparison beginning with `20260715`; reject or retune any card that moves overall activation outside the 8–12% evaluation band or creates clear archetype dominance. Directive rarity controls reward frequency and specialization, not an approved power tier. Levels remain out of scope.
 
 For the full game, continue evaluating horizontal unlocks such as archetypes, cards, scenarios, advisors, and mutators separately from baseline balance.
+
+### Containment Brief (Operator-gated) — provisional
+
+Hypothesis: one rare Operator-tagged Directive can deepen doctrine fantasy without becoming a second generic resource whip. The hard equip gate means a default mixed-archetype 5,000-run block only applies the card on Operator runs; non-Operator runs strip to no Directive. Treat overall activation movement as diluted relative to a full-equip card, and inspect Operator archetype slices / coup rates before accepting or rejecting. Do not retune Corp intervals, deposits, or the other six Directives in the same experiment.
+
+| Loadout | Activations | Coup | Combined takeover | Decision |
+| --- | ---: | ---: | ---: | --- |
+| Recent no-Directive checkpoint | 413 (8.26%) | 383 (7.66%) | 716 (14.32%) | Comparison baseline |
+| Containment Brief (+6 Influence, Fixer Leverage +10) | 395 (7.9%) | 503 (10.06%) | 837 (16.74%) | Rejected; below 8% band and above takeover ceiling |
+| Containment Brief (+6 Influence, Fixer Leverage +6) | 417 (8.34%) | 441 (8.82%) | 774 (15.48%) | Provisional activation-band pass; retain for human playtest |
+
+The +6 retune adds four activations (+0.08 percentage points) but also 58 coups, raising combined takeover by 1.16 points. Cabal remains unchanged at 333 runs (6.66%). The result is inside the automated activation and combined-takeover bands, but it is not a clean power gain; human playtests still gate whether the visible Fixer cost is meaningful rather than punishing.
+
+| Archetype | Runs | No Directive | Containment Brief +6 | Change |
+| --- | ---: | ---: | ---: | ---: |
+| Technocrat | 1,113 | 94 (8.45%) | 94 (8.45%) | 0 |
+| Populist | 1,777 | 234 (13.17%) | 234 (13.17%) | 0 |
+| Operator | 2,110 | 85 (4.03%) | 89 (4.22%) | +4 (+0.19 pp) |
+
+The mixed matrix equips Containment Brief on the 42.2% of runs assigned to Operator; the other 57.8% fail closed to the no-Directive loadout. Operator remains the lowest-activating archetype, so the bot evidence does not show archetype dominance. Authored values remain Influence +6 / Fixer Leverage +6.
 
 ### Initial Legacy Directive fixed-seed checkpoint — 2026-07-23
 

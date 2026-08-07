@@ -6,10 +6,12 @@ import {
   createGame,
   createReplayIntent,
   drawLegacyDirectiveDraft,
+  getLegacyDirectiveEquipError,
   LEGACY_DIRECTIVE_IDS,
+  LEGACY_DIRECTIVES,
   mergeRunIntoArchive,
 } from "../../src/game/index.js";
-import type { GameState, LegacyDirectiveId } from "../../src/game/types.js";
+import type { ArchetypeId, GameState, LegacyDirectiveId } from "../../src/game/types.js";
 
 function completeVictory(runId: string, seed = 71): GameState {
   const state = createGame({ seed, runId });
@@ -38,8 +40,12 @@ function completeCompromised(runId: string, seed = 72): GameState {
   return commitAction(state, { type: "activate_brb" }).state;
 }
 
-function useDirective(id: LegacyDirectiveId, seed = 31): GameState {
-  const state = createGame({ seed, legacyDirectiveId: id });
+function useDirective(
+  id: LegacyDirectiveId,
+  seed = 31,
+  archetypeId: ArchetypeId = "technocrat",
+): GameState {
+  const state = createGame({ seed, archetypeId, legacyDirectiveId: id });
   state.activeCardId = null;
   return commitAction(
     state,
@@ -68,6 +74,55 @@ describe("Legacy Directives", () => {
     const surge = useDirective("industrial_surge");
     expect(surge.lastTurnResolution?.commitment.delta.resources.capacity).toBe(8);
     expect(surge.lastTurnResolution?.commitment.delta.institutions).toBe(-5);
+
+    const brief = useDirective("containment_brief", 31, "operator");
+    expect(brief.lastTurnResolution?.commitment.delta.resources.influence).toBe(6);
+    expect(brief.lastTurnResolution?.commitment.delta.advisors.fixer?.leverage).toBe(6);
+  });
+
+  it("gates Containment Brief to the Operator doctrine", () => {
+    expect(LEGACY_DIRECTIVES.containment_brief.requiredArchetypeId).toBe("operator");
+    expect(getLegacyDirectiveEquipError("operator", "containment_brief")).toBeNull();
+    expect(getLegacyDirectiveEquipError("technocrat", "containment_brief")).toMatch(
+      /Operator doctrine/i,
+    );
+    expect(getLegacyDirectiveEquipError("populist", "containment_brief")).toMatch(
+      /Operator doctrine/i,
+    );
+
+    const stripped = createGame({
+      seed: 35,
+      archetypeId: "technocrat",
+      legacyDirectiveId: "containment_brief",
+    });
+    expect(stripped.legacyDirective.equippedId).toBeNull();
+
+    const equipped = createGame({
+      seed: 35,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    expect(equipped.legacyDirective.equippedId).toBe("containment_brief");
+  });
+
+  it("rejects Containment Brief if an invalid in-memory state changes doctrine", () => {
+    const state = createGame({
+      seed: 36,
+      archetypeId: "operator",
+      legacyDirectiveId: "containment_brief",
+    });
+    state.archetypeId = "technocrat";
+    state.activeCardId = null;
+
+    const result = commitAction(
+      state,
+      { type: "recover_resource", resource: "intelligence" },
+      { useLegacyDirective: true },
+    );
+
+    expect(result.accepted).toBe(false);
+    expect(result.error).toMatch(/requires the Operator doctrine/i);
+    expect(result.state.legacyDirective.used).toBe(false);
   });
 
   it("prevents a scheduled Corporation response with the rare Freeze Order", () => {
@@ -222,6 +277,6 @@ describe("Legacy Directive rewards", () => {
       seed: completed.seed,
       legacyDirectiveId: "coalition_whip",
     });
-    expect(LEGACY_DIRECTIVE_IDS).toHaveLength(6);
+    expect(LEGACY_DIRECTIVE_IDS).toHaveLength(7);
   });
 });

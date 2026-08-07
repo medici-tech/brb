@@ -15,7 +15,7 @@ The completed Phase 1.5 slice keeps the itch.io prototype compact:
 - Two routes: Labor Coalition and Corporate Exposure
 - Knowledge-only persistence
 - Start, Campaign, Declassified Report, and Archive v1 views
-- Six bounded Legacy Directive unlocks; no levels, extra equipment slots, route map, large codex, or report library
+- Seven bounded Legacy Directive unlocks (one Operator-gated rare); no levels, extra equipment slots, route map, large codex, or report library
 
 Opportunity, Personal, BRB, Legacy, Legendary, and Black File cards remain future hooks, not prototype content.
 
@@ -172,7 +172,7 @@ It also stores Clearance (progress to next Directive unlock), the deterministic 
 
 Necessary Regime sets `pendingScar` to `necessary_regime_aftermath`. The next campaign start applies Panic +6 once, then consumes the scar. Civic Legacy clears any pending scar on merge. Losses neither set nor clear the scar, so a later loss does not erase a waiting aftermath. Older Archive v1 blobs that omit `pendingScar` normalize to `null` on load; malformed non-null scar IDs fail closed.
 
-The player may equip one unlocked Directive or choose no Directive when creating a run. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. Simulation bots validate candidate affordability with the Directive they intend to attach, rather than selecting from a no-Directive action list and adding the card afterward. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
+The player may equip one unlocked Directive or choose no Directive when creating a run. Directives with `requiredArchetypeId` (currently Containment Brief → Operator) equip only when the campaign doctrine matches; `createGame` strips a mismatched loadout. The equipped card can modify one accepted non-activation commitment. Rejected commitments do not consume the use. Simulation bots validate candidate affordability with the Directive they intend to attach, rather than selecting from a no-Directive action list and adding the card afterward. The Directive's effects and decision ID are stored in `GameState`, the aftermath, and the report. Only the latest Declassified Report is stored. Undiscovered Situation Cards, endings, routes, future requirements, delayed-echo details, and locked Directive identities render as classified silhouettes or remain omitted. Merging the same run ID twice does nothing.
 
 ## Browser persistence
 
