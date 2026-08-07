@@ -8,9 +8,11 @@ import {
   consultAdvisor,
   createEmptyArchive,
   createGame,
+  createReplayIntent,
   getClearanceGainForEnding,
   getEligibleSituationCards,
   getEndingResultLabel,
+  getOpeningAftermathForRun,
   getRouteCompletionKind,
   mergeRunIntoArchive,
   validateRouteIntegrity,
@@ -334,6 +336,29 @@ describe("Clearance ladder and Necessary Regime aftermath", () => {
     archive = mergeRunIntoArchive(archive, civic);
     expect(archive.pendingScar).toBeNull();
     expect(archive.clearance).toBe(1);
+  });
+
+  it("holds the scar back from a same-seed sample but spends it on an ordinary campaign", () => {
+    const compromised = activateWithTracks("scar-provenance", {
+      engineering: 50,
+      access: 50,
+      legitimacy: 50,
+      stability: 50,
+    });
+    const archive = mergeRunIntoArchive(createEmptyArchive(), compromised);
+    expect(archive.pendingScar).toBe("necessary_regime_aftermath");
+    if (!compromised.report) throw new Error("Expected a report for the completed run");
+
+    const sameSeed = createReplayIntent(compromised.report, "same_seed");
+    const freshSeed = createReplayIntent(compromised.report, "fresh_seed");
+
+    expect(getOpeningAftermathForRun(archive, sameSeed)).toBeNull();
+    expect(getOpeningAftermathForRun(archive, freshSeed)).toBe("necessary_regime_aftermath");
+    expect(getOpeningAftermathForRun(archive, null)).toBe("necessary_regime_aftermath");
+
+    // Holding the scar back must not consume it.
+    expect(archive.pendingScar).toBe("necessary_regime_aftermath");
+    expect(getOpeningAftermathForRun(createEmptyArchive(), freshSeed)).toBeNull();
   });
 
   it("exposes ending result labels for report grades", () => {

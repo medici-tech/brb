@@ -58,6 +58,23 @@ export function getEndingResultLabel(endingId: EndingId): string {
   return RESULT_LABEL_BY_ENDING[endingId];
 }
 
+/**
+ * Which Archive aftermath a new run opens under.
+ *
+ * A same-seed replay exists to be compared against the run it repeats, so it
+ * never carries a scar: an unrecorded Panic +6 would show up in the replayer's
+ * divergence as a difference the player never chose. The scar is postponed, not
+ * spent — it stays pending for the next ordinary campaign. A fresh-seed replay
+ * ("Open a New File") is an ordinary campaign and does carry it.
+ */
+export function getOpeningAftermathForRun(
+  archive: ArchiveV1,
+  replay: ReplayIntent | null,
+): ArchiveScarId | null {
+  if (replay?.mode === "same_seed") return null;
+  return archive.pendingScar;
+}
+
 export function consumePendingScar(archive: ArchiveV1): ArchiveV1 {
   if (archive.pendingScar === null) return archive;
   const next = structuredClone(archive);

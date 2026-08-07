@@ -177,6 +177,43 @@ describe("free-play playtest UI", () => {
     ).not.toBeNull();
   });
 
+  it("says the aftermath applies to an ordinary start but is held for a same-seed sample", () => {
+    const { unmount } = render(
+      <StartScreen
+        savedRun={null}
+        replayIntent={null}
+        pendingScar="necessary_regime_aftermath"
+        onStart={vi.fn()}
+        onResume={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+    expect(screen.getByLabelText(/necessary regime aftermath/i)).toHaveTextContent(
+      /next campaign you open starts with panic \+6/i,
+    );
+    unmount();
+
+    render(
+      <StartScreen
+        savedRun={null}
+        replayIntent={{
+          mode: "same_seed",
+          seed: 42,
+          archetypeId: "technocrat",
+          experiment: "Delay the first deposit.",
+          legacyDirectiveId: null,
+        }}
+        pendingScar="necessary_regime_aftermath"
+        onStart={vi.fn()}
+        onResume={vi.fn()}
+        onOpenArchive={vi.fn()}
+      />,
+    );
+    const held = screen.getByLabelText(/necessary regime aftermath/i);
+    expect(held).toHaveTextContent(/opens clean and the scar is not spent/i);
+    expect(held).not.toHaveTextContent(/next campaign you open starts with panic/i);
+  });
+
   it("equips one unlocked Directive or preserves the no-Directive baseline", () => {
     const onStart = vi.fn();
     render(

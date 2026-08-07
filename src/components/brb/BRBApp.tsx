@@ -7,6 +7,7 @@ import {
   consumePendingScar,
   createEmptyArchive,
   createReplayIntent,
+  getOpeningAftermathForRun,
   mergeRunIntoArchive,
 } from "../../game/replay";
 import {
@@ -133,31 +134,20 @@ export function BRBApp() {
     setView("campaign");
   }
 
-  function applyArchiveAftermathToOptions(
-    options: Parameters<typeof createGame>[0] & object,
-  ): Parameters<typeof createGame>[0] {
-    const openingAftermath = archive.pendingScar;
-    if (openingAftermath) {
-      const cleared = consumePendingScar(archive);
-      saveArchive(window.localStorage, cleared);
-      setArchive(cleared);
-    }
-    return { ...options, openingAftermath };
-  }
-
   function begin(
     archetypeId: ArchetypeId,
     legacyDirectiveId: LegacyDirectiveId | null = null,
     replay: ReplayIntent | null = intent,
   ): void {
     const seed = replay?.seed ?? randomSeed();
-    const next = createGame(applyArchiveAftermathToOptions({
+    const next = createGame({
       seed,
       archetypeId: replay?.archetypeId ?? archetypeId,
       runId: newRunId(),
       ...(replay ? { experiment: replay.experiment } : {}),
       legacyDirectiveId: replay?.legacyDirectiveId ?? legacyDirectiveId,
-    }));
+      openingAftermath: getOpeningAftermathForRun(archive, replay),
+    });
     openGame(next, replay ? "replay" : "primary");
   }
 
@@ -184,6 +174,15 @@ export function BRBApp() {
     }
     setError(null);
     setState(result.state);
+    // The Archive scar is spent by playing the scarred run, not by opening it:
+    // clearing it at createGame let a player start and abandon a run to dodge
+    // the aftermath. Only a scarred run can clear it, and only one run is ever
+    // active, so this cannot double-spend.
+    if (result.state.openingAftermath && archive.pendingScar) {
+      const cleared = consumePendingScar(archive);
+      saveArchive(window.localStorage, cleared);
+      setArchive(cleared);
+    }
 
     const step: PlaytestActionStep = {
       kind: "commit",
@@ -228,13 +227,14 @@ export function BRBApp() {
     const nextIntent = createReplayIntent(report, mode);
     saveReplayIntent(window.localStorage, nextIntent);
     setIntent(nextIntent);
-    const next = createGame(applyArchiveAftermathToOptions({
+    const next = createGame({
       seed: nextIntent.seed,
       archetypeId: nextIntent.archetypeId,
       runId: newRunId(),
       experiment: nextIntent.experiment,
       legacyDirectiveId: nextIntent.legacyDirectiveId,
-    }));
+      openingAftermath: getOpeningAftermathForRun(archive, nextIntent),
+    });
     openGame(next, "replay");
   }
 
