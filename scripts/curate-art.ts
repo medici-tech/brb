@@ -310,6 +310,51 @@ function outputPath(key: ArtKey): string {
 /** Tile height, in 16px tiles, of one far-edge wall band (crown + face + base). */
 export const WALL_BAND_TILES = 2;
 
+/**
+ * BRB_ART_DIRECTION.md §6: a room's floor and its wall must differ by at least
+ * 40 points of relative luminance. Target 60+.
+ */
+export const MIN_SHELL_CONTRAST = 40;
+
+/**
+ * Committed relative luminance of every shell tile, measured off the curated PNG
+ * with §6's formula (0.2126R + 0.7152G + 0.0722B) over the wall's FACE rows —
+ * which is what `envWall*` (as opposed to `envWall*Crown`) already is.
+ *
+ * Committed for the same reason `FURNITURE_TILE_SIZE` is committed in
+ * room-recipes.ts: `validateRoomRecipe` runs without the pack, so the contrast
+ * law has to be checkable from data alone. `assertShellContrast` re-measures the
+ * real PNGs whenever the pack IS present, so the two numbers cannot drift.
+ *
+ * §6 records this rule being missed twice — Δ 7.7 in the original single-shell
+ * rooms, then Δ 6 on the first repair attempt, because "structural work with no
+ * measurement behind it can leave the problem exactly where it was."
+ */
+export const SHELL_TILE_LUMINANCE: Partial<Record<ArtKey, number>> = {
+  envFloor: 159.2,
+  envFloorAdmin: 112.3,
+  envFloorWood: 80.2,
+  envFloorWorks: 181.4,
+  envWall: 93.9,
+  envWallPale: 204.0,
+  envWallWarm: 191.4,
+};
+
+/** Luminance drift tolerated between the committed number and the real PNG. */
+const LUMINANCE_TOLERANCE = 1.0;
+
+function shellLuminance(key: ArtKey, recipeKey: string, role: string): number {
+  const committed = SHELL_TILE_LUMINANCE[key];
+  if (committed === undefined) {
+    throw new UsageError(
+      `${recipeKey}: ${role} tile '${key}' has no SHELL_TILE_LUMINANCE entry. `
+        + `Measure it and commit the value so the §6 contrast law stays checkable `
+        + `without the pack.`,
+    );
+  }
+  return committed;
+}
+
 export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
   if (
     !Number.isInteger(recipe.widthTiles)
@@ -432,6 +477,102 @@ export function validateRoomRecipe(recipe: RoomCompositeRecipe): void {
     throw new UsageError(
       `${recipe.key}: manifest geometry must describe the complete 16px-grid room as one frame.`,
     );
+  }
+
+  assertShellContrast(recipe);
+  assertNoFurnitureOverlap(recipe);
+  assertReservedAnchorsClear(recipe);
+}
+
+/**
+ * §6, the contrast law: floor and wall must differ by ≥40 relative-luminance
+ * points. Uses the committed table so this runs without the pack.
+ */
+function assertShellContrast(recipe: RoomCompositeRecipe): void {
+  const floor = shellLuminance(recipe.floorArtKey, recipe.key, "floor");
+  const wall = shellLuminance(recipe.wallFaceArtKey, recipe.key, "wall face");
+  const delta = Math.abs(floor - wall);
+  if (delta < MIN_SHELL_CONTRAST) {
+    throw new UsageError(
+      `${recipe.key}: floor '${recipe.floorArtKey}' (lum ${floor.toFixed(1)}) and wall `
+        + `'${recipe.wallFaceArtKey}' (lum ${wall.toFixed(1)}) differ by only Δ${delta.toFixed(1)}. `
+        + `BRB_ART_DIRECTION.md §6 requires Δ≥${MIN_SHELL_CONTRAST}, target 60+. `
+        + `Below that the shell disappears into the floor and the room reads as `
+        + `"carpet with grey gutters".`,
+    );
+  }
+}
+
+/** Every tile a placement covers, as "x,y" keys. */
+function occupiedTiles(
+  recipe: RoomCompositeRecipe,
+): Map<string, string> {
+  const occupied = new Map<string, string>();
+  for (const placement of recipe.furniture) {
+    for (let dx = 0; dx < placement.widthTiles; dx++) {
+      for (let dy = 0; dy < placement.heightTiles; dy++) {
+        const tile = `${placement.x + dx},${placement.y + dy}`;
+        const previous = occupied.get(tile);
+        if (previous === undefined) {
+          occupied.set(tile, placement.source);
+        } else {
+          occupied.set(tile, `${previous} + ${placement.source}`);
+        }
+      }
+    }
+  }
+  return occupied;
+}
+
+/**
+ * Two baked props may not claim the same tile. Paint order is last-wins, so an
+ * overlap silently truncates whichever prop was placed first — that is how a
+ * worksite sign ended up with its post painted over by a timber stack.
+ */
+function assertNoFurnitureOverlap(recipe: RoomCompositeRecipe): void {
+  const seen = new Map<string, string>();
+  for (const placement of recipe.furniture) {
+    for (let dx = 0; dx < placement.widthTiles; dx++) {
+      for (let dy = 0; dy < placement.heightTiles; dy++) {
+        const tile = `${placement.x + dx},${placement.y + dy}`;
+        const previous = seen.get(tile);
+        if (previous !== undefined && previous !== placement.source) {
+          throw new UsageError(
+            `${recipe.key}: baked furniture overlaps at tile (${tile}) — `
+              + `'${previous}' and '${placement.source}'. Paint order is last-wins, `
+              + `so one of them is silently truncated.`,
+          );
+        }
+        seen.set(tile, placement.source);
+      }
+    }
+  }
+}
+
+/**
+ * §11.4: "Leave the reserved tiles empty." A runtime layer or actor anchored on
+ * top of a baked prop overpaints it at exactly the moment the state it signals
+ * matters — the facility annex shipped a copier under both the Corporation
+ * terminal and the institutional-damage anchor, so three objects piled into one
+ * 2×3 footprint and none of them read.
+ *
+ * Anchors are points, not footprints: the recipe cannot know how large a sprite
+ * a component will attach. A point landing on a baked prop is the signal.
+ */
+function assertReservedAnchorsClear(recipe: RoomCompositeRecipe): void {
+  const occupied = occupiedTiles(recipe);
+  for (const [name, point] of Object.entries(recipe.dynamicOverlayAnchors)) {
+    if (recipe.anchorsAllowedOverFurniture?.includes(name)) continue;
+    const tile = `${point.x},${point.y}`;
+    const source = occupied.get(tile);
+    if (source !== undefined) {
+      throw new UsageError(
+        `${recipe.key}: overlay anchor '${name}' at (${tile}) sits on baked `
+          + `'${source}'. Clear the tile, move the anchor, or — if the prop is `
+          + `meant to be stood on, like a chair — list '${name}' in the recipe's `
+          + `anchorsAllowedOverFurniture with a reason.`,
+      );
+    }
   }
 }
 
@@ -628,6 +769,52 @@ function assertFurnitureGeometry(
   });
 }
 
+/**
+ * Confirm the COMMITTED shell luminance matches the real curated PNG.
+ *
+ * `validateRoomRecipe` checks §6 against `SHELL_TILE_LUMINANCE` so it can run
+ * without the pack; this is the other half, and the same two-sided pattern as
+ * `FURNITURE_TILE_SIZE`/`assertFurnitureGeometry`. A committed number nobody
+ * re-measures is how the Δ 6 pairing shipped the first time.
+ *
+ * The `-colorspace sRGB` is load-bearing, not defensive: `wall-pale.png` is a
+ * Grayscale-type PNG, and ImageMagick reports `mean.g`/`mean.b` as 0 for those.
+ * Without the conversion this measures its luminance as 43 instead of 204.
+ */
+function assertShellLuminance(
+  recipe: RoomCompositeRecipe,
+  identifyCmd: string[],
+): void {
+  for (const [role, key] of [
+    ["floor", recipe.floorArtKey],
+    ["wall face", recipe.wallFaceArtKey],
+  ] as const) {
+    const committed = shellLuminance(key, recipe.key, role);
+    const raw = execFileSync(
+      identifyCmd[0]!,
+      [
+        ...identifyCmd.slice(1),
+        "-colorspace",
+        "sRGB",
+        "-format",
+        "%[fx:mean.r] %[fx:mean.g] %[fx:mean.b]",
+        outputPath(key),
+      ],
+      { encoding: "utf8" },
+    );
+    const [r, g, b] = raw.trim().split(/\s+/).map(Number) as [number, number, number];
+    const measured = (0.2126 * r + 0.7152 * g + 0.0722 * b) * 255;
+    if (Math.abs(measured - committed) > LUMINANCE_TOLERANCE) {
+      throw new UsageError(
+        `${recipe.key}: ${role} tile '${key}' measures lum ${measured.toFixed(1)} on disk `
+          + `but SHELL_TILE_LUMINANCE commits ${committed.toFixed(1)}. Re-measure and update `
+          + `the table (and BRB_ART_DIRECTION.md §4) — the §6 contrast check is only as `
+          + `good as these numbers.`,
+      );
+    }
+  }
+}
+
 function curateRoom(
   key: RoomCompositeKey,
   convertCmd: string[],
@@ -635,6 +822,7 @@ function curateRoom(
 ): void {
   const recipe = ROOM_RECIPES[key];
   validateRoomRecipe(recipe);
+  assertShellLuminance(recipe, identifyCmd);
   const dest = outputPath(key);
   mkdirSync(path.dirname(dest), { recursive: true });
 

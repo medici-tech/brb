@@ -5,7 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 import { ArchiveView } from "../../src/components/brb/ArchiveView.js";
 import { CampaignScreen } from "../../src/components/brb/CampaignScreen.js";
 import { DeclassifiedReportView } from "../../src/components/brb/DeclassifiedReportView.js";
-import { commitAction, createEmptyArchive, createGame } from "../../src/game/index.js";
+import {
+  LEGACY_DIRECTIVE_IDS,
+  commitAction,
+  createEmptyArchive,
+  createGame,
+} from "../../src/game/index.js";
 import type { DeclassifiedReport } from "../../src/game/types.js";
 
 function reportFixture(): DeclassifiedReport {
@@ -340,6 +345,35 @@ describe("campaign replay UI", () => {
     expect(screen.getByText(/this seeded draft is fixed/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /preserve continuity freeze order/i }));
     expect(claim).toHaveBeenCalledWith("continuity_freeze_order");
+  });
+
+  it("reports Clearance only when the campaign actually awards it", () => {
+    const earningArchive = createEmptyArchive();
+    const { unmount } = render(
+      <DeclassifiedReportView
+        report={reportFixture()}
+        archive={earningArchive}
+        onTestTheory={vi.fn()}
+        onOpenNewFile={vi.fn()}
+        onArchive={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/clearance \+2 \(progress to next directive unlock\)/i)).toBeInTheDocument();
+    unmount();
+
+    const completeArchive = createEmptyArchive();
+    completeArchive.unlockedDirectiveIds = [...LEGACY_DIRECTIVE_IDS];
+    render(
+      <DeclassifiedReportView
+        report={reportFixture()}
+        archive={completeArchive}
+        onTestTheory={vi.fn()}
+        onOpenNewFile={vi.fn()}
+        onArchive={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/clearance no longer accumulates/i)).toBeInTheDocument();
+    expect(screen.queryByText(/clearance \+2/i)).not.toBeInTheDocument();
   });
 
   it("marks reports from older rules without rewriting their recorded ending", () => {

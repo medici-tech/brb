@@ -126,13 +126,26 @@ Placement follows the same split: wall-mounted objects (maps, boards, screens,
 consoles, notice cabinets, extinguishers) anchor at y=0 or y=1 so they sit inside
 the far-edge band; free-standing furniture starts at y=2 or below.
 
-Two pack-shape traps are worth knowing before adding furniture. Many
+Three pack-shape traps are worth knowing before adding furniture. Many
 conference-hall singles are **fragments of a larger assembly** — 1 and 6 are the
 end caps of a table run and 14–17 are angled corner leaves, so used as
-free-standing props they render as lumpy blobs and floating slivers. And the
+free-standing props they render as lumpy blobs and floating slivers. The
 interiors pack has **no utility theme**: its "Basement" sorter is a rec room of
 pool tables, cushions and dart boards. Worksite and perimeter stock comes from
 Modern Exteriors' `8_Worksite_Singles_16x16` instead.
+
+And **Modern Office is not shaped like the other packs.** It ships two forms of
+the same art, and only one of them is a curation source:
+
+| Form | Shape | Use |
+| --- | --- | --- |
+| `4_Modern_Office_singles/16x16/` (339 PNGs) | Every file padded to a uniform 32×48 canvas, art at an arbitrary sub-tile offset (only 108 of 339 start on a 16px boundary in both axes). Shadowless — 2 of 339 files contain a semi-transparent pixel. | **Survey index only.** `npm run art:contact-sheets modern-office-singles` |
+| `2_Modern_Office_Black_Shadow/Modern_Office_Black_Shadow.png` | 256×848, a 16×53 tile grid, carrying the drop shadows the rest of BRB's furniture has (4,854 semi-transparent px against 490 in the identically-sized shadowless sheet). | **Curation source**, addressed by crop rectangle. `npm run art:contact-sheets modern-office-sheet` gives the labelled tile grid. |
+
+Curating the padded singles instead would report a 2×3 footprint for every prop
+regardless of its real size, which is the number `FURNITURE_TILE_SIZE` and the
+recipe overlap check both depend on — and it would drop shadowless props into
+rooms furnished entirely from `Theme_Sorter_Black_Shadow_Singles`.
 
 Because `FURNITURE_TILE_SIZE` is hand-maintained so recipes can be validated
 without the pack, `curate-art.ts` re-checks every placement's committed size
@@ -247,8 +260,10 @@ debris/damage, Corporation presence, and BRB machinery stages. Visible in-room c
 operations tables built in CSS, oversized silhouettes, and monitor text plates are out of
 scope.
 
-`/dev/control-room` previews the facility across presentation states. The route remains
-excluded from production builds.
+`/dev/control-room` previews the facility through **named reachable fixtures**
+(`presentationFixtures.ts` → `resolvePresentationModel`). There is no free-form
+slider matrix — each look is legal campaign-shaped `PresentationInputs`. The
+route remains excluded from production builds.
 
 ## Narrative scene architecture
 
@@ -326,9 +341,24 @@ npm run art:verify
 npm run dev
 ```
 
-Use `/dev/control-room` in development to review every presentation state, tempo,
-BRB stage, structural condition, Corporation-presence tier, occupancy mode, departed
-advisor combination, ending, active-Situation framing, and reduced-motion mode.
+Use `/dev/control-room` in development to step the fixture catalog (not a slider
+matrix). Reduced motion defaults **on** for stable screenshots; turn it off only
+when reviewing motion. Current fixtures:
+
+| id | What it proves |
+| --- | --- |
+| `calm-early` | Baseline calm operations |
+| `strained-mid` | Strained grade + working paper |
+| `crisis-situation` | Crisis Situation framing |
+| `corporate-embedded` | Encroachment + embedded Corporation |
+| `institutions-breached` | Failure + structural damage |
+| `brb-infrastructure` / `brb-construction` / `brb-unstable` / `brb-activation` | BRB stage ladder |
+| `consult-analyst` | Consultation shot + analysis station |
+| `ending-civic` | Civic Legacy ending tableau |
+| `worst-case-audit` | Saturated / breached / embedded / unstable recomposition |
+
+The contract readout lists resolved `state`, `lighting`, `shot`, `tempo`, staff,
+paper, BRB stage, and `data-*` expectations for the selected fixture.
 
 Final verification:
 

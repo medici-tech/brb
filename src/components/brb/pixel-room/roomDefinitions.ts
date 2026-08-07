@@ -97,7 +97,9 @@ export const ROOM_DEFINITIONS = {
     anchors: {
       clerk: { x: 6, y: 6 },
       evidenceA: { x: 2, y: 7 },
-      evidenceB: { x: 10, y: 7 },
+      // Beside the desk at (10,5)–(11,7), not on it: the runtime safe used to be
+      // anchored at (10,7) and was drawn over the desk's bottom row (§11.4).
+      evidenceB: { x: 9, y: 7 },
       evidenceEquipment: { x: 8, y: 5 },
       shelfA: { x: 3, y: 2 },
       shelfB: { x: 6, y: 2 },

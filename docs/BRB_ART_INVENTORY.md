@@ -90,7 +90,7 @@ playback can freeze for reduced motion, while GIF playback cannot.
 | Aftermath dialog | Six fixed 14×10 orthographic rooms via shared recipes/`PixelRoom`. Actor and prop positions use integer tile coordinates. Setup → Action → Consequence text and controls stay below the scene; no in-room actor labels. |
 | Report and Archive | Shared records-office base (`roomRecords`). Report shows completed-run evidence load; Archive fills shelves/boxes from recovered knowledge without changing Archive mechanics or odds. |
 | Playtest Journal / design-system placeholders | No player-facing art requirement; leave internal tools outside the artwork scope. |
-| `/dev/control-room` | Development preview of the facility and state matrix; excluded from production. |
+| `/dev/control-room` | Development preview via named reachable fixtures (`presentationFixtures.ts`); excluded from production. |
 
 Known missing or in-progress states:
 

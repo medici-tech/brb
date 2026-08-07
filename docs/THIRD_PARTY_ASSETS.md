@@ -16,7 +16,9 @@ The font packages are not runtime or development dependencies. Their selected fi
 
 ## Game art (LimeZu — not committed)
 
-BRB's pixel art comes from **LimeZu** (https://limezu.itch.io): the *Modern Interiors*, *Modern Exteriors*, and *Character Generator* **full-version** packs. Credit to LimeZu (limezu.itch.io) is required by their license.
+BRB's pixel art comes from **LimeZu** (https://limezu.itch.io): the *Modern Interiors*, *Modern Exteriors*, *Modern Office* (Revamped v1.2), and *Character Generator* **full-version** packs. Credit to LimeZu (limezu.itch.io) is required by their license.
+
+Modern Office carries its own `LICENSE.txt` with the same terms as the others — commercial use permitted, resale and redistribution prohibited — so it is handled identically: local-only source, gitignored, never committed. Curate from `2_Modern_Office_Black_Shadow/Modern_Office_Black_Shadow.png`, not from `4_Modern_Office_singles/`; the singles are shadowless and padded to a uniform 32×48 canvas, and BRB's furniture is uniformly black-shadow. See `BRB_ART_PIPELINE.md`.
 
 Player-facing screens expose a **Credits** dialog that lists only the LimeZu packs currently represented by `src/game-art/manifest.ts` (via `src/game-art/credits.ts`). Packs owned but unused by the runtime manifest stay out of the dialog until curated keys map to them.
 

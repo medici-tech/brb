@@ -52,7 +52,7 @@ Assume the maintainer is still learning React and Next.js. When handing off work
 8. `docs/BRB_ART_DIRECTION.md` is binding for anything visual. Read Part 0 before
    touching an asset.
 
-`docs/BRB_CURRENT_AUDIT.md` is a dated implementation and delivery-risk snapshot. Use it to identify things to recheck, not as proof that a failure or test count is still current.
+`docs/BRB_CURRENT_AUDIT.md` is a dated implementation and delivery-risk snapshot. Use it to identify things to recheck, not as proof that a failure or test count is still current. `docs/BRB_ART_AUDIT_2026-08-06.md` is the equivalent snapshot for artwork, measured against the art bible; the same caveat applies.
 
 Files under `docs/archive/` are historical evidence only. Never restore their idle timers, Vite architecture, old resource model, Doomsday systems, or “canonical” terminology without an explicit new design decision.
 

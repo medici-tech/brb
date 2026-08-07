@@ -9,6 +9,7 @@ import {
 } from "../../game/replay";
 import {
   ADVISOR_IDS,
+  LEGACY_DIRECTIVE_IDS,
   RESOURCE_KEYS,
   TRACK_KEYS,
   type ArchiveV1,
@@ -68,6 +69,9 @@ export function DeclassifiedReportView({
   const resultLabel = getEndingResultLabel(report.ending.id);
   const clearanceGain = getClearanceGainForEnding(report.ending.id);
   const legacyReport = report.rulesVersion < REPORT_RULES_VERSION;
+  const clearanceStillAvailable = archive
+    ? archive.unlockedDirectiveIds.length < LEGACY_DIRECTIVE_IDS.length
+    : false;
   return (
     <main className="shell report-shell">
       <header className="masthead">
@@ -118,7 +122,9 @@ export function DeclassifiedReportView({
 
         {archive && !legacyReport ? (
           <p className="mt-4 mb-0 text-sm leading-6 text-dossier-ink/80">
-            Clearance +{clearanceGain} (progress to next Directive unlock).
+            {clearanceStillAvailable
+              ? `Clearance +${clearanceGain} (progress to next Directive unlock).`
+              : "Every Legacy Directive is unlocked, so Clearance no longer accumulates."}
             {report.ending.id === "compromised_activation"
               ? ` Aftermath recorded: next campaign starts with Panic +${NECESSARY_REGIME_AFTERMATH_PANIC}.`
               : null}

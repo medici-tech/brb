@@ -4,7 +4,11 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CampaignScreen } from "../../src/components/brb/CampaignScreen.js";
 import { ControlRoomPresentation } from "../../src/components/brb/control-room/ControlRoomPresentation.js";
-import { resolveLighting } from "../../src/components/brb/control-room/presentationStateResolver.js";
+import { getPresentationFixture } from "../../src/components/brb/control-room/presentationFixtures.js";
+import {
+  resolveLighting,
+  resolvePresentationModel,
+} from "../../src/components/brb/control-room/presentationStateResolver.js";
 import type {
   BrbVisualStage,
   PresentationModel,
@@ -420,6 +424,85 @@ describe("Living Control Room UI", () => {
       ).not.toBeNull();
     }
     expect(scenario.model).toEqual(before);
+  });
+
+  it("renders calm-early fixture with no BRB machinery and sealed stage", () => {
+    const fixture = getPresentationFixture("calm-early");
+    const model = resolvePresentationModel(fixture.inputs);
+    const { container } = render(
+      <ControlRoomPresentation
+        model={model}
+        turn={fixture.inputs.turn}
+        hasActiveSituation={fixture.hasActiveSituation}
+        reducedMotionOverride
+      />,
+    );
+
+    const room = screen.getByLabelText(/living control room/i);
+    expect(room).toHaveAttribute("data-presentation-state", "calm");
+    expect(room).toHaveAttribute("data-brb-stage", "sealed");
+    expect(room).toHaveAttribute("data-paper-load", "sparse");
+    expect(room).toHaveAttribute("data-staff-mode", "full");
+    expect(room).toHaveAttribute("data-motion", "reduced");
+    expect(
+      container.querySelector('[data-room-object="brb-machinery"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-room-object="corporation-presence"]'),
+    ).toBeNull();
+  });
+
+  it("renders corporate-embedded fixture with Corporation terminal layers", () => {
+    const fixture = getPresentationFixture("corporate-embedded");
+    const model = resolvePresentationModel(fixture.inputs);
+    const { container } = render(
+      <ControlRoomPresentation
+        model={model}
+        turn={fixture.inputs.turn}
+        hasActiveSituation={fixture.hasActiveSituation}
+        reducedMotionOverride
+      />,
+    );
+
+    const room = screen.getByLabelText(/living control room/i);
+    expect(room).toHaveAttribute(
+      "data-presentation-state",
+      "corporate-encroachment",
+    );
+    expect(room).toHaveAttribute("data-corporation-presence", "embedded");
+    expect(
+      container.querySelector('[data-room-object="corporation-presence"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-room-actor="corporation-officer"]'),
+    ).not.toBeNull();
+  });
+
+  it("renders institutions-breached fixture with damage and skeleton staff", () => {
+    const fixture = getPresentationFixture("institutions-breached");
+    const model = resolvePresentationModel(fixture.inputs);
+    const { container } = render(
+      <ControlRoomPresentation
+        model={model}
+        turn={fixture.inputs.turn}
+        hasActiveSituation={fixture.hasActiveSituation}
+        reducedMotionOverride
+      />,
+    );
+
+    const room = screen.getByLabelText(/living control room/i);
+    expect(room).toHaveAttribute(
+      "data-presentation-state",
+      "institutional-failure",
+    );
+    expect(room).toHaveAttribute("data-staff-mode", "skeleton");
+    expect(room).toHaveAttribute("data-institutional-condition", "breached");
+    expect(
+      container.querySelector('[data-room-object="architectural-damage"]'),
+    ).not.toBeNull();
+    expect(container.querySelector('[data-room-actor="fixer"]')).not.toBeNull();
+    expect(container.querySelector('[data-room-actor="analyst"]')).toBeNull();
+    expect(container.querySelector('[data-room-actor="steward"]')).toBeNull();
   });
 
   it("shows a transient Corporation channel without promoting persistent presence", () => {

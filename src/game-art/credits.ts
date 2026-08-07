@@ -11,6 +11,7 @@ import { ART, type ArtKey } from "./manifest";
 export type LimeZuPackId =
   | "modern_interiors"
   | "modern_exteriors"
+  | "modern_office"
   | "character_generator";
 
 export type LimeZuPackCredit = {
@@ -43,6 +44,13 @@ export const LIMEZU_PACK_CATALOG: readonly LimeZuPackCredit[] = [
     name: "Modern Exteriors (full version)",
     url: "https://limezu.itch.io/modernexteriors",
     usage: "Exterior civic and infrastructure locations.",
+  },
+  {
+    id: "modern_office",
+    name: "Modern Office (Revamped v1.2)",
+    url: "https://limezu.itch.io/modernoffice",
+    usage:
+      "Office furniture, workstations, paper and evidence load states, and equipment cabinets.",
   },
   {
     id: "character_generator",
